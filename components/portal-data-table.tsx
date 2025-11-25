@@ -3,6 +3,7 @@
 import { useState } from "react"
 import {
   ColumnDef,
+  Column,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -23,7 +24,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const createSortableHeader = (
-  column: any,
+  column: Column<PortalData, unknown>,
   label: string
 ) => {
   return (
@@ -43,6 +44,7 @@ const createSortableHeader = (
     </Button>
   )
 }
+
 
 const columns: ColumnDef<PortalData>[] = [
   {

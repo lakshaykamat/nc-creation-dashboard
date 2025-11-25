@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { useFilteredPortalData, PortalDataError } from "@/hooks/use-portal-data"
+import { useFilteredPortalData, PortalDataError, PortalData } from "@/hooks/use-portal-data"
 import { PortalDataTable } from "@/components/portal-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, ExternalLink } from "lucide-react"
+import { RefreshCw, ExternalLink, Copy } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -37,6 +37,7 @@ export function PortalDataContent({
   } = useFilteredPortalData()
   const [isPortalOpen, setIsPortalOpen] = useState(false)
   const [isPortalLoading, setIsPortalLoading] = useState(false)
+  const [copied, setCopied] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const handleViewPortal = () => {
@@ -45,6 +46,33 @@ export function PortalDataContent({
     }
     setIsPortalLoading(true)
     setIsPortalOpen(true)
+  }
+
+  const handleCopyAllRows = async () => {
+    if (filteredData.length === 0) return
+    
+    // Sort by doneBy (name), then by articleId
+    const sortedRows = [...filteredData].sort((a, b) => {
+      const nameA = (a.doneBy || "").toLowerCase()
+      const nameB = (b.doneBy || "").toLowerCase()
+      if (nameA !== nameB) {
+        return nameA.localeCompare(nameB)
+      }
+      return a.articleId.localeCompare(b.articleId)
+    })
+    
+    // Format: ARTICLE ID NAME (one per line)
+    const textToCopy = sortedRows
+      .map((row) => `${row.articleId} ${row.doneBy || ""}`.trim())
+      .join("\n")
+    
+    try {
+      await navigator.clipboard.writeText(textToCopy)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error("Failed to copy:", err)
+    }
   }
 
   useEffect(() => {
@@ -192,6 +220,15 @@ export function PortalDataContent({
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${isRefetchingFromHook ? "animate-spin" : ""}`} />
           Refresh
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleCopyAllRows}
+          disabled={filteredData.length === 0}
+          title={filteredData.length > 0 ? "Copy article IDs and names (sorted by name)" : "No data to copy"}
+        >
+          <Copy className="h-4 w-4 mr-2" />
+          {copied ? "Copied" : "Copy"}
         </Button>
         <Button
           variant="outline"
