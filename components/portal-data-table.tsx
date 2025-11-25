@@ -99,13 +99,13 @@ const columns: ColumnDef<PortalData>[] = [
   {
     accessorKey: "src",
     header: ({ column }) => createSortableHeader(column, "SRC"),
-    cell: ({ row }) => <div className="text-center">{row.getValue("src")}</div>,
+    cell: ({ row }) => <div>{row.getValue("src")}</div>,
     size: 70,
   },
   {
     accessorKey: "msp",
     header: ({ column }) => createSortableHeader(column, "MSP"),
-    cell: ({ row }) => <div className="text-center">{row.getValue("msp")}</div>,
+    cell: ({ row }) => <div>{row.getValue("msp")}</div>,
     size: 70,
   },
   {
@@ -277,7 +277,7 @@ export function PortalDataTable({ data, globalFilter, onColumnsChange }: PortalD
   }
 
   return (
-    <div className="rounded-b-md border-x border-b w-full overflow-hidden">
+    <div className="rounded-md border-x border-b w-full overflow-hidden">
       <div className="overflow-x-auto">
         <Table className="w-full" style={{ minWidth: "max-content" }}>
         <TableHeader>
