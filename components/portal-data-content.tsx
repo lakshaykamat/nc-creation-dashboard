@@ -238,10 +238,12 @@ export function PortalDataContent({
           </Button>
         </div>
       </div>
-      <PortalDataTable
-        data={filteredData}
-        globalFilter={globalFilter}
-      />
+      <div className="mt-4">
+        <PortalDataTable
+          data={filteredData}
+          globalFilter={globalFilter}
+        />
+      </div>
     </div>
   )
 }
