@@ -1,18 +1,12 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { useFilteredPortalData, PortalDataError, PortalData } from "@/hooks/use-portal-data"
+import { useState } from "react"
+import { useFilteredPortalData, PortalDataError } from "@/hooks/use-portal-data"
 import { PortalDataTable } from "@/components/portal-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, ExternalLink, Copy, FileCode, Columns, EyeOff } from "lucide-react"
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
+import { RefreshCw, Copy, FileCode, EyeOff } from "lucide-react"
 
 interface PortalDataContentProps {
   globalFilter: string
@@ -27,28 +21,18 @@ export function PortalDataContent({
     data: filteredData,
     allData: data,
     message,
-    html,
     isLoading,
     error,
     showTexRows,
     setShowTexRows,
     showQARows,
     setShowQARows,
+    hasTexRows,
+    hasQARows,
     refetch: refetchFromHook,
     isRefetching: isRefetchingFromHook,
   } = useFilteredPortalData()
-  const [isPortalOpen, setIsPortalOpen] = useState(false)
-  const [isPortalLoading, setIsPortalLoading] = useState(false)
   const [copied, setCopied] = useState(false)
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-
-  const handleViewPortal = () => {
-    if (!html) {
-      return
-    }
-    setIsPortalLoading(true)
-    setIsPortalOpen(true)
-  }
 
   const handleCopyAllRows = async () => {
     if (filteredData.length === 0) return
@@ -77,21 +61,6 @@ export function PortalDataContent({
     }
   }
 
-  useEffect(() => {
-    if (isPortalOpen && html) {
-      // For srcDoc, content is set immediately, so use a short delay to show loading
-      // then clear it to reveal the iframe content
-      const timeout = setTimeout(() => {
-        setIsPortalLoading(false)
-      }, 300)
-      
-      return () => {
-        clearTimeout(timeout)
-      }
-    } else if (!isPortalOpen) {
-      setIsPortalLoading(false)
-    }
-  }, [isPortalOpen, html])
 
   if (isLoading) {
     return (
@@ -162,21 +131,6 @@ export function PortalDataContent({
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefetchingFromHook ? "animate-spin" : ""}`} />
             Refresh
           </Button>
-          <Button
-            variant="outline"
-            onClick={handleViewPortal}
-            disabled={!html}
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            View Portal Here
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setShowTexRows(!showTexRows)}
-            disabled={!data || data.length === 0}
-          >
-            {showTexRows ? "Hide" : "Show"} TEX
-          </Button>
         </div>
         <div className="rounded-lg border border-muted bg-muted/50 p-6">
           <div className="flex items-center gap-3">
@@ -240,33 +194,23 @@ export function PortalDataContent({
           </Button>
           <Button
             variant="outline"
-            onClick={handleViewPortal}
-            disabled={!html}
-            className="w-full sm:w-auto"
-            size="sm"
-            title="Open portal in sidebar"
-          >
-            <ExternalLink className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Open Portal</span>
-            <span className="sm:hidden">Portal</span>
-          </Button>
-          <Button
-            variant="outline"
             onClick={() => setShowTexRows(!showTexRows)}
+            disabled={!hasTexRows}
             className="w-full sm:w-auto"
             size="sm"
-            title={showTexRows ? "Hide TEX source files" : "Show TEX source files"}
+            title={hasTexRows ? (showTexRows ? "Hide TEX files" : "Show TEX files") : "No TEX files available"}
           >
             <FileCode className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">{showTexRows ? "Hide" : "Show"} TEX</span>
+            <span className="hidden sm:inline">{showTexRows ? "Hide" : "Show"} TEX Files</span>
             <span className="sm:hidden">{showTexRows ? "Hide" : "Show"} TEX</span>
           </Button>
           <Button
             variant="outline"
             onClick={() => setShowQARows(!showQARows)}
+            disabled={!hasQARows}
             className="w-full sm:w-auto"
             size="sm"
-            title={showQARows ? "Hide QA files" : "Show QA files"}
+            title={hasQARows ? (showQARows ? "Hide QA files" : "Show QA files") : "No QA files available"}
           >
             <EyeOff className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">{showQARows ? "Hide" : "Show"} QA Files</span>
@@ -278,39 +222,6 @@ export function PortalDataContent({
         data={filteredData}
         globalFilter={globalFilter}
       />
-      <Sheet 
-        open={isPortalOpen} 
-        onOpenChange={setIsPortalOpen}
-      >
-        <SheetContent side="right" className="w-full sm:max-w-4xl p-0">
-          <SheetHeader className="p-4 border-b">
-            <SheetTitle>Portal View</SheetTitle>
-          </SheetHeader>
-          <div className="h-[calc(100vh-5rem)] w-full relative">
-            {isPortalLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
-                <div className="flex flex-col items-center gap-2">
-                  <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">Loading Portal...</p>
-                </div>
-              </div>
-            )}
-            {html ? (
-              <iframe
-                ref={iframeRef}
-                srcDoc={html}
-                className="w-full h-full border-0"
-                title="Portal Content"
-                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-sm text-muted-foreground">No portal content available</p>
-              </div>
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   )
 }

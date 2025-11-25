@@ -183,6 +183,15 @@ export function useFilteredPortalData() {
     return result
   }, [data, showTexRows, showQARows])
 
+  // Check if there are any TEX or QA rows in the data
+  const hasTexRows = useMemo(() => {
+    return data.some((item: PortalData) => item.src === "TEX")
+  }, [data])
+
+  const hasQARows = useMemo(() => {
+    return data.some((item: PortalData) => item.isInQA === true)
+  }, [data])
+
   return {
     data: filteredData,
     allData: data,
@@ -194,6 +203,8 @@ export function useFilteredPortalData() {
     setShowTexRows,
     showQARows,
     setShowQARows,
+    hasTexRows,
+    hasQARows,
     refetch,
     isRefetching,
   }
