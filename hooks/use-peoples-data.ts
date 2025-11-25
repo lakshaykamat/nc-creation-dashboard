@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 export type PeopleData = {
@@ -101,5 +102,77 @@ export function usePeopleData() {
     refetchOnWindowFocus: false,
     retry: 1,
   })
+}
+
+type DateFilter = "today" | "yesterday" | "all"
+
+export function useFilteredPeopleData() {
+  const { data: response, isLoading, error, refetch, isRefetching } = usePeopleData()
+  const [dateFilter, setDateFilter] = useState<DateFilter>("today")
+
+  const allData = response?.data || []
+  const message = response?.message
+
+  // Filter data by date
+  const filteredByDate = useMemo(() => {
+    if (dateFilter === "all") return allData
+
+    const today = new Date()
+    const yesterday = new Date(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+
+    const formatDate = (date: Date) => {
+      const day = String(date.getDate()).padStart(2, "0")
+      const month = String(date.getMonth() + 1).padStart(2, "0")
+      const year = date.getFullYear()
+      return `${day}/${month}/${year}`
+    }
+
+    const targetDate = dateFilter === "today" ? formatDate(today) : formatDate(yesterday)
+
+    return allData.filter((item) => item.Date === targetDate)
+  }, [allData, dateFilter])
+
+  // Group data by "Done by" (case-insensitive, trimmed)
+  const groupedByPerson = useMemo(() => {
+    const grouped: Record<string, typeof filteredByDate> = {}
+    const nameMap: Record<string, string> = {} // Maps normalized name to original name
+    
+    filteredByDate.forEach((item) => {
+      const originalName = item["Done by"] || "Unknown"
+      const normalizedName = originalName.trim().toLowerCase() || "unknown"
+      
+      // Use the first occurrence's original name as the display name
+      if (!nameMap[normalizedName]) {
+        nameMap[normalizedName] = originalName.trim() || "Unknown"
+      }
+      
+      if (!grouped[normalizedName]) {
+        grouped[normalizedName] = []
+      }
+      grouped[normalizedName].push(item)
+    })
+    
+    // Convert to use original names as keys
+    const result: Record<string, typeof filteredByDate> = {}
+    Object.entries(grouped).forEach(([normalizedKey, items]) => {
+      result[nameMap[normalizedKey]] = items
+    })
+    
+    return result
+  }, [filteredByDate])
+
+  return {
+    data: filteredByDate,
+    allData,
+    message,
+    isLoading,
+    error,
+    dateFilter,
+    setDateFilter,
+    groupedByPerson,
+    refetch,
+    isRefetching,
+  }
 }
 

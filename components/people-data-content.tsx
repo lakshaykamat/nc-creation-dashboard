@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useMemo, useRef, useEffect } from "react"
-import { usePeopleData, PeopleDataError, PeopleData } from "@/hooks/use-peoples-data"
+import { useState, useRef, useEffect } from "react"
+import { useFilteredPeopleData, PeopleDataError, PeopleData } from "@/hooks/use-peoples-data"
 import { PeopleDataTable } from "@/components/people-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
@@ -15,8 +15,6 @@ interface PeopleDataContentProps {
   onGlobalFilterChange: (value: string) => void
   showChart?: boolean
 }
-
-type DateFilter = "today" | "yesterday" | "all"
 
 interface PersonCardProps {
   personName: string
@@ -148,69 +146,17 @@ export function PeopleDataContent({
   onGlobalFilterChange,
 }: PeopleDataContentProps) {
   const {
-    data: response,
+    data,
+    message,
     isLoading,
     error,
+    dateFilter,
+    setDateFilter,
+    groupedByPerson,
     refetch: refetchFromHook,
     isRefetching: isRefetchingFromHook,
-  } = usePeopleData()
+  } = useFilteredPeopleData()
   const [copied, setCopied] = useState(false)
-  const [dateFilter, setDateFilter] = useState<DateFilter>("today")
-
-  const allData = response?.data || []
-  const message = response?.message
-
-  // Filter data by date
-  const filteredByDate = useMemo(() => {
-    if (dateFilter === "all") return allData
-
-    const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
-
-    const formatDate = (date: Date) => {
-      const day = String(date.getDate()).padStart(2, "0")
-      const month = String(date.getMonth() + 1).padStart(2, "0")
-      const year = date.getFullYear()
-      return `${day}/${month}/${year}`
-    }
-
-    const targetDate = dateFilter === "today" ? formatDate(today) : formatDate(yesterday)
-
-    return allData.filter((item) => item.Date === targetDate)
-  }, [allData, dateFilter])
-
-  // Group data by "Done by" (case-insensitive, trimmed)
-  const groupedByPerson = useMemo(() => {
-    const grouped: Record<string, typeof filteredByDate> = {}
-    const nameMap: Record<string, string> = {} // Maps normalized name to original name
-    
-    filteredByDate.forEach((item) => {
-      const originalName = item["Done by"] || "Unknown"
-      const normalizedName = originalName.trim().toLowerCase() || "unknown"
-      
-      // Use the first occurrence's original name as the display name
-      if (!nameMap[normalizedName]) {
-        nameMap[normalizedName] = originalName.trim() || "Unknown"
-      }
-      
-      if (!grouped[normalizedName]) {
-        grouped[normalizedName] = []
-      }
-      grouped[normalizedName].push(item)
-    })
-    
-    // Convert to use original names as keys
-    const result: Record<string, typeof filteredByDate> = {}
-    Object.entries(grouped).forEach(([normalizedKey, items]) => {
-      result[nameMap[normalizedKey]] = items
-    })
-    
-    return result
-  }, [filteredByDate])
-
-  // Use filtered data for table
-  const data = filteredByDate
 
   const handleCopyAllRows = async () => {
     if (data.length === 0) return
@@ -528,7 +474,6 @@ export function PeopleDataContentWithChart({
     <PeopleDataContent
       globalFilter={globalFilter}
       onGlobalFilterChange={onGlobalFilterChange}
-      showChart={showChart}
     />
   )
 }
