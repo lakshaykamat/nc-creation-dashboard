@@ -29,6 +29,8 @@ export function PortalDataContent({
     setShowQARows,
     hasTexRows,
     hasQARows,
+    texRowCount,
+    qaRowCount,
     refetch: refetchFromHook,
     isRefetching: isRefetchingFromHook,
   } = useFilteredPortalData()
@@ -221,8 +223,8 @@ export function PortalDataContent({
             title={hasTexRows ? (showTexRows ? "Hide TEX files" : "Show TEX files") : "No TEX files available"}
           >
             <FileCode className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">{showTexRows ? "Hide" : "Show"} TEX Files</span>
-            <span className="sm:hidden">{showTexRows ? "Hide" : "Show"} TEX</span>
+            <span className="hidden sm:inline">{showTexRows ? "Hide" : "Show"} TEX Files ({texRowCount})</span>
+            <span className="sm:hidden">{showTexRows ? "Hide" : "Show"} TEX ({texRowCount})</span>
           </Button>
           <Button
             variant="outline"
@@ -233,8 +235,8 @@ export function PortalDataContent({
             title={hasQARows ? (showQARows ? "Hide QA files" : "Show QA files") : "No QA files available"}
           >
             <EyeOff className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">{showQARows ? "Hide" : "Show"} QA Files</span>
-            <span className="sm:hidden">{showQARows ? "Hide" : "Show"} QA</span>
+            <span className="hidden sm:inline">{showQARows ? "Hide" : "Show"} QA Files ({qaRowCount})</span>
+            <span className="sm:hidden">{showQARows ? "Hide" : "Show"} QA ({qaRowCount})</span>
           </Button>
         </div>
       </div>

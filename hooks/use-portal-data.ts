@@ -192,6 +192,15 @@ export function useFilteredPortalData() {
     return data.some((item: PortalData) => item.isInQA === true)
   }, [data])
 
+  // Count TEX and QA rows
+  const texRowCount = useMemo(() => {
+    return data.filter((item: PortalData) => item.src === "TEX").length
+  }, [data])
+
+  const qaRowCount = useMemo(() => {
+    return data.filter((item: PortalData) => item.isInQA === true).length
+  }, [data])
+
   return {
     data: filteredData,
     allData: data,
@@ -205,6 +214,8 @@ export function useFilteredPortalData() {
     setShowQARows,
     hasTexRows,
     hasQARows,
+    texRowCount,
+    qaRowCount,
     refetch,
     isRefetching,
   }
