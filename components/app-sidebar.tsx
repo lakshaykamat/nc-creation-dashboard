@@ -1,5 +1,8 @@
+"use client"
+
 import * as React from "react"
 import { Sparkles } from "lucide-react"
+import { usePathname } from "next/navigation"
 
 import {
   Sidebar,
@@ -15,6 +18,8 @@ import {
 } from "@/components/ui/sidebar"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname()
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -29,8 +34,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive>
-                  <a href="#">Portal Sheet</a>
+                <SidebarMenuButton asChild isActive={pathname === "/"}>
+                  <a href="/">Portal Sheet</a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === "/peoples"}>
+                  <a href="/peoples">Peoples</a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
