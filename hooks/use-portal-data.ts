@@ -14,6 +14,7 @@ export type PortalData = {
   assignDate: string
   dueDate: string
   priority: string
+  isInQA?: boolean
 }
 
 export type PortalDataError = {
@@ -157,6 +158,7 @@ export function usePortalData() {
 export function useFilteredPortalData() {
   const { data: response, isLoading, error, refetch, isRefetching } = usePortalData()
   const [showTexRows, setShowTexRows] = useState(false)
+  const [showQARows, setShowQARows] = useState(false)
   
   // Extract data, message, and html from response
   const data = response?.data || []
@@ -164,11 +166,22 @@ export function useFilteredPortalData() {
   const html = response?.html
 
   // Filter out TEX rows by default (when showTexRows is false)
+  // Filter out QA rows by default (when showQARows is false)
   const filteredData = useMemo(() => {
-    return showTexRows 
-      ? data 
-      : data.filter((item: PortalData) => item.src !== "TEX")
-  }, [data, showTexRows])
+    let result = data
+    
+    // Filter TEX rows
+    if (!showTexRows) {
+      result = result.filter((item: PortalData) => item.src !== "TEX")
+    }
+    
+    // Filter QA rows (hide rows where isInQA is true when showQARows is false)
+    if (!showQARows) {
+      result = result.filter((item: PortalData) => item.isInQA !== true)
+    }
+    
+    return result
+  }, [data, showTexRows, showQARows])
 
   return {
     data: filteredData,
@@ -179,6 +192,8 @@ export function useFilteredPortalData() {
     error,
     showTexRows,
     setShowTexRows,
+    showQARows,
+    setShowQARows,
     refetch,
     isRefetching,
   }

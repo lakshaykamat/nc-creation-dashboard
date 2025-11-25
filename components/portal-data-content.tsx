@@ -6,7 +6,7 @@ import { PortalDataTable } from "@/components/portal-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, ExternalLink, Copy } from "lucide-react"
+import { RefreshCw, ExternalLink, Copy, FileCode, Columns, EyeOff } from "lucide-react"
 import {
   Sheet,
   SheetContent,
@@ -32,6 +32,8 @@ export function PortalDataContent({
     error,
     showTexRows,
     setShowTexRows,
+    showQARows,
+    setShowQARows,
     refetch: refetchFromHook,
     isRefetching: isRefetchingFromHook,
   } = useFilteredPortalData()
@@ -205,15 +207,15 @@ export function PortalDataContent({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-1 py-2 border-b rounded-t-md bg-muted/30">
+    <div className="space-y-0">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 py-3 border-b rounded-t-md">
         <Input
           placeholder="Search across all columns..."
           value={globalFilter}
           onChange={(event) => onGlobalFilterChange(event.target.value)}
-          className="flex-1 max-w-md"
+          className="flex-[2] min-w-0"
         />
-        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 shrink-0">
           <Button
             variant="outline"
             onClick={() => refetchFromHook()}
@@ -251,12 +253,24 @@ export function PortalDataContent({
           <Button
             variant="outline"
             onClick={() => setShowTexRows(!showTexRows)}
-            className="w-full sm:w-auto col-span-2 sm:col-span-1"
+            className="w-full sm:w-auto"
             size="sm"
             title={showTexRows ? "Hide TEX source files" : "Show TEX source files"}
           >
+            <FileCode className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">{showTexRows ? "Hide" : "Show"} TEX</span>
             <span className="sm:hidden">{showTexRows ? "Hide" : "Show"} TEX</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setShowQARows(!showQARows)}
+            className="w-full sm:w-auto"
+            size="sm"
+            title={showQARows ? "Hide QA files" : "Show QA files"}
+          >
+            <EyeOff className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">{showQARows ? "Hide" : "Show"} QA Files</span>
+            <span className="sm:hidden">{showQARows ? "Hide" : "Show"} QA</span>
           </Button>
         </div>
       </div>

@@ -16,7 +16,7 @@ export default function Page() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="overflow-x-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator
@@ -25,7 +25,7 @@ export default function Page() {
           />
           <h1 className="text-lg font-semibold">Portal Sheet</h1>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
+        <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 overflow-x-hidden">
           <PortalDataContent
             globalFilter={globalFilter}
             onGlobalFilterChange={setGlobalFilter}
