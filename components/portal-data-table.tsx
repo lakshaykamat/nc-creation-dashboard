@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { PortalData } from "@/hooks/use-portal-data"
-import { ArrowUpDown, ArrowUp, ArrowDown, Columns } from "lucide-react"
+import { ArrowUpDown, ArrowUp, ArrowDown, Columns, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -93,7 +93,28 @@ const columns: ColumnDef<PortalData>[] = [
   {
     accessorKey: "articleId",
     header: ({ column }) => createSortableHeader(column, "Article ID"),
-    cell: ({ row }) => <div>{row.getValue("articleId")}</div>,
+    cell: ({ row }) => {
+      const articleId = row.getValue("articleId") as string
+      const downloadUrl = `https://powertrack3.aptaracorp.com/AptaraVendorAPI/downloadfile.html?clientReference=${encodeURIComponent(articleId)}&ipaddress=powertrack3.aptaracorp.com&username=cedit&password=cedit&basepath=/CEFTP/VEND/XMLREVIEW&clientid=1722`
+      
+      return (
+        <div className="flex items-center justify-between">
+          <span>{articleId}</span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              window.open(downloadUrl, "_blank")
+            }}
+            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            title={`Download file for ${articleId}`}
+          >
+            <Download className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )
+    },
     size: 140,
   },
   {
@@ -312,7 +333,7 @@ export function PortalDataTable({ data, globalFilter, onColumnsChange }: PortalD
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className={`hover:bg-muted/50 cursor-default transition-colors ${
+                  className={`group hover:bg-muted/50 cursor-default transition-colors ${
                     isInQA 
                       ? "bg-yellow-50 hover:bg-yellow-100" 
                       : index % 2 === 0 
