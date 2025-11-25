@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Sparkles } from "lucide-react"
 import { usePathname } from "next/navigation"
+import Link from "next/link"
 
 import {
   Sidebar,
@@ -35,12 +36,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === "/"}>
-                  <a href="/">Portal Sheet</a>
+                  <Link href="/">Portal Sheet</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === "/peoples"}>
-                  <a href="/peoples">Peoples</a>
+                  <Link href="/peoples">Peoples</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

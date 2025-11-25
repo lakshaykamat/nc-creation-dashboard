@@ -13,7 +13,6 @@ import { PeopleChart } from "@/components/people-chart"
 interface PeopleDataContentProps {
   globalFilter: string
   onGlobalFilterChange: (value: string) => void
-  showChart?: boolean
 }
 
 interface PersonCardProps {
@@ -467,7 +466,6 @@ export function PeopleDataContent({
 export function PeopleDataContentWithChart({
   globalFilter,
   onGlobalFilterChange,
-  showChart = true,
 }: PeopleDataContentProps) {
   // This wrapper is no longer needed as PeopleDataContent now includes the chart
   return (

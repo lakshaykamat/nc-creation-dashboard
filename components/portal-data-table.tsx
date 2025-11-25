@@ -320,7 +320,7 @@ export function PortalDataTable({ data, globalFilter, onColumnsChange }: PortalD
                         : "bg-muted/20"
                   }`}
                 >
-                {row.getVisibleCells().map((cell, cellIndex) => {
+                {row.getVisibleCells().map((cell) => {
                   const visibleColumns = table.getVisibleLeafColumns()
                   const currentColumnIndex = visibleColumns.findIndex(col => col.id === cell.column.id)
                   // Adjust group end positions based on visible columns
