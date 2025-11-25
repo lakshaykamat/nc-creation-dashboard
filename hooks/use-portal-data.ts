@@ -13,7 +13,13 @@ export type PortalDataError = {
   hint?: string
 }
 
-async function fetchPortalData(): Promise<PortalData[]> {
+export type PortalDataResponse = {
+  data: PortalData[]
+  message?: string
+  html?: string
+}
+
+async function fetchPortalData(): Promise<PortalDataResponse> {
   const res = await fetch(
     "https://n8n-ex6e.onrender.com/webhook/get-portal-data",
     {
@@ -64,15 +70,70 @@ async function fetchPortalData(): Promise<PortalData[]> {
     throw error
   }
 
-  // Ensure we have an array
-  if (!Array.isArray(data)) {
-    throw {
-      code: res.status,
-      message: "Invalid response format: expected an array",
-    } as PortalDataError
+  // Handle new response format: array with objects containing html and data
+  if (Array.isArray(data) && data.length > 0) {
+    // Check if first item has html and data properties
+    const firstItem = data[0]
+    if (
+      firstItem &&
+      typeof firstItem === "object" &&
+      "html" in firstItem &&
+      "data" in firstItem
+    ) {
+      const html = (firstItem as { html?: string }).html
+      const itemData = (firstItem as { data?: unknown[] }).data
+
+      // Extract portal data from the data array
+      const validData =
+        Array.isArray(itemData)
+          ? itemData.filter(
+              (item): item is PortalData =>
+                typeof item === "object" &&
+                item !== null &&
+                "articleId" in item
+            )
+          : []
+
+      return {
+        data: validData,
+        html: html,
+      }
+    }
+
+    // Check if array contains message-only objects (like "Portal has zero articles")
+    if (
+      data.every(
+        (item) =>
+          typeof item === "object" &&
+          item !== null &&
+          "message" in item &&
+          !("articleId" in item)
+      )
+    ) {
+      // Extract the message from the first item
+      const message = (data[0] as { message?: string })?.message
+      return {
+        data: [],
+        message: message || "No articles available",
+      }
+    }
+
+    // Filter out any message-only objects and return only valid portal data
+    const validData = data.filter(
+      (item): item is PortalData =>
+        typeof item === "object" &&
+        item !== null &&
+        "articleId" in item
+    )
+
+    return { data: validData }
   }
 
-  return data as PortalData[]
+  // If not an array, throw error
+  throw {
+    code: res.status,
+    message: "Invalid response format: expected an array",
+  } as PortalDataError
 }
 
 export function usePortalData() {
@@ -83,3 +144,4 @@ export function usePortalData() {
     retry: 1,
   })
 }
+

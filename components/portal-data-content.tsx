@@ -1,11 +1,18 @@
 "use client"
 
+import { useState } from "react"
 import { usePortalData, PortalDataError } from "@/hooks/use-portal-data"
 import { PortalDataTable } from "@/components/portal-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { RefreshCw } from "lucide-react"
+import { RefreshCw, ExternalLink } from "lucide-react"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 
 interface PortalDataContentProps {
   globalFilter: string
@@ -20,7 +27,20 @@ export function PortalDataContent({
   refetch,
   isRefetching,
 }: PortalDataContentProps) {
-  const { data, isLoading, error } = usePortalData()
+  const { data: response, isLoading, error } = usePortalData()
+  const [isPortalOpen, setIsPortalOpen] = useState(false)
+  
+  // Extract data, message, and html from response
+  const data = response?.data || []
+  const message = response?.message
+  const html = response?.html
+
+  const handleViewPortal = () => {
+    if (!html) {
+      return
+    }
+    setIsPortalOpen(true)
+  }
 
   if (isLoading) {
     return (
@@ -74,8 +94,56 @@ export function PortalDataContent({
 
   if (!data || data.length === 0) {
     return (
-      <div className="rounded-md border p-4 text-center text-muted-foreground">
-        No data available
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Search by Article ID or Done By..."
+            value={globalFilter}
+            onChange={(event) => onGlobalFilterChange(event.target.value)}
+            className="flex-1"
+            disabled
+          />
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isRefetching}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleViewPortal}
+            disabled={!html}
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            View Portal Here
+          </Button>
+        </div>
+        <div className="rounded-lg border border-muted bg-muted/50 p-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted shrink-0">
+              <svg
+                className="h-3.5 w-3.5 text-muted-foreground"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">
+                {message || "No data available"}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -91,17 +159,50 @@ export function PortalDataContent({
         />
         <Button
           variant="outline"
-          size="icon"
           onClick={() => refetch()}
           disabled={isRefetching}
         >
-          <RefreshCw className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`} />
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? "animate-spin" : ""}`} />
+          Refresh
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleViewPortal}
+          disabled={!html}
+        >
+          <ExternalLink className="h-4 w-4 mr-2" />
+          View Portal Here
         </Button>
       </div>
       <PortalDataTable
         data={data}
         globalFilter={globalFilter}
       />
+      <Sheet 
+        open={isPortalOpen} 
+        onOpenChange={setIsPortalOpen}
+      >
+        <SheetContent side="right" className="w-full sm:max-w-4xl p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>Portal View</SheetTitle>
+          </SheetHeader>
+          <div className="h-[calc(100vh-5rem)] w-full">
+            {html ? (
+              <iframe
+                srcDoc={html}
+                className="w-full h-full border-0"
+                title="Portal Content"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-sm text-muted-foreground">No portal content available</p>
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
+
