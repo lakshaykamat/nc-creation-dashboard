@@ -206,44 +206,59 @@ export function PortalDataContent({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 px-1 py-2 border-b rounded-t-md bg-muted/30">
         <Input
           placeholder="Search across all columns..."
           value={globalFilter}
           onChange={(event) => onGlobalFilterChange(event.target.value)}
-          className="flex-1"
+          className="flex-1 max-w-md"
         />
-        <Button
-          variant="outline"
-          onClick={() => refetchFromHook()}
-          disabled={isRefetchingFromHook}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefetchingFromHook ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
-        <Button
-          variant="outline"
-          onClick={handleCopyAllRows}
-          disabled={filteredData.length === 0}
-          title={filteredData.length > 0 ? "Copy article IDs and names (sorted by name)" : "No data to copy"}
-        >
-          <Copy className="h-4 w-4 mr-2" />
-          {copied ? "Copied" : "Copy"}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={handleViewPortal}
-          disabled={!html}
-        >
-          <ExternalLink className="h-4 w-4 mr-2" />
-          View Portal Here
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => setShowTexRows(!showTexRows)}
-        >
-          {showTexRows ? "Hide" : "Show"} TEX
-        </Button>
+        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2">
+          <Button
+            variant="outline"
+            onClick={() => refetchFromHook()}
+            disabled={isRefetchingFromHook}
+            className="w-full sm:w-auto"
+            size="sm"
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefetchingFromHook ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleCopyAllRows}
+            disabled={filteredData.length === 0}
+            title="Copy article IDs and names (sorted by name)"
+            className="w-full sm:w-auto"
+            size="sm"
+          >
+            <Copy className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">{copied ? "Copied" : "Copy"}</span>
+            <span className="sm:hidden">{copied ? "Copied" : "Copy"}</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleViewPortal}
+            disabled={!html}
+            className="w-full sm:w-auto"
+            size="sm"
+            title="Open portal in sidebar"
+          >
+            <ExternalLink className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Open Portal</span>
+            <span className="sm:hidden">Portal</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setShowTexRows(!showTexRows)}
+            className="w-full sm:w-auto col-span-2 sm:col-span-1"
+            size="sm"
+            title={showTexRows ? "Hide TEX source files" : "Show TEX source files"}
+          >
+            <span className="hidden sm:inline">{showTexRows ? "Hide" : "Show"} TEX</span>
+            <span className="sm:hidden">{showTexRows ? "Hide" : "Show"} TEX</span>
+          </Button>
+        </div>
       </div>
       <PortalDataTable
         data={filteredData}

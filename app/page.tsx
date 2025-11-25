@@ -25,7 +25,7 @@ export default function Page() {
           />
           <h1 className="text-lg font-semibold">Portal Sheet</h1>
         </header>
-        <div className="flex flex-1 flex-col gap-6 p-6">
+        <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
           <PortalDataContent
             globalFilter={globalFilter}
             onGlobalFilterChange={setGlobalFilter}
