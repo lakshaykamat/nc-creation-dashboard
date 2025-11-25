@@ -9,10 +9,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { PortalDataContent } from "@/components/portal-data-content"
-import { usePortalData } from "@/hooks/use-portal-data"
 
 export default function Page() {
-  const { refetch, isRefetching } = usePortalData()
   const [globalFilter, setGlobalFilter] = useState("")
 
   return (
@@ -31,8 +29,6 @@ export default function Page() {
           <PortalDataContent
             globalFilter={globalFilter}
             onGlobalFilterChange={setGlobalFilter}
-            refetch={refetch}
-            isRefetching={isRefetching}
           />
         </div>
       </SidebarInset>

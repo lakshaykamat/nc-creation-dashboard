@@ -1,10 +1,19 @@
 "use client"
 
+import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 export type PortalData = {
   articleId: string
   doneBy: string | null
+  src: string
+  client: string
+  journal: string
+  msp: string | number
+  status: string
+  assignDate: string
+  dueDate: string
+  priority: string
 }
 
 export type PortalDataError = {
@@ -143,5 +152,35 @@ export function usePortalData() {
     refetchOnWindowFocus: false,
     retry: 1,
   })
+}
+
+export function useFilteredPortalData() {
+  const { data: response, isLoading, error, refetch, isRefetching } = usePortalData()
+  const [showTexRows, setShowTexRows] = useState(false)
+  
+  // Extract data, message, and html from response
+  const data = response?.data || []
+  const message = response?.message
+  const html = response?.html
+
+  // Filter out TEX rows by default (when showTexRows is false)
+  const filteredData = useMemo(() => {
+    return showTexRows 
+      ? data 
+      : data.filter((item: PortalData) => item.src !== "TEX")
+  }, [data, showTexRows])
+
+  return {
+    data: filteredData,
+    allData: data,
+    message,
+    html,
+    isLoading,
+    error,
+    showTexRows,
+    setShowTexRows,
+    refetch,
+    isRefetching,
+  }
 }
 

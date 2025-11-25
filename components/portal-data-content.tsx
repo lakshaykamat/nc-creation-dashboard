@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { usePortalData, PortalDataError } from "@/hooks/use-portal-data"
+import { useState, useRef, useEffect } from "react"
+import { useFilteredPortalData, PortalDataError } from "@/hooks/use-portal-data"
 import { PortalDataTable } from "@/components/portal-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
@@ -17,30 +17,51 @@ import {
 interface PortalDataContentProps {
   globalFilter: string
   onGlobalFilterChange: (value: string) => void
-  refetch: () => void
-  isRefetching: boolean
 }
 
 export function PortalDataContent({
   globalFilter,
   onGlobalFilterChange,
-  refetch,
-  isRefetching,
 }: PortalDataContentProps) {
-  const { data: response, isLoading, error } = usePortalData()
+  const {
+    data: filteredData,
+    allData: data,
+    message,
+    html,
+    isLoading,
+    error,
+    showTexRows,
+    setShowTexRows,
+    refetch: refetchFromHook,
+    isRefetching: isRefetchingFromHook,
+  } = useFilteredPortalData()
   const [isPortalOpen, setIsPortalOpen] = useState(false)
-  
-  // Extract data, message, and html from response
-  const data = response?.data || []
-  const message = response?.message
-  const html = response?.html
+  const [isPortalLoading, setIsPortalLoading] = useState(false)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const handleViewPortal = () => {
     if (!html) {
       return
     }
+    setIsPortalLoading(true)
     setIsPortalOpen(true)
   }
+
+  useEffect(() => {
+    if (isPortalOpen && html) {
+      // For srcDoc, content is set immediately, so use a short delay to show loading
+      // then clear it to reveal the iframe content
+      const timeout = setTimeout(() => {
+        setIsPortalLoading(false)
+      }, 300)
+      
+      return () => {
+        clearTimeout(timeout)
+      }
+    } else if (!isPortalOpen) {
+      setIsPortalLoading(false)
+    }
+  }, [isPortalOpen, html])
 
   if (isLoading) {
     return (
@@ -105,10 +126,10 @@ export function PortalDataContent({
           />
           <Button
             variant="outline"
-            onClick={() => refetch()}
-            disabled={isRefetching}
+            onClick={() => refetchFromHook()}
+            disabled={isRefetchingFromHook}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefetchingFromHook ? "animate-spin" : ""}`} />
             Refresh
           </Button>
           <Button
@@ -118,6 +139,13 @@ export function PortalDataContent({
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             View Portal Here
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setShowTexRows(!showTexRows)}
+            disabled={!data || data.length === 0}
+          >
+            {showTexRows ? "Hide" : "Show"} TEX
           </Button>
         </div>
         <div className="rounded-lg border border-muted bg-muted/50 p-6">
@@ -152,17 +180,17 @@ export function PortalDataContent({
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Input
-          placeholder="Search by Article ID or Done By..."
+          placeholder="Search across all columns..."
           value={globalFilter}
           onChange={(event) => onGlobalFilterChange(event.target.value)}
           className="flex-1"
         />
         <Button
           variant="outline"
-          onClick={() => refetch()}
-          disabled={isRefetching}
+          onClick={() => refetchFromHook()}
+          disabled={isRefetchingFromHook}
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? "animate-spin" : ""}`} />
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefetchingFromHook ? "animate-spin" : ""}`} />
           Refresh
         </Button>
         <Button
@@ -173,9 +201,15 @@ export function PortalDataContent({
           <ExternalLink className="h-4 w-4 mr-2" />
           View Portal Here
         </Button>
+        <Button
+          variant="outline"
+          onClick={() => setShowTexRows(!showTexRows)}
+        >
+          {showTexRows ? "Hide" : "Show"} TEX
+        </Button>
       </div>
       <PortalDataTable
-        data={data}
+        data={filteredData}
         globalFilter={globalFilter}
       />
       <Sheet 
@@ -186,9 +220,18 @@ export function PortalDataContent({
           <SheetHeader className="p-4 border-b">
             <SheetTitle>Portal View</SheetTitle>
           </SheetHeader>
-          <div className="h-[calc(100vh-5rem)] w-full">
+          <div className="h-[calc(100vh-5rem)] w-full relative">
+            {isPortalLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background z-10">
+                <div className="flex flex-col items-center gap-2">
+                  <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Loading Portal...</p>
+                </div>
+              </div>
+            )}
             {html ? (
               <iframe
+                ref={iframeRef}
                 srcDoc={html}
                 className="w-full h-full border-0"
                 title="Portal Content"
