@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { Bar, BarChart, XAxis, YAxis } from "recharts"
-import { PeopleData } from "@/hooks/use-peoples-data"
+import { LastTwoDaysFileData } from "@/hooks/use-last-two-days-files-data"
 import {
   Card,
   CardContent,
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/chart"
 
 interface PeopleChartProps {
-  data: PeopleData[]
+  data: LastTwoDaysFileData[]
 }
 
 export function PeopleChart({ data }: PeopleChartProps) {

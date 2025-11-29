@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sidebar"
 import { PeopleDataContentWithChart } from "@/components/people-data-content"
 
-export default function PeoplesPage() {
+export default function LastTwoDaysFilesPage() {
   const [globalFilter, setGlobalFilter] = useState("")
 
   return (
@@ -23,7 +23,7 @@ export default function PeoplesPage() {
             orientation="vertical"
             className="mr-2 data-[orientation=vertical]:h-4"
           />
-          <h1 className="text-lg font-semibold">Peoples</h1>
+          <h1 className="text-lg font-semibold">Last Two Days Files</h1>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 overflow-x-hidden">
           <PeopleDataContentWithChart

@@ -26,22 +26,17 @@ export type PortalDataError = {
 export type PortalDataResponse = {
   data: PortalData[]
   message?: string
-  html?: string
 }
 
 async function fetchPortalData(): Promise<PortalDataResponse> {
-  const res = await fetch(
-    "https://n8n-ex6e.onrender.com/webhook/get-portal-data",
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-      credentials: "omit",
-    }
-  )
+  const res = await fetch("/api/portal-data", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    credentials: "omit",
+  })
 
   let data
   try {
@@ -54,11 +49,9 @@ async function fetchPortalData(): Promise<PortalDataResponse> {
   }
 
   // Check if response is an error object (has code and message properties)
-  // This handles cases where API returns error object even with 200 status
   if (
     data &&
     typeof data === "object" &&
-    !Array.isArray(data) &&
     "code" in data &&
     "message" in data
   ) {
@@ -80,77 +73,39 @@ async function fetchPortalData(): Promise<PortalDataResponse> {
     throw error
   }
 
-  // Handle new response format: array with objects containing html and data
-  if (Array.isArray(data) && data.length > 0) {
-    // Check if first item has html and data properties
-    const firstItem = data[0]
-    if (
-      firstItem &&
-      typeof firstItem === "object" &&
-      "html" in firstItem &&
-      "data" in firstItem
-    ) {
-      const html = (firstItem as { html?: string }).html
-      const itemData = (firstItem as { data?: unknown[] }).data
+  // Handle response with data property
+  if (data && typeof data === "object" && "data" in data) {
+    const responseData = data as { data: unknown[] }
+    const validData = Array.isArray(responseData.data)
+      ? responseData.data.filter(
+          (item): item is PortalData =>
+            typeof item === "object" &&
+            item !== null &&
+            "articleId" in item
+        )
+      : []
 
-      // Extract portal data from the data array
-      const validData =
-        Array.isArray(itemData)
-          ? itemData.filter(
-              (item): item is PortalData =>
-                typeof item === "object" &&
-                item !== null &&
-                "articleId" in item
-            )
-          : []
-
-      return {
-        data: validData,
-        html: html,
-      }
+    return {
+      data: validData,
     }
-
-    // Check if array contains message-only objects (like "Portal has zero articles")
-    if (
-      data.every(
-        (item) =>
-          typeof item === "object" &&
-          item !== null &&
-          "message" in item &&
-          !("articleId" in item)
-      )
-    ) {
-      // Extract the message from the first item
-      const message = (data[0] as { message?: string })?.message
-      return {
-        data: [],
-        message: message || "No articles available",
-      }
-    }
-
-    // Filter out any message-only objects and return only valid portal data
-    const validData = data.filter(
-      (item): item is PortalData =>
-        typeof item === "object" &&
-        item !== null &&
-        "articleId" in item
-    )
-
-    return { data: validData }
   }
 
-  // If not an array, throw error
-  throw {
-    code: res.status,
-    message: "Invalid response format: expected an array",
-  } as PortalDataError
+  // If no data property, return empty array
+  return {
+    data: [],
+    message: "No data available",
+  }
 }
 
 export function usePortalData() {
   return useQuery({
     queryKey: ["portal-data"],
     queryFn: fetchPortalData,
-    refetchOnWindowFocus: false,
+    staleTime: 20 * 1000, // 20 seconds - balance between speed and freshness
+    gcTime: 5 * 60 * 1000, // Keep in memory for 5 minutes
+    refetchOnWindowFocus: true, // Refetch when user returns
+    refetchOnMount: false, // Don't refetch if data is fresh (< 20s old)
+    refetchOnReconnect: true,
     retry: 1,
   })
 }
@@ -160,10 +115,9 @@ export function useFilteredPortalData() {
   const [showTexRows, setShowTexRows] = useState(false)
   const [showQARows, setShowQARows] = useState(false)
   
-  // Extract data, message, and html from response
+  // Extract data and message from response
   const data = response?.data || []
   const message = response?.message
-  const html = response?.html
 
   // Filter out TEX rows by default (when showTexRows is false)
   // Filter out QA rows by default (when showQARows is false)
@@ -205,7 +159,6 @@ export function useFilteredPortalData() {
     data: filteredData,
     allData: data,
     message,
-    html,
     isLoading,
     error,
     showTexRows,

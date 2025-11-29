@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { PeopleData } from "@/hooks/use-peoples-data"
+import { LastTwoDaysFileData } from "@/hooks/use-last-two-days-files-data"
 import { ArrowUpDown, ArrowUp, ArrowDown, Columns } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 const createSortableHeader = (
-  column: Column<PeopleData, unknown>,
+  column: Column<LastTwoDaysFileData, unknown>,
   label: string
 ) => {
   const isSorted = column.getIsSorted()
@@ -55,7 +55,7 @@ const createSortableHeader = (
   )
 }
 
-const columns: ColumnDef<PeopleData>[] = [
+const columns: ColumnDef<LastTwoDaysFileData>[] = [
   {
     accessorKey: "row_number",
     header: ({ column }) => createSortableHeader(column, "Row #"),
@@ -131,7 +131,7 @@ const columns: ColumnDef<PeopleData>[] = [
 ]
 
 interface PeopleDataTableProps {
-  data: PeopleData[]
+  data: LastTwoDaysFileData[]
   globalFilter: string
   onColumnsChange?: (visibility: VisibilityState) => void
 }

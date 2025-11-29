@@ -40,8 +40,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/peoples"}>
-                  <Link href="/peoples">Peoples</Link>
+                <SidebarMenuButton asChild isActive={pathname === "/last-two-days-files"}>
+                  <Link href="/last-two-days-files">Last Two Days Files</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { useFilteredPeopleData, PeopleDataError, PeopleData } from "@/hooks/use-peoples-data"
+import { useFilteredLastTwoDaysFilesData, LastTwoDaysFileDataError, LastTwoDaysFileData } from "@/hooks/use-last-two-days-files-data"
 import { PeopleDataTable } from "@/components/people-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
@@ -17,7 +17,7 @@ interface PeopleDataContentProps {
 
 interface PersonCardProps {
   personName: string
-  items: PeopleData[]
+  items: LastTwoDaysFileData[]
 }
 
 function PersonCard({ personName, items }: PersonCardProps) {
@@ -154,7 +154,7 @@ export function PeopleDataContent({
     groupedByPerson,
     refetch: refetchFromHook,
     isRefetching: isRefetchingFromHook,
-  } = useFilteredPeopleData()
+  } = useFilteredLastTwoDaysFilesData()
   const [copied, setCopied] = useState(false)
 
   const handleCopyAllRows = async () => {
@@ -265,7 +265,7 @@ export function PeopleDataContent({
 
   if (error) {
     const errorObj = error as unknown as Record<string, unknown>
-    const errorData: Partial<PeopleDataError> = {
+    const errorData: Partial<LastTwoDaysFileDataError> = {
       code: typeof errorObj.code === "number" ? errorObj.code : undefined,
       message: typeof errorObj.message === "string" ? errorObj.message : "An error occurred",
       hint: typeof errorObj.hint === "string" ? errorObj.hint : undefined,

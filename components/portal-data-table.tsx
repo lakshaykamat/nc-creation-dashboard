@@ -138,7 +138,7 @@ const columns: ColumnDef<PortalData>[] = [
       return (
         <div className="flex items-center gap-2">
           {isInQA && (
-            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-yellow-200 text-yellow-800 whitespace-nowrap">
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-yellow-200 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200 whitespace-nowrap">
               Pending QA Validation
             </span>
           )}
@@ -186,13 +186,13 @@ const columns: ColumnDef<PortalData>[] = [
     cell: ({ row }) => {
       const priority = (row.getValue("priority") as string) || ""
       const priorityLower = priority.toLowerCase()
-      let bgColor = "bg-gray-100 text-gray-700"
+      let bgColor = "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
       if (priorityLower === "high") {
-        bgColor = "bg-red-100 text-red-700"
+        bgColor = "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-200"
       } else if (priorityLower === "low") {
-        bgColor = "bg-green-100 text-green-700"
+        bgColor = "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-200"
       } else if (priorityLower.includes("medium") || priorityLower.includes("mid")) {
-        bgColor = "bg-yellow-100 text-yellow-700"
+        bgColor = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-200"
       }
       return (
         <div>
@@ -335,7 +335,7 @@ export function PortalDataTable({ data, globalFilter, onColumnsChange }: PortalD
                   data-state={row.getIsSelected() && "selected"}
                   className={`group hover:bg-muted/50 cursor-default transition-colors ${
                     isInQA 
-                      ? "bg-yellow-50 hover:bg-yellow-100" 
+                      ? "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:hover:bg-yellow-900/30" 
                       : index % 2 === 0 
                         ? "bg-background" 
                         : "bg-muted/20"

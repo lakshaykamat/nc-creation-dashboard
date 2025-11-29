@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-export type PeopleData = {
+export type LastTwoDaysFileData = {
   row_number: number
   Month: string
   Date: string
@@ -14,20 +14,20 @@ export type PeopleData = {
   Time: string
 }
 
-export type PeopleDataError = {
+export type LastTwoDaysFileDataError = {
   code?: number
   message: string
   hint?: string
 }
 
-export type PeopleDataResponse = {
-  data: PeopleData[]
+export type LastTwoDaysFileDataResponse = {
+  data: LastTwoDaysFileData[]
   message?: string
 }
 
-async function fetchPeopleData(): Promise<PeopleDataResponse> {
+async function fetchLastTwoDaysFilesData(): Promise<LastTwoDaysFileDataResponse> {
   const res = await fetch(
-    "https://n8n-ex6e.onrender.com/webhook/peoples",
+    "https://n8n-ex6e.onrender.com/webhook/last-two-days-files",
     {
       method: "GET",
       headers: {
@@ -46,7 +46,7 @@ async function fetchPeopleData(): Promise<PeopleDataResponse> {
     throw {
       code: res.status,
       message: "Failed to parse response",
-    } as PeopleDataError
+    } as LastTwoDaysFileDataError
   }
 
   // Check if response is an error object (has code and message properties)
@@ -57,9 +57,9 @@ async function fetchPeopleData(): Promise<PeopleDataResponse> {
     "code" in data &&
     "message" in data
   ) {
-    const error: PeopleDataError = {
+    const error: LastTwoDaysFileDataError = {
       code: data.code || res.status,
-      message: data.message || "Failed to fetch people data",
+      message: data.message || "Failed to fetch last two days files data",
       hint: data.hint,
     }
     throw error
@@ -67,19 +67,19 @@ async function fetchPeopleData(): Promise<PeopleDataResponse> {
 
   // Check if response status is not OK
   if (!res.ok) {
-    const error: PeopleDataError = {
-      code: (data as PeopleDataError)?.code || res.status,
-      message: (data as PeopleDataError)?.message || "Failed to fetch people data",
-      hint: (data as PeopleDataError)?.hint,
+    const error: LastTwoDaysFileDataError = {
+      code: (data as LastTwoDaysFileDataError)?.code || res.status,
+      message: (data as LastTwoDaysFileDataError)?.message || "Failed to fetch last two days files data",
+      hint: (data as LastTwoDaysFileDataError)?.hint,
     }
     throw error
   }
 
   // Handle array response
   if (Array.isArray(data)) {
-    // Filter out any message-only objects and return only valid people data
+    // Filter out any message-only objects and return only valid last two days files data
     const validData = data.filter(
-      (item): item is PeopleData =>
+      (item): item is LastTwoDaysFileData =>
         typeof item === "object" &&
         item !== null &&
         "Article number" in item
@@ -92,13 +92,13 @@ async function fetchPeopleData(): Promise<PeopleDataResponse> {
   throw {
     code: res.status,
     message: "Invalid response format: expected an array",
-  } as PeopleDataError
+  } as LastTwoDaysFileDataError
 }
 
-export function usePeopleData() {
+export function useLastTwoDaysFilesData() {
   return useQuery({
-    queryKey: ["people-data"],
-    queryFn: fetchPeopleData,
+    queryKey: ["last-two-days-files-data"],
+    queryFn: fetchLastTwoDaysFilesData,
     refetchOnWindowFocus: false,
     retry: 1,
   })
@@ -106,8 +106,8 @@ export function usePeopleData() {
 
 type DateFilter = "today" | "yesterday" | "all"
 
-export function useFilteredPeopleData() {
-  const { data: response, isLoading, error, refetch, isRefetching } = usePeopleData()
+export function useFilteredLastTwoDaysFilesData() {
+  const { data: response, isLoading, error, refetch, isRefetching } = useLastTwoDaysFilesData()
   const [dateFilter, setDateFilter] = useState<DateFilter>("today")
 
   const allData = response?.data || []
