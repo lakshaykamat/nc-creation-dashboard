@@ -100,6 +100,10 @@ export function useLastTwoDaysFilesData() {
     queryKey: ["last-two-days-files-data"],
     queryFn: fetchLastTwoDaysFilesData,
     refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    gcTime: 0,
+    staleTime: 0,
     retry: 1,
   })
 }

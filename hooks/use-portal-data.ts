@@ -34,7 +34,11 @@ async function fetchPortalData(): Promise<PortalDataResponse> {
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
     },
+    cache: "no-store",
     credentials: "omit",
   })
 
@@ -101,11 +105,11 @@ export function usePortalData() {
   return useQuery({
     queryKey: ["portal-data"],
     queryFn: fetchPortalData,
-    staleTime: 20 * 1000, // 20 seconds - balance between speed and freshness
-    gcTime: 5 * 60 * 1000, // Keep in memory for 5 minutes
-    refetchOnWindowFocus: true, // Refetch when user returns
-    refetchOnMount: false, // Don't refetch if data is fresh (< 20s old)
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
     refetchOnReconnect: true,
+    gcTime: 0,
+    staleTime: 0,
     retry: 1,
   })
 }
