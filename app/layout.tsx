@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "NC Creation - Portal Sheet",
+    default: "NC Creation - Portal",
     template: "%s | NC Creation",
   },
-  description: "Manage and track portal data, articles, and assignments with NC Creation Portal Sheet. View article IDs, priorities, status, and workflow information in an organized data table.",
-  keywords: ["NC Creation", "Portal Sheet", "Article Management", "Data Table", "Workflow Tracking", "Assignment Tracking"],
+  description: "Manage and track portal data and articles with NC Creation Portal. View article IDs, priorities, status, and workflow information in an organized data table.",
+  keywords: ["NC Creation", "Portal", "Article Management", "Data Table", "Workflow Tracking", "Assignment Tracking"],
   authors: [{ name: "NC Creation" }],
   creator: "NC Creation",
   publisher: "NC Creation",
@@ -39,14 +39,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    title: "NC Creation - Portal Sheet",
-    description: "Manage and track portal data, articles, and assignments with NC Creation Portal Sheet.",
+    title: "NC Creation - Portal",
+    description: "Manage and track portal data and articles with NC Creation Portal.",
     siteName: "NC Creation",
   },
   twitter: {
     card: "summary_large_image",
-    title: "NC Creation - Portal Sheet",
-    description: "Manage and track portal data, articles, and assignments with NC Creation Portal Sheet.",
+    title: "NC Creation - Portal",
+    description: "Manage and track portal data and articles with NC Creation Portal.",
   },
   viewport: {
     width: "device-width",

@@ -118,6 +118,15 @@ const columns: ColumnDef<PortalData>[] = [
     size: 140,
   },
   {
+    accessorKey: "doneBy",
+    header: ({ column }) => createSortableHeader(column, "Done By"),
+    cell: ({ row }) => {
+      const doneBy = row.getValue("doneBy") as string | null
+      return <div>{doneBy || "-"}</div>
+    },
+    size: 120,
+  },
+  {
     accessorKey: "src",
     header: ({ column }) => createSortableHeader(column, "SRC"),
     cell: ({ row }) => <div>{row.getValue("src")}</div>,
@@ -204,15 +213,6 @@ const columns: ColumnDef<PortalData>[] = [
     },
     size: 100,
   },
-  {
-    accessorKey: "doneBy",
-    header: ({ column }) => createSortableHeader(column, "Done By"),
-    cell: ({ row }) => {
-      const doneBy = row.getValue("doneBy") as string | null
-      return <div>{doneBy || "-"}</div>
-    },
-    size: 120,
-  },
 ]
 
 interface PortalDataTableProps {
@@ -224,14 +224,14 @@ interface PortalDataTableProps {
 export function PortalDataTable({ data, globalFilter, onColumnsChange }: PortalDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    client: false,
+    client: true,
     journal: true,
     articleId: true,
     src: true,
-    msp: false,
+    msp: true,
     status: false,
-    assignDate: false,
-    dueDate: false,
+    assignDate: true,
+    dueDate: true,
     priority: true,
     doneBy: true,
   })

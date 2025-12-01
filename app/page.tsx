@@ -1,31 +1,30 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
-import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { PortalDataContent } from "@/components/portal-data-content"
+import { PageHeader } from "@/components/page-header"
 
 export default function Page() {
   const [globalFilter, setGlobalFilter] = useState("")
+
+  useEffect(() => {
+    document.title = "Portal | NC Creation"
+  }, [])
 
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="overflow-x-hidden">
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator
-            orientation="vertical"
-            className="mr-2 data-[orientation=vertical]:h-4"
-          />
-          <h1 className="text-lg font-semibold">Portal Sheet</h1>
-        </header>
         <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 overflow-x-hidden">
+          <PageHeader
+            title="Portal"
+            description="Manage and track portal data and articles"
+          />
           <PortalDataContent
             globalFilter={globalFilter}
             onGlobalFilterChange={setGlobalFilter}

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Sparkles } from "lucide-react"
+import { Sparkles, Earth, BriefcaseBusiness } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 
@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { Separator } from "./ui/separator"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
@@ -25,9 +26,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar {...props}>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-4">
-          <Sparkles className="h-5 w-5" />
+          {/* <Sparkles className="h-5 w-5" /> */}
           <h2 className="text-lg font-semibold">NC Creation</h2>
         </div>
+        <Separator />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -36,12 +38,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu className="gap-2">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className="py-6" isActive={pathname === "/"}>
-                  <Link href="/">Portal Sheet</Link>
+                  <Link href="/" className="flex items-center gap-2">
+                    <Earth className="h-4 w-4" />
+                    Portal
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className="py-6" isActive={pathname === "/work-history"}>
-                  <Link href="/work-history">Work History</Link>
+                  <Link href="/work-history" className="flex items-center gap-2">
+                    <BriefcaseBusiness className="h-4 w-4" />
+                    Work History
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
