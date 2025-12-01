@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Sparkles, Earth, BriefcaseBusiness } from "lucide-react"
+import { Sparkles, Earth, BriefcaseBusiness, FolderTree } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 
@@ -49,6 +49,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <Link href="/work-history" className="flex items-center gap-2">
                     <BriefcaseBusiness className="h-4 w-4" />
                     Work History
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>TOOLS</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="gap-2">
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="py-6" isActive={pathname === "/file-allocator"}>
+                  <Link href="/file-allocator" className="flex items-center gap-2">
+                    <FolderTree className="h-4 w-4" />
+                    File Allocator
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
