@@ -33,15 +33,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-2">
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/"}>
+                <SidebarMenuButton asChild className="py-6" isActive={pathname === "/"}>
                   <Link href="/">Portal Sheet</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname === "/last-two-days-files"}>
-                  <Link href="/last-two-days-files">Last Two Days Files</Link>
+                <SidebarMenuButton asChild className="py-6" isActive={pathname === "/work-history"}>
+                  <Link href="/work-history">Work History</Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
