@@ -1,0 +1,89 @@
+export type UserRole = "MEMBER" | "ADMIN"
+
+export interface LoginCredentials {
+  role: UserRole
+  password: string
+}
+
+export interface AuthValidationResult {
+  valid: boolean
+  role?: UserRole
+}
+
+/**
+ * Get the expected password for a given role from environment variables
+ */
+export function getExpectedPassword(role: UserRole): string | null {
+  if (role === "MEMBER") {
+    return process.env.NEXT_PUBLIC_MEMBER_PASSWORD || null
+  }
+  if (role === "ADMIN") {
+    return process.env.NEXT_PUBLIC_ADMIN_PASSWORD || null
+  }
+  return null
+}
+
+/**
+ * Validate login credentials
+ */
+export function validateCredentials(credentials: LoginCredentials): {
+  valid: boolean
+  error?: string
+} {
+  const { role, password } = credentials
+
+  // Validate role
+  if (!role || (role !== "MEMBER" && role !== "ADMIN")) {
+    return {
+      valid: false,
+      error: "Invalid role. Must be MEMBER or ADMIN",
+    }
+  }
+
+  // Validate password is provided
+  if (!password || password.trim().length === 0) {
+    return {
+      valid: false,
+      error: "Password is required",
+    }
+  }
+
+  // Get expected password
+  const expectedPassword = getExpectedPassword(role)
+  if (!expectedPassword) {
+    return {
+      valid: false,
+      error: "Server configuration error: Password not set for this role",
+    }
+  }
+
+  // Validate password matches
+  if (password !== expectedPassword) {
+    return {
+      valid: false,
+      error: "Invalid password",
+    }
+  }
+
+  return { valid: true }
+}
+
+/**
+ * Cookie configuration constants
+ */
+export const AUTH_COOKIE_CONFIG = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
+  path: "/",
+} as const
+
+/**
+ * Cookie names
+ */
+export const AUTH_COOKIE_NAMES = {
+  TOKEN: "auth_token",
+  ROLE: "auth_role",
+} as const
+

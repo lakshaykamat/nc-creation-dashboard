@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useFileAllocator, FileAllocatorError } from "@/hooks/use-file-allocator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, Calendar, Sparkles, ChevronLeft, ChevronRight } from "lucide-react"
+import { RefreshCw, Calendar, ChevronLeft, ChevronRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -235,7 +235,9 @@ export function FileAllocatorContent() {
               <div className="flex items-center justify-center h-full">
                 <div className="text-center space-y-2 p-6">
                   <p className="text-sm text-muted-foreground">
-                    All articles have already been allocated.
+                    {data.emailArticles && data.emailArticles.length === 0
+                      ? "No articles found in email."
+                      : "All articles have already been allocated."}
                   </p>
                 </div>
               </div>
@@ -262,26 +264,16 @@ export function FileAllocatorContent() {
           </CardHeader>
           <CardContent className="flex flex-col flex-1 overflow-hidden">
             <div className="flex-1 overflow-hidden mb-4">
-              {data.emailArticles && data.emailArticles.length > 0 ? (
-                data.html ? (
-                  <div className="border rounded-lg overflow-hidden bg-muted/30 h-full">
-                    <iframe
-                      srcDoc={data.html}
-                      className="w-full h-full border-0"
-                      title="Allocation Details HTML"
-                      sandbox="allow-same-origin"
-                    />
-                  </div>
-                ) : null
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center space-y-2 p-6">
-                    <p className="text-sm text-muted-foreground">
-                      No articles found in email.
-                    </p>
-                  </div>
+              {data.html ? (
+                <div className="border rounded-lg overflow-hidden bg-muted/30 h-full">
+                  <iframe
+                    srcDoc={data.html}
+                    className="w-full h-full border-0"
+                    title="Allocation Details HTML"
+                    sandbox="allow-same-origin"
+                  />
                 </div>
-              )}
+              ) : null}
             </div>
             <div className="flex items-center justify-center gap-2 pt-4 border-t shrink-0">
               <Button
