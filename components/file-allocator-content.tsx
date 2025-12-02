@@ -25,7 +25,7 @@ export function FileAllocatorContent() {
   )
   
   // Toggle to show/hide "Coming Soon" card
-  const showComingSoon = false
+  const showComingSoon = true
 
   const handlePreviousEmail = () => {
     if (isLatest) {
