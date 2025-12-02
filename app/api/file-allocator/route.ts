@@ -33,7 +33,21 @@ export async function GET(request: NextRequest) {
     }
 
     const externalApiStartTime = Date.now()
-    const externalUrl = "https://n8n-ex6e.onrender.com/webhook/lastest-allocation"
+    
+    // Get query parameters
+    const { searchParams } = new URL(request.url)
+    const recent = searchParams.get("recent")
+    
+    // Build URL with query parameters
+    let externalUrl = "https://n8n-ex6e.onrender.com/webhook/allocations"
+    const urlParams = new URLSearchParams()
+    if (recent) {
+      urlParams.append("recent", recent)
+    }
+    
+    if (urlParams.toString()) {
+      externalUrl += `?${urlParams.toString()}`
+    }
 
     let response: Response
     let data: unknown
@@ -143,6 +157,9 @@ export async function GET(request: NextRequest) {
       {
         endpoint: "file-allocator",
         hasData: true,
+        queryParams: {
+          recent: recent || null,
+        },
       }
     )
 

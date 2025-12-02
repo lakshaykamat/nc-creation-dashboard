@@ -1,9 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { useFileAllocator, FileAllocatorError } from "@/hooks/use-file-allocator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, Calendar, Sparkles } from "lucide-react"
+import { RefreshCw, Calendar, Sparkles, ChevronLeft, ChevronRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -15,23 +16,56 @@ import {
 } from "@/components/ui/table"
 
 export function FileAllocatorContent() {
-  const { data, isLoading, error, refetch, isRefetching } = useFileAllocator()
+  const [emailIndex, setEmailIndex] = useState<number | null>(null)
+  const isLatest = emailIndex === null
+  
+  const { data, isLoading, error, refetch, isRefetching } = useFileAllocator(
+    isLatest,
+    emailIndex ?? undefined
+  )
   
   // Toggle to show/hide "Coming Soon" card
-  const showComingSoon = true
+  const showComingSoon = false
+
+  const handlePreviousEmail = () => {
+    if (isLatest) {
+      setEmailIndex(1)
+    } else {
+      setEmailIndex((prev) => (prev ?? 0) + 1)
+    }
+  }
+
+  const handleNextEmail = () => {
+    if (emailIndex === null) return
+    if (emailIndex === 1) {
+      setEmailIndex(null) // Go back to latest
+    } else {
+      setEmailIndex((prev) => Math.max(1, (prev ?? 1) - 1))
+    }
+  }
 
   const formatDate = (dateStr: string): string => {
     if (!dateStr) return "-"
     try {
       const date = new Date(dateStr)
-      return date.toLocaleDateString("en-US", {
+      return date.toLocaleString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
       })
     } catch {
       return dateStr
     }
+  }
+
+  const getEmailPosition = (): string => {
+    if (isLatest) {
+      return "Latest"
+    }
+    return `#${emailIndex! + 1}`
   }
 
   const parseArticlesWithPages = (articles: string[]) => {
@@ -172,32 +206,13 @@ export function FileAllocatorContent() {
         </div>
       )}
 
-      <div className={`flex items-center justify-between ${showComingSoon ? "opacity-30 pointer-events-none" : ""}`}>
-        <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-muted-foreground" />
-          <div>
-            <span className="text-sm text-muted-foreground">Email Date: </span>
-            <span className="text-sm font-medium">{formatDate(data.emailDate)}</span>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refetch()}
-          disabled={isRefetching}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
-      </div>
-
       <div className={`grid grid-cols-1 lg:grid-cols-10 gap-4 ${showComingSoon ? "opacity-30 pointer-events-none" : ""}`}>
-        {data.newArticlesWithPages && data.newArticlesWithPages.length > 0 && (
-          <Card className="flex flex-col max-h-[600px] lg:col-span-3">
-            <CardHeader className="shrink-0">
-              <CardTitle>New Allocations ({data.totalNewArticles})</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-hidden">
+        <Card className="flex flex-col min-h-[400px] max-h-[600px] lg:col-span-3">
+          <CardHeader className="shrink-0">
+            <CardTitle>New Allocations ({data.totalNewArticles})</CardTitle>
+          </CardHeader>
+          <CardContent className="flex-1 overflow-hidden">
+            {data.newArticlesWithPages && data.newArticlesWithPages.length > 0 ? (
               <div className="rounded-md border h-full overflow-auto">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10">
@@ -216,30 +231,96 @@ export function FileAllocatorContent() {
                   </TableBody>
                 </Table>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center space-y-2 p-6">
+                  <p className="text-sm text-muted-foreground">
+                    All articles have already been allocated.
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-        <Card className="flex flex-col max-h-[600px] lg:col-span-7">
+        <Card className="flex flex-col min-h-[400px] max-h-[600px] lg:col-span-7">
           <CardHeader className="shrink-0">
-            <CardTitle>Allocation Details</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CardTitle>Email</CardTitle>
+                <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                  {getEmailPosition()}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  {formatDate(data.emailDate)}
+                </span>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="flex-1 overflow-hidden">
-            <div className="h-full">
-              {data.html && (
-                <div className="border rounded-lg overflow-hidden bg-muted/30 h-full">
-                  <iframe
-                    srcDoc={data.html}
-                    className="w-full h-full border-0"
-                    title="Allocation Details HTML"
-                    sandbox="allow-same-origin"
-                  />
+          <CardContent className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden mb-4">
+              {data.emailArticles && data.emailArticles.length > 0 ? (
+                data.html ? (
+                  <div className="border rounded-lg overflow-hidden bg-muted/30 h-full">
+                    <iframe
+                      srcDoc={data.html}
+                      className="w-full h-full border-0"
+                      title="Allocation Details HTML"
+                      sandbox="allow-same-origin"
+                    />
+                  </div>
+                ) : null
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center space-y-2 p-6">
+                    <p className="text-sm text-muted-foreground">
+                      No articles found in email.
+                    </p>
+                  </div>
                 </div>
               )}
+            </div>
+            <div className="flex items-center justify-center gap-2 pt-4 border-t shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousEmail}
+                disabled={isRefetching || isLoading}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous Email
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextEmail}
+                disabled={isRefetching || isLoading || isLatest}
+              >
+                Next Email
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {data.newArticlesWithPages && data.newArticlesWithPages.length > 0 && (
+        <div className={`flex justify-center ${showComingSoon ? "opacity-30 pointer-events-none" : ""}`}>
+          <Button
+            size="lg"
+            className="h-12 px-8 text-base font-semibold"
+            onClick={() => {
+              // TODO: Implement allocation logic
+              console.log("Allocate new articles clicked")
+            }}
+          >
+            Allocate New Articles
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

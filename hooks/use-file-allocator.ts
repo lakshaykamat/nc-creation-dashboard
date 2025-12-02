@@ -19,8 +19,21 @@ export type FileAllocatorError = {
   hint?: string
 }
 
-async function fetchFileAllocatorData(): Promise<DetectArticlesResponse> {
-  const res = await fetch("/api/file-allocator", {
+async function fetchFileAllocatorData(
+  recent?: boolean,
+  index?: number
+): Promise<DetectArticlesResponse> {
+  const urlParams = new URLSearchParams()
+  if (recent) {
+    urlParams.append("recent", "1")
+  } else if (index !== undefined) {
+    // Convert index to recent parameter: index 1 = recent 2, index 2 = recent 3, etc.
+    urlParams.append("recent", (index + 1).toString())
+  }
+
+  const url = `/api/file-allocator${urlParams.toString() ? `?${urlParams.toString()}` : ""}`
+
+  const res = await fetch(url, {
     method: "GET",
     headers: {
       Accept: "application/json",
@@ -79,10 +92,10 @@ async function fetchFileAllocatorData(): Promise<DetectArticlesResponse> {
   } as FileAllocatorError
 }
 
-export function useFileAllocator() {
+export function useFileAllocator(recent?: boolean, index?: number) {
   return useQuery({
-    queryKey: ["file-allocator"],
-    queryFn: fetchFileAllocatorData,
+    queryKey: ["file-allocator", recent ? "recent" : index],
+    queryFn: () => fetchFileAllocatorData(recent, index),
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: true,

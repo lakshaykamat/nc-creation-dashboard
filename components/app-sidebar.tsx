@@ -61,9 +61,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu className="gap-2">
               <SidebarMenuItem>
                 <SidebarMenuButton asChild className="py-6" isActive={pathname === "/file-allocator"}>
-                  <Link href="/file-allocator" className="flex items-center gap-2">
-                    <FolderTree className="h-4 w-4" />
-                    File Allocator
+                  <Link href="/file-allocator" className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      <FolderTree className="h-4 w-4" />
+                      File Allocator
+                    </div>
+                    <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                      New
+                    </span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
