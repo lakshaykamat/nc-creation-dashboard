@@ -26,18 +26,18 @@ export type LastTwoDaysFileDataResponse = {
 }
 
 async function fetchLastTwoDaysFilesData(): Promise<LastTwoDaysFileDataResponse> {
-  const res = await fetch(
-    "https://n8n-ex6e.onrender.com/webhook/last-two-days-files",
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-      credentials: "omit",
-    }
-  )
+  const res = await fetch("/api/last-two-days-files", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    },
+    cache: "no-store",
+    credentials: "omit",
+  })
 
   let data
   try {

@@ -20,28 +20,18 @@ export type FileAllocatorError = {
 }
 
 async function fetchFileAllocatorData(): Promise<DetectArticlesResponse> {
-  const apiKey = process.env.NEXT_PUBLIC_NC_API_KEY
-
-  if (!apiKey) {
-    throw {
-      code: 500,
-      message: "API key not configured",
-    } as FileAllocatorError
-  }
-
-  const res = await fetch(
-    "https://n8n-ex6e.onrender.com/webhook/lastest-allocation",
-    {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "X-API-KEY": apiKey,
-      },
-      cache: "no-store",
-      credentials: "omit",
-    }
-  )
+  const res = await fetch("/api/file-allocator", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    },
+    cache: "no-store",
+    credentials: "omit",
+  })
 
   let data
   try {
