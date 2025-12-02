@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { AUTH_COOKIE_NAMES } from "@/lib/auth-utils"
+import { AUTH_COOKIE_NAMES, type UserRole } from "@/lib/auth-utils"
+import { canAccessPage } from "@/lib/page-permissions"
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -27,6 +28,13 @@ export function middleware(request: NextRequest) {
     const loginUrl = new URL("/login", request.url)
     loginUrl.searchParams.set("redirect", pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  // Check page permissions using centralized configuration
+  const userRole = authRole.value as UserRole
+  if (!canAccessPage(pathname, userRole)) {
+    // Redirect to home page if user doesn't have access
+    return NextResponse.redirect(new URL("/", request.url))
   }
 
   // Allow access to protected routes

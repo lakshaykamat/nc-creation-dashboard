@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Earth, BriefcaseBusiness, FolderTree, User, LogOut } from "lucide-react"
+import { Earth, BriefcaseBusiness, FolderTree, User, LogOut, type LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 
@@ -23,6 +23,7 @@ import { Button } from "./ui/button"
 import { useUserRole } from "@/hooks/use-user-role"
 import { useAuth } from "@/hooks/use-auth"
 import { Skeleton } from "./ui/skeleton"
+import { getGroupedSidebarItems } from "@/lib/page-permissions"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
@@ -33,68 +34,77 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     logout()
   }
 
+  const groupedItems = React.useMemo(
+    () => getGroupedSidebarItems(role),
+    [role]
+  )
+
+  const iconMap: Record<string, LucideIcon> = {
+    Earth,
+    BriefcaseBusiness,
+    FolderTree,
+  }
+
+  const getIcon = (iconName?: string) => {
+    if (!iconName) return null
+    const IconComponent = iconMap[iconName]
+    return IconComponent ? <IconComponent className="h-4 w-4" /> : null
+  }
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-4">
-          {/* <Sparkles className="h-5 w-5" /> */}
           <h2 className="text-lg font-semibold">NC Creation</h2>
         </div>
         <Separator />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-2">
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className="py-6 px-4" isActive={pathname === "/"}>
-                  <Link href="/" className="flex items-center gap-2">
-                    <Earth className="h-4 w-4" />
-                    Portal
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className="py-6 px-4" isActive={pathname === "/work-history"}>
-                  <Link href="/work-history" className="flex items-center gap-2">
-                    <BriefcaseBusiness className="h-4 w-4" />
-                    Work History
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>TOOLS</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-2">
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild className="py-6 px-4" isActive={pathname === "/file-allocator"}>
-                  <Link href="/file-allocator" className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
-                      <FolderTree className="h-4 w-4" />
-                      File Allocator
-                    </div>
-                    <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
-                      New
-                    </span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {Object.entries(groupedItems).map(([groupName, items]) => (
+          <SidebarGroup key={groupName}>
+            <SidebarGroupLabel>{groupName}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-2">
+                {items.map((item) => (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      asChild
+                      className="py-6 px-4"
+                      isActive={pathname === item.path}
+                    >
+                      <Link
+                        href={item.path}
+                        className={
+                          item.badge
+                            ? "flex items-center justify-between w-full"
+                            : "flex items-center gap-2"
+                        }
+                      >
+                        <div className="flex items-center gap-2">
+                          {getIcon(item.icon)}
+                          {item.label}
+                        </div>
+                        {item.badge && (
+                          <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col gap-2">
           <Button
-            variant="destructive"
             size="sm"
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className="w-full py-6 px-4 justify-start gap-2"
+            className="bg-destructive/60 hover:bg-destructive/70 hover:text-destructive-foreground w-full py-6 px-4 justify-start gap-2 hover:cursor-pointer"
           >
             <LogOut className="h-4 w-4" />
             {isLoggingOut ? "Logging out..." : "Logout"}
