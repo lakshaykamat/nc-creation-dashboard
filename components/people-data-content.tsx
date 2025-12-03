@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { useFilteredLastTwoDaysFilesData, LastTwoDaysFileDataError, LastTwoDaysFileData } from "@/hooks/use-last-two-days-files-data"
+import { useFilteredLastTwoDaysFilesData, LastTwoDaysFileData } from "@/hooks/use-last-two-days-files-data"
 import { PeopleDataTable } from "@/components/people-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { RefreshCw, Copy, Calendar, Check } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PeopleChart } from "@/components/people-chart"
+import { ErrorCard } from "@/components/error-card"
 
 interface PeopleDataContentProps {
   globalFilter: string
@@ -264,42 +265,12 @@ export function PeopleDataContent({
   }
 
   if (error) {
-    const errorObj = error as unknown as Record<string, unknown>
-    const errorData: Partial<LastTwoDaysFileDataError> = {
-      code: typeof errorObj.code === "number" ? errorObj.code : undefined,
-      message: typeof errorObj.message === "string" ? errorObj.message : "An error occurred",
-      hint: typeof errorObj.hint === "string" ? errorObj.hint : undefined,
-    }
-    
     return (
-      <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive/10 shrink-0 mt-0.5">
-            <svg
-              className="h-3.5 w-3.5 text-destructive"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-destructive">
-              {errorData.code && <span className="mr-2">{errorData.code}</span>}
-              Error Loading Data
-            </h3>
-            {errorData.message && (
-              <p className="text-sm text-muted-foreground mt-1.5">{errorData.message}</p>
-            )}
-          </div>
-        </div>
-      </div>
+      <ErrorCard
+        error={error}
+        onRetry={() => refetchFromHook()}
+        retryLabel={isRefetchingFromHook ? "Retrying..." : "Try Again"}
+      />
     )
   }
 

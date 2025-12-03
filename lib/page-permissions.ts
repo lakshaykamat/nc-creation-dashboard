@@ -37,7 +37,13 @@ export const PAGE_PERMISSIONS: Record<string, PagePermission> = {
   "/file-allocator": {
     path: "/file-allocator",
     label: "File Allocator",
-    roles: ["ADMIN"],
+    roles: ["MEMBER", "ADMIN"],
+    enabled: true,
+  },
+  "/file-allocator/form": {
+    path: "/file-allocator/form",
+    label: "File Allocator Form",
+    roles: ["MEMBER", "ADMIN"],
     enabled: true,
   },
 }
@@ -68,7 +74,7 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     label: "File Allocator",
     icon: "FolderTree",
     group: "TOOLS",
-    roles: ["ADMIN"],
+    roles: ["MEMBER", "ADMIN"],
     enabled: true,
     badge: "New",
   },
@@ -76,11 +82,24 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
 
 /**
  * Check if a user role has access to a specific page
+ * Also checks parent routes if exact path is not found
  */
 export function canAccessPage(path: string, role: UserRole | null): boolean {
   if (!role) return false
 
-  const permission = PAGE_PERMISSIONS[path]
+  // First, check exact path
+  let permission = PAGE_PERMISSIONS[path]
+  
+  // If not found, check parent routes (e.g., /file-allocator/form -> /file-allocator)
+  if (!permission && path.includes("/")) {
+    const pathParts = path.split("/").filter(Boolean)
+    for (let i = pathParts.length; i > 0; i--) {
+      const parentPath = "/" + pathParts.slice(0, i).join("/")
+      permission = PAGE_PERMISSIONS[parentPath]
+      if (permission) break
+    }
+  }
+
   if (!permission) return false
 
   if (!permission.enabled) return false
