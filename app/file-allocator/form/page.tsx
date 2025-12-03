@@ -23,17 +23,43 @@ function FileAllocatorFormContent() {
   }, [role, isLoading, router])
 
   // Parse newArticlesWithPages array from query params
+  // Supports both LZ-string compressed and normal JSON data
   const [newArticlesWithPages, setNewArticlesWithPages] = useState<string[] | null>(null)
   const dataParam = searchParams.get("data")
   
   useEffect(() => {
     if (dataParam) {
       try {
-        const decodedData = decompressFromBase64(decodeURIComponent(dataParam))
-        setNewArticlesWithPages(JSON.parse(decodedData) as string[])
+        const decodedParam = decodeURIComponent(dataParam)
+        let parsedData: string[] | null = null
+        
+        // Method 1: Try LZ-string decompression (compressed data)
+        try {
+          const decompressed = decompressFromBase64(decodedParam)
+          parsedData = JSON.parse(decompressed) as string[]
+        } catch {
+          // Method 2: Try plain base64 decode + JSON parse (normal base64)
+          try {
+            const base64Decoded = atob(decodedParam)
+            parsedData = JSON.parse(base64Decoded) as string[]
+          } catch {
+            // Method 3: Try direct JSON parse (plain JSON string)
+            try {
+              parsedData = JSON.parse(decodedParam) as string[]
+            } catch (error) {
+              console.error("Failed to parse newArticlesWithPages from query params:", error)
+              parsedData = null
+            }
+          }
+        }
+        
+        setNewArticlesWithPages(parsedData)
       } catch (error) {
         console.error("Failed to parse newArticlesWithPages from query params:", error)
+        setNewArticlesWithPages(null)
       }
+    } else {
+      setNewArticlesWithPages(null)
     }
   }, [dataParam])
 
