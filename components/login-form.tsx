@@ -65,7 +65,7 @@ export function LoginForm({
               <Label htmlFor="admin" className="cursor-pointer">
                 ADMIN
               </Label>
-            </div>
+          </div>
           </RadioGroup>
         </Field>
         <Field>

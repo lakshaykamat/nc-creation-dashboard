@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
+import {
+  getSampleAllocationData,
+  shouldUseSampleData,
+} from "@/lib/sample-allocation"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -10,6 +14,39 @@ export async function GET(request: NextRequest) {
   const requestContext = logger.createRequestContext(request)
 
   try {
+    // Get query parameters
+    const { searchParams } = new URL(request.url)
+    const recent = searchParams.get("recent")
+
+    // Use sample data if enabled
+    if (shouldUseSampleData()) {
+      const data = getSampleAllocationData(recent)
+      const duration = Date.now() - startTime
+      const responseSize = JSON.stringify(data).length
+
+      logger.logRequest(
+        requestContext,
+        {
+          status: 200,
+          statusText: "OK",
+          duration,
+          dataSize: responseSize,
+        },
+        [],
+        {
+          endpoint: "file-allocator",
+          hasData: true,
+          queryParams: {
+            recent: recent || null,
+          },
+          usingSampleData: true,
+        }
+      )
+
+      return NextResponse.json(data)
+    }
+
+    // Continue with external API fetch
     const apiKey = process.env.NEXT_PUBLIC_NC_API_KEY
 
     if (!apiKey) {
@@ -33,10 +70,6 @@ export async function GET(request: NextRequest) {
     }
 
     const externalApiStartTime = Date.now()
-    
-    // Get query parameters
-    const { searchParams } = new URL(request.url)
-    const recent = searchParams.get("recent")
     
     // Build URL with query parameters
     let externalUrl = "https://n8n-ex6e.onrender.com/webhook/allocations"

@@ -30,16 +30,16 @@ export type PortalDataResponse = {
 
 async function fetchPortalData(): Promise<PortalDataResponse> {
   const res = await fetch("/api/portal-data", {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",
-    },
-    cache: "no-store",
-    credentials: "omit",
+      },
+      cache: "no-store",
+      credentials: "omit",
   })
 
   let data
@@ -82,23 +82,23 @@ async function fetchPortalData(): Promise<PortalDataResponse> {
     const responseData = data as { data: unknown[] }
     const validData = Array.isArray(responseData.data)
       ? responseData.data.filter(
-          (item): item is PortalData =>
-            typeof item === "object" &&
-            item !== null &&
-            "articleId" in item
-        )
-      : []
+              (item): item is PortalData =>
+                typeof item === "object" &&
+                item !== null &&
+                "articleId" in item
+            )
+          : []
 
-    return {
-      data: validData,
+      return {
+        data: validData,
+      }
     }
-  }
 
   // If no data property, return empty array
-  return {
-    data: [],
+      return {
+        data: [],
     message: "No data available",
-  }
+      }
 }
 
 export function usePortalData() {

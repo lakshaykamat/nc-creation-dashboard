@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { useFileAllocator } from "@/hooks/use-file-allocator"
+import { compressToBase64 } from "@/lib/compress-utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react"
@@ -17,6 +19,7 @@ import {
 } from "@/components/ui/table"
 
 export function FileAllocatorContent() {
+  const router = useRouter()
   const [emailIndex, setEmailIndex] = useState<number | null>(null)
   const isLatest = emailIndex === null
   
@@ -266,8 +269,10 @@ export function FileAllocatorContent() {
             size="lg"
             className="h-12 px-8 text-base font-semibold"
             onClick={() => {
-              // TODO: Implement allocation logic
-              console.log("Allocate new articles clicked")
+              // Compress and encode newArticlesWithPages array using LZ-String
+              const jsonString = JSON.stringify(data.newArticlesWithPages)
+              const compressedData = compressToBase64(jsonString)
+              router.push(`/file-allocator/form?data=${encodeURIComponent(compressedData)}`)
             }}
           >
             Allocate New Articles

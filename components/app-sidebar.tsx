@@ -63,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {Object.entries(groupedItems).map(([groupName, items]) => (
           <SidebarGroup key={groupName}>
             <SidebarGroupLabel>{groupName}</SidebarGroupLabel>
-            <SidebarGroupContent>
+          <SidebarGroupContent>
               <SidebarMenu className="gap-2">
                 {items.map((item) => (
                   <SidebarMenuItem key={item.path}>
@@ -90,12 +90,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           </span>
                         )}
                       </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
                 ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         ))}
       </SidebarContent>
       <SidebarFooter>
