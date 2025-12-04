@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const webhookUrl = "https://n8n-ex6e.onrender.com/webhook-test/update-allocation"
+    const webhookUrl = "https://n8n-ex6e.onrender.com/webhook/update-allocation"
 
     const webhookResponse = await fetch(webhookUrl, {
       method: "POST",
