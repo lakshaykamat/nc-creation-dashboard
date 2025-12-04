@@ -52,16 +52,16 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto">
+    <div className="w-full max-w-xl mx-auto px-4 sm:px-6">
       <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Article Allocation Form</CardTitle>
-          <CardDescription>
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-xl sm:text-2xl font-bold">Article Allocation Form</CardTitle>
+          <CardDescription className="text-sm sm:text-base">
             Distribute articles among team members based on allocation method
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form className="space-y-6">
+        <CardContent className="px-4 sm:px-6">
+          <form className="space-y-4 sm:space-y-6">
             <FieldGroup>
               <AllocationMethodField control={formState.control} />
 
@@ -84,7 +84,7 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
               />
 
               {formState.hasAllocations && (
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
                     <AllocationPreviewDialog
                       displayArticles={formState.displayArticles}

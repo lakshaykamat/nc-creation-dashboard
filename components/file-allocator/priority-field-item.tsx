@@ -62,7 +62,7 @@ export function PriorityFieldItem({
       onDragLeave={onDragLeave}
       onDrop={onDrop}
       className={cn(
-        "group flex items-center gap-3 p-3 rounded-lg border bg-background transition-all",
+        "group flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 rounded-lg border bg-background transition-all",
         isDragging && "opacity-50 border-primary shadow-lg scale-95 cursor-grabbing",
         isDragOver && "border-primary border-2 bg-primary/10 shadow-md",
         !isDragging && !isDragOver && "cursor-grab hover:border-primary/30 hover:shadow-md"
@@ -82,7 +82,7 @@ export function PriorityFieldItem({
       <span className="flex-1 text-sm font-medium">
         {field.label}
       </span>
-      <div className="w-32 space-y-1">
+      <div className="w-full sm:w-32 space-y-1">
         <Label
           htmlFor={`priority-${field.id}`}
           className="text-xs text-muted-foreground block"

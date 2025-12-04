@@ -63,9 +63,19 @@ function FileAllocatorFormContent() {
     }
   }, [dataParam])
 
+  // Redirect to /file-allocator if form data query is empty or array is empty
+  useEffect(() => {
+    if (!isLoading) {
+      // Redirect if no data param or if parsed data is empty array
+      if (!dataParam || (newArticlesWithPages !== null && newArticlesWithPages.length === 0)) {
+        router.push("/file-allocator")
+      }
+    }
+  }, [dataParam, newArticlesWithPages, isLoading, router])
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-2 sm:p-4">
         <div className="w-full max-w-md space-y-4">
           <Skeleton className="h-10 w-64 mx-auto" />
           <Skeleton className="h-96 w-full" />
@@ -79,7 +89,7 @@ function FileAllocatorFormContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-2 sm:p-4 py-4 sm:py-6">
       <FileAllocatorForm newArticlesWithPages={newArticlesWithPages} />
     </div>
   )
@@ -88,7 +98,7 @@ function FileAllocatorFormContent() {
 export default function FileAllocatorFormPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-2 sm:p-4">
         <div className="w-full max-w-md space-y-4">
           <Skeleton className="h-10 w-64 mx-auto" />
           <Skeleton className="h-96 w-full" />

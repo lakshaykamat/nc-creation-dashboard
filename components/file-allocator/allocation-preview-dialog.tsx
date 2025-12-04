@@ -63,15 +63,15 @@ export function AllocationPreviewDialog({
           Preview Allocation
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col w-[95vw] sm:w-full">
         <DialogHeader>
-          <DialogTitle>Allocation Preview</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg sm:text-xl">Allocation Preview</DialogTitle>
+          <DialogDescription className="text-sm">
             Review how articles are allocated before submitting
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-hidden min-h-0">
-          <div className="h-full max-h-[60vh] overflow-y-auto rounded-md border bg-background/40">
+          <div className="h-full max-h-[60vh] overflow-y-auto overflow-x-auto rounded-md border bg-background/40">
             <Table>
               <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
