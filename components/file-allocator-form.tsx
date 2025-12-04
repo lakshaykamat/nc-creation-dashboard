@@ -18,6 +18,8 @@ import { PriorityFieldsList } from "./file-allocator/priority-fields-list"
 import { DdnArticlesField } from "./file-allocator/ddn-articles-field"
 import { AllocationPreviewDialog } from "./file-allocator/allocation-preview-dialog"
 import { FormSubmitButtonWithDialog } from "./file-allocator/form-submit-button-with-dialog"
+import { AllocationSuccessDialog } from "./file-allocator/allocation-success-dialog"
+import { AllocationFailureDialog } from "./file-allocator/allocation-failure-dialog"
 
 interface FileAllocatorFormProps {
   /** Array of article strings in format "ARTICLE_ID [PAGES]" */
@@ -43,7 +45,11 @@ interface FileAllocatorFormProps {
 export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormProps) {
   const formState = useFileAllocatorFormState(newArticlesWithPages)
 
-  const handleFormSubmit = formState.handleSubmit(formState.onSubmit)
+  // Wrap onSubmit to work with AlertDialog (no form event needed)
+  const handleFormSubmit = async () => {
+    const values = formState.watch()
+    await formState.onSubmit(values)
+  }
 
   return (
     <div className="w-full max-w-xl mx-auto">
@@ -111,6 +117,14 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
           onClose={() => formState.setShowToast(false)}
         />
       )}
+      <AllocationSuccessDialog
+        open={formState.showSuccess}
+        itemCount={formState.successItemCount}
+      />
+      <AllocationFailureDialog
+        open={formState.showFailure}
+        errorMessage={formState.failureMessage}
+      />
     </div>
   )
 }

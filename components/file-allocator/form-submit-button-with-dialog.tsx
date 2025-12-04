@@ -9,6 +9,7 @@
 
 "use client"
 
+import { useState } from "react"
 import { Field } from "@/components/ui/field"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,7 +26,7 @@ import {
 
 interface FormSubmitButtonWithDialogProps {
   isDisabled: boolean
-  onSubmit: (e?: React.FormEvent) => void
+  onSubmit: () => Promise<void>
 }
 
 /**
@@ -33,15 +34,24 @@ interface FormSubmitButtonWithDialogProps {
  * 
  * @param props - Component props
  * @param props.isDisabled - Whether the button should be disabled
- * @param props.onSubmit - Function to call when confirmed (form submit handler)
+ * @param props.onSubmit - Async function to call when confirmed (form submit handler)
  */
 export function FormSubmitButtonWithDialog({
   isDisabled,
   onSubmit,
 }: FormSubmitButtonWithDialogProps) {
-  const handleConfirm = () => {
-    // Create a synthetic form event to pass to onSubmit
-    onSubmit()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleConfirm = async () => {
+    setIsSubmitting(true)
+    try {
+      await onSubmit()
+    } catch (error) {
+      // Error is handled in the onSubmit function
+      console.error("Submission error:", error)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -64,9 +74,11 @@ export function FormSubmitButtonWithDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm}>
-              Confirm Allocation
+            <AlertDialogCancel disabled={isSubmitting}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm} disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Confirm Allocation"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -13,6 +13,8 @@ export { PriorityFieldsList } from "./priority-fields-list"
 export { DdnArticlesField } from "./ddn-articles-field"
 export { AllocationPreviewTable } from "./allocation-preview-table"
 export { AllocationPreviewDialog } from "./allocation-preview-dialog"
+export { AllocationSuccessDialog } from "./allocation-success-dialog"
+export { AllocationFailureDialog } from "./allocation-failure-dialog"
 export { FormSubmitButton } from "./form-submit-button"
 export { FormSubmitButtonWithDialog } from "./form-submit-button-with-dialog"
 

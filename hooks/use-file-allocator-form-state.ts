@@ -113,6 +113,14 @@ export interface UseFileAllocatorFormStateReturn {
   setShowToast: (show: boolean) => void
   toastMessage: string
   
+  // Success state
+  showSuccess: boolean
+  successItemCount: number
+  
+  // Failure state
+  showFailure: boolean
+  failureMessage: string
+  
   // Computed values
   allocationMethod: string
   priorityFields: PriorityField[]
@@ -404,8 +412,16 @@ export function useFileAllocatorFormState(
     prevAllocationMethodRef.current = allocationMethod || ""
   }, [allocationMethod, setValue, watch])
 
+  // Success state
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [successItemCount, setSuccessItemCount] = useState(0)
+  
+  // Failure state
+  const [showFailure, setShowFailure] = useState(false)
+  const [failureMessage, setFailureMessage] = useState<string>("")
+
   // Form submission handler
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     const submissionAllocation = buildFinalAllocation(
       values.priorityFields,
       parsedArticles,
@@ -415,8 +431,35 @@ export function useFileAllocatorFormState(
       date
     )
     
-    // TODO: Implement actual form submission
-    console.log("Final Allocation:", submissionAllocation)
+    try {
+      // Submit allocation to API
+      const response = await fetch("/api/submit-allocation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionAllocation),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        // Show failure dialog and redirect to file-allocator page
+        setFailureMessage(result.message || "Failed to submit allocation")
+        setShowFailure(true)
+        return
+      }
+
+      // Show success dialog and redirect to home
+      setSuccessItemCount(result.itemCount || 0)
+      setShowSuccess(true)
+    } catch (error) {
+      console.error("Error submitting allocation:", error)
+      // Show failure dialog and redirect to file-allocator page
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred"
+      setFailureMessage(errorMessage)
+      setShowFailure(true)
+    }
   }
 
   return {
@@ -442,6 +485,14 @@ export function useFileAllocatorFormState(
     showToast,
     setShowToast,
     toastMessage,
+    
+    // Success state
+    showSuccess,
+    successItemCount,
+    
+    // Failure state
+    showFailure,
+    failureMessage,
     
     // Computed values
     allocationMethod,
