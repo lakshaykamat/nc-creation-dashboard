@@ -43,9 +43,9 @@ export function getSampleAllocationData(
 
 /**
  * Checks if sample data should be used based on environment variable
+ * Currently disabled - always returns false
  */
 export function shouldUseSampleData(): boolean {
-  return true
-  return process.env.USE_SAMPLE_ALLOCATION_DATA === "true"
+  return false
 }
 
