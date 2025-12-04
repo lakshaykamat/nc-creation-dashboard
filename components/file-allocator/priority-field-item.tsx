@@ -68,24 +68,29 @@ export function PriorityFieldItem({
         !isDragging && !isDragOver && "cursor-grab hover:border-primary/30 hover:shadow-md"
       )}
     >
-      <div className="flex items-center gap-2 shrink-0">
+      {/* Mobile: Priority Count + Name on first row */}
+      {/* Desktop: Grip + Priority Count + Name on same row */}
+      <div className="flex items-center gap-2 sm:gap-2 w-full sm:w-auto">
         <GripVertical
           className={cn(
-            "h-5 w-5 transition-colors",
+            "h-5 w-5 transition-colors shrink-0",
             isDragging ? "text-primary" : "text-muted-foreground group-hover:text-primary"
           )}
         />
-        <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold">
+        <div className="flex items-center justify-center w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0">
           {index + 1}
         </div>
+        <span className="flex-1 sm:flex-none text-sm font-medium">
+          {field.label}
+        </span>
       </div>
-      <span className="flex-1 text-sm font-medium">
-        {field.label}
-      </span>
+      
+      {/* Mobile: Input on second row */}
+      {/* Desktop: Input on same row */}
       <div className="w-full sm:w-32 space-y-1">
         <Label
           htmlFor={`priority-${field.id}`}
-          className="text-xs text-muted-foreground block"
+          className="text-xs text-muted-foreground block sm:hidden"
         >
           Article Count
         </Label>

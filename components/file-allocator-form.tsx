@@ -18,6 +18,7 @@ import { PriorityFieldsList } from "./file-allocator/priority-fields-list"
 import { DdnArticlesField } from "./file-allocator/ddn-articles-field"
 import { AllocationPreviewDialog } from "./file-allocator/allocation-preview-dialog"
 import { FormSubmitButtonWithDialog } from "./file-allocator/form-submit-button-with-dialog"
+import { AllocationLoadingDialog } from "./file-allocator/allocation-loading-dialog"
 import { AllocationSuccessDialog } from "./file-allocator/allocation-success-dialog"
 import { AllocationFailureDialog } from "./file-allocator/allocation-failure-dialog"
 
@@ -117,6 +118,9 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
           onClose={() => formState.setShowToast(false)}
         />
       )}
+      <AllocationLoadingDialog
+        open={formState.showLoading}
+      />
       <AllocationSuccessDialog
         open={formState.showSuccess}
         itemCount={formState.successItemCount}

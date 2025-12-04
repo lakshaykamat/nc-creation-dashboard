@@ -40,23 +40,18 @@ export function FormSubmitButtonWithDialog({
   isDisabled,
   onSubmit,
 }: FormSubmitButtonWithDialogProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [open, setOpen] = useState(false)
 
   const handleConfirm = async () => {
-    setIsSubmitting(true)
-    try {
-      await onSubmit()
-    } catch (error) {
-      // Error is handled in the onSubmit function
-      console.error("Submission error:", error)
-    } finally {
-      setIsSubmitting(false)
-    }
+    // Close the alert dialog immediately
+    setOpen(false)
+    // Call onSubmit which will show the loading dialog
+    await onSubmit()
   }
 
   return (
     <Field>
-      <AlertDialog>
+      <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>
           <Button
             type="button"
@@ -74,11 +69,9 @@ export function FormSubmitButtonWithDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm} disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Confirm Allocation"}
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm}>
+              Confirm Allocation
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
