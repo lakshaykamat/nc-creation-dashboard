@@ -75,6 +75,8 @@ export function AllocationPreviewDialog({
             <Table>
               <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
+                  <TableHead>Month</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Article</TableHead>
                   <TableHead className="text-right">Pages</TableHead>
@@ -85,6 +87,8 @@ export function AllocationPreviewDialog({
                   <TableRow
                     key={`${item.name}-${item.articleId}-${index}`}
                   >
+                    <TableCell>{item.month || "—"}</TableCell>
+                    <TableCell>{item.date || "—"}</TableCell>
                     <TableCell className="font-medium">
                       {item.name || "—"}
                     </TableCell>

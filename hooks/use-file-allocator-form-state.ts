@@ -43,6 +43,10 @@ export interface AllocatedArticle {
   articleId: string
   /** Number of pages */
   pages: number
+  /** Month name (e.g., "December") */
+  month: string
+  /** Date in DD/MM/YYYY format */
+  date: string
 }
 
 /**
@@ -55,6 +59,8 @@ export interface PersonAllocation {
   articles: Array<{
     articleId: string
     pages: number
+    month: string
+    date: string
   }>
 }
 
@@ -68,11 +74,15 @@ export interface FinalAllocationResult {
   ddnArticles: Array<{
     articleId: string
     pages: number
+    month: string
+    date: string
   }>
   /** Articles that were not allocated to anyone */
   unallocatedArticles: Array<{
     articleId: string
     pages: number
+    month: string
+    date: string
   }>
 }
 
@@ -228,6 +238,21 @@ export function useFileAllocatorFormState(
     [effectiveTotalFiles, allocatedFiles, ddnValidationError]
   )
 
+  // Get current date and month for allocation
+  const { month, date } = useMemo(() => {
+    const now = new Date()
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ]
+    const month = monthNames[now.getMonth()]
+    const day = String(now.getDate()).padStart(2, "0")
+    const monthNum = String(now.getMonth() + 1).padStart(2, "0")
+    const year = now.getFullYear()
+    const date = `${day}/${monthNum}/${year}`
+    return { month, date }
+  }, [])
+
   // Build allocated articles based on current form state
   // Using formValues ensures reactivity when nested array values change
   const allocatedArticles = useMemo(() => {
@@ -247,9 +272,11 @@ export function useFileAllocatorFormState(
       currentPriorityFields,
       parsedArticles,
       ddnArticles,
-      method
+      method,
+      month,
+      date
     )
-  }, [formValues, ddnArticles, parsedArticles])
+  }, [formValues, ddnArticles, parsedArticles, month, date])
 
   // Get unallocated articles for display
   const allocatedArticleIds = useMemo(
@@ -264,6 +291,8 @@ export function useFileAllocatorFormState(
         name: "NEED TO ALLOCATE",
         articleId: article.articleId,
         pages: article.pages,
+        month,
+        date,
       }))
 
     // Sort unallocated articles based on allocation method
@@ -275,7 +304,7 @@ export function useFileAllocatorFormState(
     }
     
     return unallocated
-  }, [parsedArticles, allocatedArticleIds, allocationMethod])
+  }, [parsedArticles, allocatedArticleIds, allocationMethod, month, date])
 
   // Combine allocated and unallocated for display
   const displayArticles = useMemo(
@@ -297,9 +326,11 @@ export function useFileAllocatorFormState(
       currentPriorityFields,
       parsedArticles,
       currentDdnArticles,
-      currentMethod
+      currentMethod,
+      month,
+      date
     )
-  }, [formValues, ddnArticles, parsedArticles])
+  }, [formValues, ddnArticles, parsedArticles, month, date])
 
   // Drag and drop handlers
   const handleDragStart = (index: number) => {
@@ -379,7 +410,9 @@ export function useFileAllocatorFormState(
       values.priorityFields,
       parsedArticles,
       ddnArticles,
-      values.allocationMethod
+      values.allocationMethod,
+      month,
+      date
     )
     
     // TODO: Implement actual form submission
@@ -463,7 +496,9 @@ function distributeArticles(
   priorityFields: PriorityField[],
   parsedArticles: ParsedArticle[],
   ddnArticles: string[],
-  allocationMethod: string
+  allocationMethod: string,
+  month: string,
+  date: string
 ): AllocatedArticle[] {
   const result: AllocatedArticle[] = []
 
@@ -481,6 +516,8 @@ function distributeArticles(
       name: "DDN",
       articleId: article.articleId,
       pages: article.pages,
+      month,
+      date,
     }))
 
   // 2) Remaining articles available for people allocation
@@ -523,6 +560,8 @@ function distributeArticles(
             name: field.label,
             articleId: article.articleId,
             pages: article.pages,
+            month,
+            date,
           })
           assignedArticleIds.add(article.articleId)
           articlesAllocated++
@@ -545,6 +584,8 @@ function distributeArticles(
           name: field.label,
           articleId: article.articleId,
           pages: article.pages,
+          month,
+          date,
         })
         assignedArticleIds.add(article.articleId)
         articlesAllocated++
@@ -578,7 +619,9 @@ function buildFinalAllocation(
   priorityFields: PriorityField[],
   parsedArticles: ParsedArticle[],
   ddnArticles: string[],
-  allocationMethod: string
+  allocationMethod: string,
+  month: string,
+  date: string
 ): FinalAllocationResult {
   const ddnSet = new Set(ddnArticles)
   
@@ -588,6 +631,8 @@ function buildFinalAllocation(
     .map((article) => ({
       articleId: article.articleId,
       pages: article.pages,
+      month,
+      date,
     }))
 
   // Get allocated articles
@@ -595,7 +640,9 @@ function buildFinalAllocation(
     priorityFields,
     parsedArticles,
     ddnArticles,
-    allocationMethod
+    allocationMethod,
+    month,
+    date
   )
 
   // Get all allocated article IDs (DDN + person allocations)
@@ -609,10 +656,12 @@ function buildFinalAllocation(
     .map((article) => ({
       articleId: article.articleId,
       pages: article.pages,
+      month,
+      date,
     }))
 
   // Group person allocations by person name
-  const personMap = new Map<string, Array<{ articleId: string; pages: number }>>()
+  const personMap = new Map<string, Array<{ articleId: string; pages: number; month: string; date: string }>>()
   
   for (const allocated of allocatedArticles) {
     // Skip DDN articles
@@ -624,6 +673,8 @@ function buildFinalAllocation(
     personMap.get(allocated.name)!.push({
       articleId: allocated.articleId,
       pages: allocated.pages,
+      month: allocated.month,
+      date: allocated.date,
     })
   }
 

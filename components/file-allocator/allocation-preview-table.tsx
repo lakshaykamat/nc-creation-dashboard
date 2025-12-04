@@ -45,6 +45,8 @@ export function AllocationPreviewTable({
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Month</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Article</TableHead>
                 <TableHead className="text-right">Pages</TableHead>
@@ -55,6 +57,8 @@ export function AllocationPreviewTable({
                 <TableRow
                   key={`${item.name}-${item.articleId}-${index}`}
                 >
+                  <TableCell>{item.month || "—"}</TableCell>
+                  <TableCell>{item.date || "—"}</TableCell>
                   <TableCell className="font-medium">
                     {item.name || "—"}
                   </TableCell>
