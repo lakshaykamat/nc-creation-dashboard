@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server"
 import { AUTH_COOKIE_NAMES, type UserRole } from "@/lib/auth/auth-utils"
 import { canAccessPage } from "@/lib/common/page-permissions"
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Allow access to login page and API routes
