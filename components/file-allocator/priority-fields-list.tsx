@@ -9,10 +9,10 @@
  */
 
 import { Field, FieldLabel } from "@/components/ui/field"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/common/utils"
 import { PriorityFieldItem } from "./priority-field-item"
 import { type Control } from "react-hook-form"
-import { type FormValues } from "@/hooks/use-file-allocator-form-state"
+import { type FormValues } from "@/hooks/file-allocator/use-file-allocator-form-state"
 import { type FieldArrayWithId } from "react-hook-form"
 
 interface PriorityFieldsListProps {

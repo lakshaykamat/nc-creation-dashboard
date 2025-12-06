@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { AUTH_COOKIE_NAMES, type UserRole } from "@/lib/auth-utils"
+import { AUTH_COOKIE_NAMES, type UserRole } from "@/lib/auth/auth-utils"
 
 export const dynamic = "force-dynamic"
 

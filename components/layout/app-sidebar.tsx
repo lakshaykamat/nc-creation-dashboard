@@ -20,10 +20,10 @@ import {
 } from "@/components/ui/sidebar"
 import { Separator } from "./ui/separator"
 import { Button } from "./ui/button"
-import { useUserRole } from "@/hooks/use-user-role"
-import { useAuth } from "@/hooks/use-auth"
+import { useUserRole } from "@/hooks/auth/use-user-role"
+import { useAuth } from "@/hooks/auth/use-auth"
 import { Skeleton } from "./ui/skeleton"
-import { getGroupedSidebarItems } from "@/lib/page-permissions"
+import { getGroupedSidebarItems } from "@/lib/common/page-permissions"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()

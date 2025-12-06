@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
-import type { UserRole, LoginCredentials } from "@/lib/auth-utils"
+import type { UserRole, LoginCredentials } from "@/lib/auth/auth-utils"
 
 interface LoginResponse {
   success: boolean

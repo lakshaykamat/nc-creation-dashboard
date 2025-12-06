@@ -2,11 +2,11 @@
 
 import { useEffect, Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { FileAllocatorForm } from "@/components/file-allocator-form"
-import { useUserRole } from "@/hooks/use-user-role"
+import { FileAllocatorForm } from "@/components/file-allocator/file-allocator-form"
+import { useUserRole } from "@/hooks/auth/use-user-role"
 import { Skeleton } from "@/components/ui/skeleton"
-import { canAccessPage } from "@/lib/page-permissions"
-import { decompressFromBase64 } from "@/lib/compress-utils"
+import { canAccessPage } from "@/lib/common/page-permissions"
+import { decompressFromBase64 } from "@/lib/common/compress-utils"
 function FileAllocatorFormContent() {
   const searchParams = useSearchParams()
   const router = useRouter()

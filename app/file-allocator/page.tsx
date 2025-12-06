@@ -2,16 +2,16 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/components/layout/app-sidebar"
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
-import { PageHeader } from "@/components/page-header"
-import { FileAllocatorContent } from "@/components/file-allocator-content"
-import { useUserRole } from "@/hooks/use-user-role"
+import { PageHeader } from "@/components/layout/page-header"
+import { FileAllocatorContent } from "@/components/file-allocator/file-allocator-content"
+import { useUserRole } from "@/hooks/auth/use-user-role"
 import { Skeleton } from "@/components/ui/skeleton"
-import { canAccessPage } from "@/lib/page-permissions"
+import { canAccessPage } from "@/lib/common/page-permissions"
 
 export default function FileAllocatorPage() {
   const router = useRouter()

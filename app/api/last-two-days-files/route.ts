@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { logger } from "@/lib/logger"
+import { logger } from "@/lib/common/logger"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"

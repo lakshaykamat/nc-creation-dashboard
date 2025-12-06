@@ -1,15 +1,15 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { useFilteredLastTwoDaysFilesData, LastTwoDaysFileData } from "@/hooks/use-last-two-days-files-data"
-import { PeopleDataTable } from "@/components/people-data-table"
+import { useFilteredLastTwoDaysFilesData, LastTwoDaysFileData } from "@/hooks/portal-data/use-last-two-days-files-data"
+import { PeopleDataTable } from "./people-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Copy, Calendar, Check } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { PeopleChart } from "@/components/people-chart"
-import { ErrorCard } from "@/components/error-card"
+import { PeopleChart } from "./people-chart"
+import { ErrorCard } from "@/components/common/error-card"
 
 interface PeopleDataContentProps {
   globalFilter: string

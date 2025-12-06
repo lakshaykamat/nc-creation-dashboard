@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useFileAllocator } from "@/hooks/use-file-allocator"
-import { compressToBase64 } from "@/lib/compress-utils"
+import { useFileAllocator } from "@/hooks/file-allocator/use-file-allocator"
+import { compressToBase64 } from "@/lib/common/compress-utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ErrorCard } from "@/components/error-card"
+import { ErrorCard } from "@/components/common/error-card"
 import {
   Table,
   TableBody,

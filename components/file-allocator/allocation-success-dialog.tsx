@@ -11,15 +11,19 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, Copy } from "lucide-react"
 import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import type { FinalAllocationResult } from "@/hooks/file-allocator/use-file-allocator-form-state"
+import { useCopyAllocation } from "@/hooks/file-allocator/use-copy-allocation"
 
 interface AllocationSuccessDialogProps {
   open: boolean
   itemCount: number
+  allocation?: FinalAllocationResult
 }
 
 /**
@@ -28,12 +32,15 @@ interface AllocationSuccessDialogProps {
  * @param props - Component props
  * @param props.open - Whether the dialog is open
  * @param props.itemCount - Number of items allocated
+ * @param props.allocation - Allocation data to copy
  */
 export function AllocationSuccessDialog({
   open,
   itemCount,
+  allocation,
 }: AllocationSuccessDialogProps) {
   const router = useRouter()
+  const { copy, copied } = useCopyAllocation(allocation)
 
   useEffect(() => {
     if (open) {
@@ -59,6 +66,17 @@ export function AllocationSuccessDialog({
           <p className="text-center text-muted-foreground">
             {itemCount} article{itemCount !== 1 ? "s" : ""} allocated successfully.
           </p>
+          {allocation && (
+            <Button
+              onClick={copy}
+              variant="outline"
+              className="mt-4"
+              disabled={copied}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              {copied ? "Copied!" : "Copy Allocation Info"}
+            </Button>
+          )}
           <p className="mt-2 text-sm text-muted-foreground">
             Redirecting to home page...
           </p>

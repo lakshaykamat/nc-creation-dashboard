@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { useFilteredPortalData } from "@/hooks/use-portal-data"
-import { PortalDataTable } from "@/components/portal-data-table"
+import { useFilteredPortalData } from "@/hooks/portal-data/use-portal-data"
+import { PortalDataTable } from "./portal-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Copy, FileCode, EyeOff } from "lucide-react"
-import { ErrorCard } from "@/components/error-card"
+import { ErrorCard } from "@/components/common/error-card"
 
 interface PortalDataContentProps {
   globalFilter: string

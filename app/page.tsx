@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/components/layout/app-sidebar"
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
-import { PortalDataContent } from "@/components/portal-data-content"
-import { PageHeader } from "@/components/page-header"
+import { PortalDataContent } from "@/components/portal-data/portal-data-content"
+import { PageHeader } from "@/components/layout/page-header"
 
 export default function Page() {
   const [globalFilter, setGlobalFilter] = useState("")

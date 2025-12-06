@@ -13,8 +13,8 @@ import { GripVertical } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Controller, type Control } from "react-hook-form"
-import { type FormValues } from "@/hooks/use-file-allocator-form-state"
-import { cn } from "@/lib/utils"
+import { type FormValues } from "@/hooks/file-allocator/use-file-allocator-form-state"
+import { cn } from "@/lib/common/utils"
 
 interface PriorityFieldItemProps {
   field: { id: string; label: string }

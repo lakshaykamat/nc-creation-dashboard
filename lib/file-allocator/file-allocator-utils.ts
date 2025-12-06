@@ -12,7 +12,7 @@
  * @module lib/file-allocator-utils
  */
 
-import { type PriorityField } from "@/lib/file-allocator-constants"
+import { type PriorityField } from "./file-allocator-constants"
 
 /**
  * Calculates the total number of articles allocated across all priority fields.

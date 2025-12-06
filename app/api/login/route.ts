@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { encryptPassword } from "@/lib/auth"
+import { encryptPassword } from "@/lib/auth/auth"
 import {
   validateCredentials,
   AUTH_COOKIE_CONFIG,
   AUTH_COOKIE_NAMES,
   type LoginCredentials,
-} from "@/lib/auth-utils"
+} from "@/lib/auth/auth-utils"
 
 export const dynamic = "force-dynamic"
 

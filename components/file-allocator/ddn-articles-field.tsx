@@ -9,7 +9,7 @@
 
 import { Field, FieldLabel } from "@/components/ui/field"
 import { type UseFormRegister } from "react-hook-form"
-import { type FormValues } from "@/hooks/use-file-allocator-form-state"
+import { type FormValues } from "@/hooks/file-allocator/use-file-allocator-form-state"
 
 interface DdnArticlesFieldProps {
   register: UseFormRegister<FormValues>

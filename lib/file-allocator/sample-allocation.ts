@@ -1,6 +1,6 @@
 import { readFileSync } from "fs"
 import { join } from "path"
-import { DetectArticlesResponse } from "@/hooks/use-file-allocator"
+import { DetectArticlesResponse } from "@/hooks/file-allocator/use-file-allocator"
 
 /**
  * Reads sample allocation data from JSON file

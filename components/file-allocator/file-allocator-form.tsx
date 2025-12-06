@@ -12,15 +12,15 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Toast } from "@/components/ui/toast"
 import { FieldGroup } from "@/components/ui/field"
-import { useFileAllocatorFormState } from "@/hooks/use-file-allocator-form-state"
-import { AllocationMethodField } from "./file-allocator/allocation-method-field"
-import { PriorityFieldsList } from "./file-allocator/priority-fields-list"
-import { DdnArticlesField } from "./file-allocator/ddn-articles-field"
-import { AllocationPreviewDialog } from "./file-allocator/allocation-preview-dialog"
-import { FormSubmitButtonWithDialog } from "./file-allocator/form-submit-button-with-dialog"
-import { AllocationLoadingDialog } from "./file-allocator/allocation-loading-dialog"
-import { AllocationSuccessDialog } from "./file-allocator/allocation-success-dialog"
-import { AllocationFailureDialog } from "./file-allocator/allocation-failure-dialog"
+import { useFileAllocatorFormState } from "@/hooks/file-allocator/use-file-allocator-form-state"
+import { AllocationMethodField } from "./allocation-method-field"
+import { PriorityFieldsList } from "./priority-fields-list"
+import { DdnArticlesField } from "./ddn-articles-field"
+import { AllocationPreviewDialog } from "./allocation-preview-dialog"
+import { FormSubmitButtonWithDialog } from "./form-submit-button-with-dialog"
+import { AllocationLoadingDialog } from "./allocation-loading-dialog"
+import { AllocationSuccessDialog } from "./allocation-success-dialog"
+import { AllocationFailureDialog } from "./allocation-failure-dialog"
 
 interface FileAllocatorFormProps {
   /** Array of article strings in format "ARTICLE_ID [PAGES]" */
@@ -124,6 +124,7 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
       <AllocationSuccessDialog
         open={formState.showSuccess}
         itemCount={formState.successItemCount}
+        allocation={formState.submittedAllocation || undefined}
       />
       <AllocationFailureDialog
         open={formState.showFailure}

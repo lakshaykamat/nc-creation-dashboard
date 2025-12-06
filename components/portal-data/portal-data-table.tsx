@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { PortalData } from "@/hooks/use-portal-data"
+import { PortalData } from "@/hooks/portal-data/use-portal-data"
 import { ArrowUpDown, ArrowUp, ArrowDown, Columns, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {

@@ -3,7 +3,7 @@ import { logger } from "@/lib/logger"
 import {
   getSampleAllocationData,
   shouldUseSampleData,
-} from "@/lib/sample-allocation"
+} from "@/lib/file-allocator/sample-allocation"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import type { UserRole } from "@/lib/auth-utils"
+import type { UserRole } from "@/lib/auth/auth-utils"
 
 interface UserRoleResponse {
   role: UserRole | null

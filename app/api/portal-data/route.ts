@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { extractRows } from "@/lib/extract-rows"
-import { fetchPortalHtml, fetchLastTwoDaysFilesData, buildDoneByMap } from "@/lib/portal-fetcher"
-import { combinePortalData } from "@/lib/combine-portal-data"
-import { logger } from "@/lib/logger"
+import { extractRows } from "@/lib/portal-data/extract-rows"
+import { fetchPortalHtml, fetchLastTwoDaysFilesData, buildDoneByMap } from "@/lib/portal-data/portal-fetcher"
+import { combinePortalData } from "@/lib/portal-data/combine-portal-data"
+import { logger } from "@/lib/common/logger"
 
 // Force dynamic rendering - never cache on the server
 export const dynamic = "force-dynamic"

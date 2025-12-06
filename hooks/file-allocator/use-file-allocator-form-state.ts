@@ -13,7 +13,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useForm, useFieldArray, type Control, type UseFormWatch, type UseFormSetValue } from "react-hook-form"
-import { type PriorityField, ALLOCATION_METHODS, createInitialPriorityFields } from "@/lib/file-allocator-constants"
+import { type PriorityField, ALLOCATION_METHODS, createInitialPriorityFields } from "@/lib/file-allocator/file-allocator-constants"
 import {
   parseNewArticlesWithPages,
   validateDdnArticles,
@@ -22,7 +22,7 @@ import {
   isOverAllocated,
   getOverAllocationMessage,
   type ParsedArticle,
-} from "@/lib/file-allocator-utils"
+} from "@/lib/file-allocator/file-allocator-utils"
 
 /**
  * Form values structure for Article Allocation Form
@@ -119,6 +119,7 @@ export interface UseFileAllocatorFormStateReturn {
   // Success state
   showSuccess: boolean
   successItemCount: number
+  submittedAllocation: FinalAllocationResult | null
   
   // Failure state
   showFailure: boolean
@@ -421,6 +422,7 @@ export function useFileAllocatorFormState(
   // Success state
   const [showSuccess, setShowSuccess] = useState(false)
   const [successItemCount, setSuccessItemCount] = useState(0)
+  const [submittedAllocation, setSubmittedAllocation] = useState<FinalAllocationResult | null>(null)
   
   // Failure state
   const [showFailure, setShowFailure] = useState(false)
@@ -464,6 +466,7 @@ export function useFileAllocatorFormState(
 
       // Show success dialog and redirect to home
       setSuccessItemCount(result.itemCount || 0)
+      setSubmittedAllocation(submissionAllocation)
       setShowSuccess(true)
     } catch (error) {
       console.error("Error submitting allocation:", error)
@@ -506,6 +509,7 @@ export function useFileAllocatorFormState(
     // Success state
     showSuccess,
     successItemCount,
+    submittedAllocation,
     
     // Failure state
     showFailure,

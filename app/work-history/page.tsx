@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/components/layout/app-sidebar"
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
-import { PeopleDataContentWithChart } from "@/components/people-data-content"
-import { PageHeader } from "@/components/page-header"
+import { PeopleDataContentWithChart } from "@/components/people-data/people-data-content"
+import { PageHeader } from "@/components/layout/page-header"
 
 export default function WorkHistoryPage() {
   const [globalFilter, setGlobalFilter] = useState("")

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { AUTH_COOKIE_NAMES, type UserRole } from "@/lib/auth-utils"
-import { canAccessPage } from "@/lib/page-permissions"
+import { AUTH_COOKIE_NAMES, type UserRole } from "@/lib/auth/auth-utils"
+import { canAccessPage } from "@/lib/common/page-permissions"
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

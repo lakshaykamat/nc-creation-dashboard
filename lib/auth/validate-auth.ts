@@ -1,11 +1,11 @@
 import { cookies } from "next/headers"
-import { decryptPassword } from "@/lib/auth"
+import { decryptPassword } from "./auth"
 import {
   getExpectedPassword,
   AUTH_COOKIE_NAMES,
   type AuthValidationResult,
   type UserRole,
-} from "@/lib/auth-utils"
+} from "./auth-utils"
 
 export async function validateAuth(): Promise<AuthValidationResult> {
   try {
