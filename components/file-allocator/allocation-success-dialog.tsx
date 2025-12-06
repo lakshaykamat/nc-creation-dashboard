@@ -2,19 +2,19 @@
  * Allocation Success Dialog Component
  * 
  * Displays a success message with a checkmark icon after successful allocation submission.
- * Automatically redirects to home page after a short delay.
  * 
  * @module components/file-allocator/allocation-success-dialog
  */
 
 "use client"
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useRef } from "react"
 import { CheckCircle2, Copy } from "lucide-react"
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  VisuallyHidden,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import type { FinalAllocationResult } from "@/hooks/file-allocator/use-file-allocator-form-state"
@@ -39,23 +39,46 @@ export function AllocationSuccessDialog({
   itemCount,
   allocation,
 }: AllocationSuccessDialogProps) {
-  const router = useRouter()
   const { copy, copied } = useCopyAllocation(allocation)
+  const hasAutoCopied = useRef(false)
 
   useEffect(() => {
-    if (open) {
-      // Redirect to home page after 2 seconds
-      const timer = setTimeout(() => {
-        router.push("/")
-      }, 2000)
+    if (open && allocation && !hasAutoCopied.current) {
+      // Auto-copy allocation info when dialog opens (only once)
+      // Add a longer delay to ensure dialog animation completes and document is ready
+      const copyTimer = setTimeout(async () => {
+        try {
+          await copy()
+          hasAutoCopied.current = true
+        } catch (err) {
+          // If auto-copy fails, user can still click the button
+          console.warn("Auto-copy failed, user can manually copy:", err)
+        }
+      }, 300)
 
-      return () => clearTimeout(timer)
+      return () => {
+        clearTimeout(copyTimer)
+      }
     }
-  }, [open, router])
+    
+    // Reset the ref when dialog closes
+    if (!open) {
+      hasAutoCopied.current = false
+    }
+  }, [open, allocation, copy])
+
+  const handleCopy = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    await copy()
+  }
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="max-w-md" showCloseButton={false}>
+      <DialogContent className="max-w-md" showCloseButton={true}>
+        <VisuallyHidden>
+          <DialogTitle>Allocation Successful</DialogTitle>
+        </VisuallyHidden>
         <div className="flex flex-col items-center justify-center py-8 px-4">
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
             <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
@@ -68,18 +91,21 @@ export function AllocationSuccessDialog({
           </p>
           {allocation && (
             <Button
-              onClick={copy}
+              onClick={handleCopy}
               variant="outline"
               className="mt-4"
               disabled={copied}
+              type="button"
             >
               <Copy className="mr-2 h-4 w-4" />
               {copied ? "Copied!" : "Copy Allocation Info"}
             </Button>
           )}
-          <p className="mt-2 text-sm text-muted-foreground">
-            Redirecting to home page...
-          </p>
+          {allocation && copied && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Allocation info copied to clipboard!
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>

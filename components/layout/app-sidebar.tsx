@@ -18,12 +18,13 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { Separator } from "./ui/separator"
-import { Button } from "./ui/button"
+
+import { Button } from "../ui/button"
 import { useUserRole } from "@/hooks/auth/use-user-role"
 import { useAuth } from "@/hooks/auth/use-auth"
-import { Skeleton } from "./ui/skeleton"
+import { Skeleton } from "../ui/skeleton"
 import { getGroupedSidebarItems } from "@/lib/common/page-permissions"
+import { Separator } from "../ui/separator"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()

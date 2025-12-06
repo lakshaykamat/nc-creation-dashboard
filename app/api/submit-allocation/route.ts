@@ -11,50 +11,12 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
+import type { FinalAllocationResult } from "@/hooks/file-allocator/use-file-allocator-form-state"
+import { transformAllocationToPayload } from "@/hooks/file-allocator/transform-allocation-to-payload"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
 export const revalidate = 0
-
-/**
- * Request body structure for allocation submission
- */
-interface SubmitAllocationRequest {
-  personAllocations: Array<{
-    person: string
-    articles: Array<{
-      articleId: string
-      pages: number
-      month: string
-      date: string
-    }>
-  }>
-  ddnArticles: Array<{
-    articleId: string
-    pages: number
-    month: string
-    date: string
-  }>
-  unallocatedArticles: Array<{
-    articleId: string
-    pages: number
-    month: string
-    date: string
-  }>
-}
-
-/**
- * Transformed allocation item for webhook submission
- */
-interface AllocationItem {
-  Month: string
-  Date: string
-  "Article number": string
-  Pages: number
-  Completed: string
-  "Done by": string
-  Time: string
-}
 
 /**
  * POST handler for submitting allocation
@@ -65,51 +27,10 @@ export async function POST(request: NextRequest) {
 
   try {
 
-    const body: SubmitAllocationRequest = await request.json()
+    const body: FinalAllocationResult = await request.json()
 
     // Transform allocation data into required format
-    const allocationItems: AllocationItem[] = []
-
-    // Add person allocations
-    for (const personAllocation of body.personAllocations) {
-      for (const article of personAllocation.articles) {
-        allocationItems.push({
-          Month: article.month,
-          Date: article.date,
-          "Article number": article.articleId,
-          Pages: article.pages,
-          Completed: "Not started",
-          "Done by": personAllocation.person,
-          Time: "",
-        })
-      }
-    }
-
-    // Add DDN articles
-    for (const article of body.ddnArticles) {
-      allocationItems.push({
-        Month: article.month,
-        Date: article.date,
-        "Article number": article.articleId,
-        Pages: article.pages,
-        Completed: "Not started",
-        "Done by": "DDN",
-        Time: "",
-      })
-    }
-
-    // Add unallocated articles
-    for (const article of body.unallocatedArticles) {
-      allocationItems.push({
-        Month: article.month,
-        Date: article.date,
-        "Article number": article.articleId,
-        Pages: article.pages,
-        Completed: "Not started",
-        "Done by": "",
-        Time: "",
-      })
-    }
+    const allocationItems = transformAllocationToPayload(body)
 
     // Submit to external webhook
     const apiKey = process.env.NEXT_PUBLIC_NC_API_KEY

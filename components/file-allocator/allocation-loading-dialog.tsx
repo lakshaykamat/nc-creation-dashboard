@@ -12,6 +12,8 @@ import { Loader2 } from "lucide-react"
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  VisuallyHidden,
 } from "@/components/ui/dialog"
 
 interface AllocationLoadingDialogProps {
@@ -30,6 +32,9 @@ export function AllocationLoadingDialog({
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="max-w-md" showCloseButton={false}>
+        <VisuallyHidden>
+          <DialogTitle>Submitting Allocation</DialogTitle>
+        </VisuallyHidden>
         <div className="flex flex-col items-center justify-center py-8 px-4">
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
             <Loader2 className="h-12 w-12 text-primary animate-spin" />

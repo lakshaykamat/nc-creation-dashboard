@@ -15,6 +15,8 @@ import { XCircle } from "lucide-react"
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  VisuallyHidden,
 } from "@/components/ui/dialog"
 
 interface AllocationFailureDialogProps {
@@ -49,6 +51,9 @@ export function AllocationFailureDialog({
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="max-w-md" showCloseButton={false}>
+        <VisuallyHidden>
+          <DialogTitle>Allocation Failed</DialogTitle>
+        </VisuallyHidden>
         <div className="flex flex-col items-center justify-center py-8 px-4">
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10 dark:bg-destructive/20">
             <XCircle className="h-12 w-12 text-destructive" />
