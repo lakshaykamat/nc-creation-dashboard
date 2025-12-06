@@ -17,7 +17,7 @@ import {
   VisuallyHidden,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import type { FinalAllocationResult } from "@/hooks/file-allocator/use-file-allocator-form-state"
+import type { FinalAllocationResult } from "@/types/file-allocator"
 import { useCopyAllocation } from "@/hooks/file-allocator/use-copy-allocation"
 
 interface AllocationSuccessDialogProps {

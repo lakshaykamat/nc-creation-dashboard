@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { type AllocatedArticle } from "@/hooks/file-allocator/use-file-allocator-form-state"
+import { type AllocatedArticle } from "@/types/file-allocator"
 
 interface AllocationPreviewTableProps {
   displayArticles: AllocatedArticle[]

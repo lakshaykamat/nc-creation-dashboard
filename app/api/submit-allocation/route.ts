@@ -11,8 +11,9 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
-import type { FinalAllocationResult } from "@/hooks/file-allocator/use-file-allocator-form-state"
+import type { FinalAllocationResult } from "@/types/file-allocator"
 import { transformAllocationToPayload } from "@/hooks/file-allocator/transform-allocation-to-payload"
+import type { AllocationItem } from "@/types/file-allocator"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"

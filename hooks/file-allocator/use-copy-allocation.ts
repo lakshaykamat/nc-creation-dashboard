@@ -7,7 +7,7 @@
  */
 
 import { useState } from "react"
-import type { FinalAllocationResult } from "./use-file-allocator-form-state"
+import type { FinalAllocationResult } from "@/types/file-allocator"
 
 /**
  * Formats allocation data for copying to clipboard

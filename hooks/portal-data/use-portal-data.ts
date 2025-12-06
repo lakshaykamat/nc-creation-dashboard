@@ -3,30 +3,14 @@
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-export type PortalData = {
-  articleId: string
-  doneBy: string | null
-  src: string
-  client: string
-  journal: string
-  msp: string | number
-  status: string
-  assignDate: string
-  dueDate: string
-  priority: string
-  isInQA?: boolean
-}
+import type {
+  PortalData,
+  PortalDataError,
+  PortalDataResponse,
+} from "@/types/portal-data"
 
-export type PortalDataError = {
-  code?: number
-  message: string
-  hint?: string
-}
-
-export type PortalDataResponse = {
-  data: PortalData[]
-  message?: string
-}
+// Re-export for backward compatibility
+export type { PortalData, PortalDataError, PortalDataResponse }
 
 async function fetchPortalData(): Promise<PortalDataResponse> {
   const res = await fetch("/api/portal-data", {

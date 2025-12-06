@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select"
 import { ALLOCATION_METHOD_OPTIONS } from "@/lib/file-allocator/file-allocator-constants"
 import { Controller, type Control } from "react-hook-form"
-import { type FormValues } from "@/hooks/file-allocator/use-file-allocator-form-state"
+import { type FormValues } from "@/types/file-allocator"
 
 interface AllocationMethodFieldProps {
   control: Control<FormValues>

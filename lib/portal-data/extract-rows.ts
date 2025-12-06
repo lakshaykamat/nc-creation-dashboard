@@ -1,15 +1,7 @@
-export type ExtractedRow = {
-  client: string
-  journal: string
-  articleId: string
-  src: string
-  msp: string
-  status: string
-  assignDate: string
-  dueDate: string
-  priority: string
-  isInQA: boolean
-}
+import type { ExtractedRow } from "@/types/portal-data"
+
+// Re-export for backward compatibility
+export type { ExtractedRow }
 
 // Pre-compile regex patterns for better performance
 const ROW_REGEX = /<tr[^>]*class="([^"]*)"[^>]*>([\s\S]*?)<\/tr>/g

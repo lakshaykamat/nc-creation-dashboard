@@ -6,20 +6,10 @@
  * @module hooks/file-allocator/transform-allocation-to-payload
  */
 
-import type { FinalAllocationResult } from "./use-file-allocator-form-state"
+import type { FinalAllocationResult, AllocationItem } from "@/types/file-allocator"
 
-/**
- * Transformed allocation item for webhook submission
- */
-export interface AllocationItem {
-  Month: string
-  Date: string
-  "Article number": string
-  Pages: number
-  Completed: string
-  "Done by": string
-  Time: string
-}
+// Re-export for backward compatibility
+export type { AllocationItem }
 
 /**
  * Transforms FinalAllocationResult into the webhook payload format

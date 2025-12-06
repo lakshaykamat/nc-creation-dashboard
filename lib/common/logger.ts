@@ -1,56 +1,22 @@
 import { NextRequest } from "next/server"
 import { randomUUID } from "crypto"
+import type {
+  LogLevel,
+  RequestContext,
+  ResponseContext,
+  ExternalApiCall,
+  LogEntry,
+} from "@/types/common"
 
-export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR"
-
-export interface RequestContext {
-  requestId: string
-  method: string
-  path: string
-  url: string
-  ip: string
-  userAgent: string
-  device: {
-    type: string
-    browser: string
-    os: string
-  }
-  headers: Record<string, string>
-  queryParams: Record<string, string>
-  timestamp: string
+// Re-export for backward compatibility
+export type {
+  LogLevel,
+  RequestContext,
+  ResponseContext,
+  ExternalApiCall,
+  LogEntry,
 }
 
-export interface ResponseContext {
-  status: number
-  statusText: string
-  duration: number
-  dataSize?: number
-  error?: {
-    message: string
-    stack?: string
-    code?: string | number
-  }
-}
-
-export interface ExternalApiCall {
-  url: string
-  method: string
-  status: number
-  duration: number
-  error?: string
-}
-
-export interface LogEntry {
-  level: LogLevel
-  timestamp: string
-  service: string
-  environment: string
-  request: RequestContext
-  response?: ResponseContext
-  externalApiCalls?: ExternalApiCall[]
-  message: string
-  metadata?: Record<string, unknown>
-}
 
 class Logger {
   private service: string

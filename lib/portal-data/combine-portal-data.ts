@@ -1,4 +1,4 @@
-import type { PortalData } from "@/hooks/portal-data/use-portal-data"
+import type { PortalData } from "@/types/portal-data"
 import type { ExtractedRow } from "./extract-rows"
 
 export function combinePortalData(

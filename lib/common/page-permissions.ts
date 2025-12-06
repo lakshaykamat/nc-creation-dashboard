@@ -1,21 +1,7 @@
-import type { UserRole } from "./auth-utils"
+import type { UserRole, PagePermission, SidebarItem } from "@/types/auth"
 
-export interface PagePermission {
-  path: string
-  label: string
-  roles: UserRole[]
-  enabled: boolean
-}
-
-export interface SidebarItem {
-  path: string
-  label: string
-  icon?: string
-  group?: string
-  roles: UserRole[]
-  enabled: boolean
-  badge?: string
-}
+// Re-export for backward compatibility
+export type { PagePermission, SidebarItem }
 
 /**
  * Centralized page permissions configuration

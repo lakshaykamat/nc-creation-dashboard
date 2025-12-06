@@ -2,22 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query"
 
-export interface DetectArticlesResponse {
-  existingSheetArticles: string[]
-  emailArticles: string[]
-  newArticleIds: string[]
-  totalNewArticles: number
-  newArticlesWithPages: string[]
-  totalNewPages: number
-  html: string
-  emailDate: string
-}
+import type { DetectArticlesResponse, FileAllocatorError } from "@/types/file-allocator"
 
-export type FileAllocatorError = {
-  code?: number
-  message: string
-  hint?: string
-}
+// Re-export for backward compatibility
+export type { DetectArticlesResponse, FileAllocatorError }
 
 async function fetchFileAllocatorData(
   recent?: boolean,

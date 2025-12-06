@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { useFilteredLastTwoDaysFilesData, LastTwoDaysFileData } from "@/hooks/portal-data/use-last-two-days-files-data"
+import { useFilteredLastTwoDaysFilesData } from "@/hooks/portal-data/use-last-two-days-files-data"
+import type { LastTwoDaysFileData } from "@/types/portal-data"
 import { PeopleDataTable } from "./people-data-table"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"

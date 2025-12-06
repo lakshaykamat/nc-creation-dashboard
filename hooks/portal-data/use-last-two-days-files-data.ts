@@ -3,26 +3,17 @@
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
-export type LastTwoDaysFileData = {
-  row_number: number
-  Month: string
-  Date: string
-  "Article number": string
-  Pages: number
-  Completed: string
-  "Done by": string
-  Time: string
-}
+import type {
+  LastTwoDaysFileData,
+  LastTwoDaysFileDataError,
+  LastTwoDaysFileDataResponse,
+} from "@/types/portal-data"
 
-export type LastTwoDaysFileDataError = {
-  code?: number
-  message: string
-  hint?: string
-}
-
-export type LastTwoDaysFileDataResponse = {
-  data: LastTwoDaysFileData[]
-  message?: string
+// Re-export for backward compatibility
+export type {
+  LastTwoDaysFileData,
+  LastTwoDaysFileDataError,
+  LastTwoDaysFileDataResponse,
 }
 
 async function fetchLastTwoDaysFilesData(): Promise<LastTwoDaysFileDataResponse> {

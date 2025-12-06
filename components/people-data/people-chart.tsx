@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { Bar, BarChart, XAxis, YAxis } from "recharts"
-import { LastTwoDaysFileData } from "@/hooks/portal-data/use-last-two-days-files-data"
+import type { LastTwoDaysFileData } from "@/types/portal-data"
 import {
   Card,
   CardContent,

@@ -13,6 +13,10 @@
  */
 
 import { type PriorityField } from "./file-allocator-constants"
+import type { ParsedArticle, DdnValidationResult } from "@/types/file-allocator"
+
+// Re-export for backward compatibility
+export type { ParsedArticle, DdnValidationResult }
 
 /**
  * Calculates the total number of articles allocated across all priority fields.
@@ -116,25 +120,6 @@ export function calculateNewAllocatedTotal(
   }, 0)
 }
 
-/**
- * Result of DDN article validation.
- */
-export interface DdnValidationResult {
-  /** Array of valid, unique article IDs */
-  articles: string[]
-  /** Error message if validation failed, null if valid */
-  error: string | null
-}
-
-/**
- * Parsed article data structure.
- */
-export interface ParsedArticle {
-  /** Article identifier (e.g., "CDC101217") */
-  articleId: string
-  /** Number of pages in the article */
-  pages: number
-}
 
 /**
  * Parses the newArticlesWithPages array into structured article data.

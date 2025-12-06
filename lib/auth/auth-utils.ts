@@ -1,14 +1,11 @@
-export type UserRole = "MEMBER" | "ADMIN"
+import type {
+  UserRole,
+  LoginCredentials,
+  AuthValidationResult,
+} from "@/types/auth"
 
-export interface LoginCredentials {
-  role: UserRole
-  password: string
-}
-
-export interface AuthValidationResult {
-  valid: boolean
-  role?: UserRole
-}
+// Re-export for backward compatibility
+export type { UserRole, LoginCredentials, AuthValidationResult }
 
 /**
  * Get the expected password for a given role from environment variables

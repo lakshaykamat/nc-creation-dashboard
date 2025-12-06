@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { LastTwoDaysFileData } from "@/hooks/portal-data/use-last-two-days-files-data"
+import type { LastTwoDaysFileData } from "@/types/portal-data"
 import { ArrowUpDown, ArrowUp, ArrowDown, Columns } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {

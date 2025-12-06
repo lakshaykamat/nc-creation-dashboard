@@ -21,69 +21,21 @@ import {
   calculateRemainingFiles,
   isOverAllocated,
   getOverAllocationMessage,
-  type ParsedArticle,
 } from "@/lib/file-allocator/file-allocator-utils"
+import type {
+  FormValues,
+  AllocatedArticle,
+  PersonAllocation,
+  FinalAllocationResult,
+  ParsedArticle,
+} from "@/types/file-allocator"
 
-/**
- * Form values structure for Article Allocation Form
- */
-export interface FormValues {
-  allocationMethod: string
-  ddnArticles: string
-  priorityFields: PriorityField[]
-}
-
-/**
- * Represents an article allocated to a person or DDN.
- */
-export interface AllocatedArticle {
-  /** Name of the person or "DDN" for DDN articles */
-  name: string
-  /** Article identifier */
-  articleId: string
-  /** Number of pages */
-  pages: number
-  /** Month name (e.g., "December") */
-  month: string
-  /** Date in DD/MM/YYYY format */
-  date: string
-}
-
-/**
- * Represents articles allocated to a specific person.
- */
-export interface PersonAllocation {
-  /** Person name */
-  person: string
-  /** Array of articles allocated to this person */
-  articles: Array<{
-    articleId: string
-    pages: number
-    month: string
-    date: string
-  }>
-}
-
-/**
- * Final allocation result structure for form submission.
- */
-export interface FinalAllocationResult {
-  /** Articles grouped by person */
-  personAllocations: PersonAllocation[]
-  /** DDN articles with pages */
-  ddnArticles: Array<{
-    articleId: string
-    pages: number
-    month: string
-    date: string
-  }>
-  /** Articles that were not allocated to anyone */
-  unallocatedArticles: Array<{
-    articleId: string
-    pages: number
-    month: string
-    date: string
-  }>
+// Re-export types for backward compatibility
+export type {
+  FormValues,
+  AllocatedArticle,
+  PersonAllocation,
+  FinalAllocationResult,
 }
 
 /**
