@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Earth, BriefcaseBusiness, FolderTree, User, LogOut, type LucideIcon } from "lucide-react"
+import { Earth, BriefcaseBusiness, FolderTree, Settings, Database, User, LogOut, type LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 
@@ -44,6 +44,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     Earth,
     BriefcaseBusiness,
     FolderTree,
+    Settings,
+    Database,
   }
 
   const getIcon = (iconName?: string) => {
@@ -70,7 +72,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
                       asChild
-                      className="py-6 px-4"
+                      className="py-6 px-4 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-semibold hover:bg-primary/5 hover:text-foreground transition-colors"
                       isActive={pathname === item.path}
                     >
                       <Link

@@ -32,6 +32,18 @@ export const PAGE_PERMISSIONS: Record<string, PagePermission> = {
     roles: ["MEMBER", "ADMIN"],
     enabled: true,
   },
+  "/settings": {
+    path: "/settings",
+    label: "Settings",
+    roles: ["MEMBER", "ADMIN"],
+    enabled: true,
+  },
+  "/sheet-data": {
+    path: "/sheet-data",
+    label: "Sheet Data",
+    roles: ["MEMBER", "ADMIN"],
+    enabled: true,
+  },
 }
 
 /**
@@ -62,7 +74,23 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     group: "TOOLS",
     roles: ["MEMBER", "ADMIN"],
     enabled: true,
+  },
+  {
+    path: "/settings",
+    label: "Settings",
+    icon: "Settings",
+    group: "Navigation",
+    roles: ["MEMBER", "ADMIN"],
+    enabled: true,
     badge: "New",
+  },
+  {
+    path: "/sheet-data",
+    label: "Sheet Data",
+    icon: "Database",
+    group: "TOOLS",
+    roles: ["MEMBER", "ADMIN"],
+    enabled: true,
   },
 ]
 
