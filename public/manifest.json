@@ -7,7 +7,7 @@
     "orientation": "any",
     "scope": "/",
     "short_name": "NC Creation - Portal",
-    "start_url": "/",
+    "start_url": "/?utm_source=pwa",
     "theme_color": "#ffffff",
     "icons": [
       {

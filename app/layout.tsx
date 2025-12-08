@@ -38,6 +38,9 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "NC Creation - Portal",
   },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
   robots: {
     index: true,
     follow: true,
