@@ -3,6 +3,14 @@ import withPWA from "next-pwa";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  async rewrites() {
+    return [
+      {
+        source: "/manifest.json",
+        destination: "/api/manifest",
+      },
+    ];
+  },
 };
 
 const pwaConfig = withPWA({
