@@ -6,8 +6,12 @@ import { canAccessPage } from "@/lib/common/page-permissions"
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Allow access to login page and API routes
-  if (pathname === "/login" || pathname.startsWith("/api/")) {
+  // Allow access to login page, API routes, and public files
+  if (
+    pathname === "/login" ||
+    pathname.startsWith("/api/") ||
+    pathname === "/manifest.json"
+  ) {
     return NextResponse.next()
   }
 
@@ -50,7 +54,7 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (public folder)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }
 
