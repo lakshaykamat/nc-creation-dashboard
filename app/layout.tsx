@@ -25,6 +25,19 @@ export const metadata: Metadata = {
   authors: [{ name: "NC Creation" }],
   creator: "NC Creation",
   publisher: "NC Creation",
+  manifest: "/manifest.json",
+  icons: {
+    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "NC Creation - Portal",
+  },
   robots: {
     index: true,
     follow: true,
