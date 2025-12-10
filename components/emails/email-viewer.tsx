@@ -11,6 +11,7 @@
 import { useMemo } from "react"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { getEmailHtmlContent, formatEmailDateRelative, getEmailSenderName, getEmailSenderAddress, getEmailRecipients } from "@/lib/emails/email-utils"
 import type { Email } from "@/types/emails"
 
 interface EmailViewerProps {
@@ -21,9 +22,7 @@ interface EmailViewerProps {
 export function EmailViewer({ email, onBack }: EmailViewerProps) {
   const iframeContent = useMemo(() => {
     if (!email) return ""
-    
-    const htmlContent = email.html || email.textAsHtml || email.text || ""
-    return htmlContent
+    return getEmailHtmlContent(email)
   }, [email])
 
   const iframeSrcDoc = useMemo(() => {
@@ -64,55 +63,28 @@ export function EmailViewer({ email, onBack }: EmailViewerProps) {
     )
   }
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString)
-      const now = new Date()
-      const diffMs = now.getTime() - date.getTime()
-      const diffMins = Math.floor(diffMs / 60000)
-      const diffHours = Math.floor(diffMs / 3600000)
-      const diffDays = Math.floor(diffMs / 86400000)
+  const fromName = getEmailSenderName(email)
+  const fromAddress = getEmailSenderAddress(email)
+  const toAddresses = getEmailRecipients(email)
 
-      if (diffMins < 1) return "Just now"
-      if (diffMins < 60) return `${diffMins}m ago`
-      if (diffHours < 24) return `${diffHours}h ago`
-      if (diffDays < 7) return `${diffDays}d ago`
-
-      return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
-      }).format(date)
-    } catch {
-      return dateString
+  const handleBackClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (onBack) {
+      onBack()
     }
   }
 
-  const getFromName = (email: Email) => {
-    return email.from.value[0]?.name || email.from.value[0]?.address || "Unknown"
-  }
-
-  const getFromAddress = (email: Email) => {
-    return email.from.value[0]?.address || ""
-  }
-
-  const getToAddresses = (email: Email) => {
-    return email.to.value.map((addr) => addr.name || addr.address).join(", ")
-  }
-
-  const fromName = getFromName(email)
-  const fromAddress = getFromAddress(email)
-  const toAddresses = getToAddresses(email)
-
   return (
     <div className="h-full flex flex-col">
-      <div className="border-b pb-4 shrink-0">
+      <div className="border-b pb-4 shrink-0 relative z-10 bg-background">
         {onBack && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={onBack}
-            className="mb-3 -ml-2"
+            onClick={handleBackClick}
+            className="mb-3 -ml-2 relative z-10 pointer-events-auto"
+            type="button"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
@@ -131,7 +103,7 @@ export function EmailViewer({ email, onBack }: EmailViewerProps) {
                 <span>{toAddresses}</span>
               </>
             )}
-            <span className="ml-2">• {formatDate(email.date)}</span>
+            <span className="ml-2">• {formatEmailDateRelative(email.date)}</span>
           </div>
         </div>
       </div>

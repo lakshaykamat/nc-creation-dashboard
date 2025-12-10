@@ -63,12 +63,12 @@ function FileAllocatorFormContent() {
     }
   }, [dataParam])
 
-  // Redirect to /file-allocator if form data query is empty or array is empty
+  // Redirect to home if form data query is empty or array is empty
   useEffect(() => {
     if (!isLoading) {
       // Redirect if no data param or if parsed data is empty array
       if (!dataParam || (newArticlesWithPages !== null && newArticlesWithPages.length === 0)) {
-        router.push("/file-allocator")
+        router.push("/")
       }
     }
   }, [dataParam, newArticlesWithPages, isLoading, router])

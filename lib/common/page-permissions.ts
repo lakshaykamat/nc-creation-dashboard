@@ -80,19 +80,10 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     enabled: true,
   },
   {
-    path: "/file-allocator",
-    label: "File Allocator",
-    icon: "FolderTree",
-    group: "TOOLS",
-    roles: ["MEMBER", "ADMIN"],
-    enabled: true,
-  },
-
-  {
     path: "/sheet-data",
     label: "Sheet Data",
     icon: "Database",
-    group: "TOOLS",
+    group: "Tools",
     roles: ["MEMBER", "ADMIN"],
     enabled: true,
   },
@@ -108,9 +99,10 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     path: "/emails",
     label: "Emails",
     icon: "Mail",
-    group: "Navigation",
+    group: "Tools",
     roles: ["ADMIN"],
     enabled: true,
+    badge: "CHECK BABY",
   },
   {
     path: "/settings",

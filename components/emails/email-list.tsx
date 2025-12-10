@@ -9,37 +9,28 @@
 "use client"
 
 import { cn } from "@/lib/common/utils"
+import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import { useArticleDetection } from "@/hooks/emails/use-article-detection"
+import { formatEmailDate, getEmailSenderName, getEmailPreview } from "@/lib/emails/email-utils"
 import type { Email } from "@/types/emails"
 
 interface EmailListProps {
   emails: Email[]
   selectedEmailId: string | null
+  selectedEmailIds: Set<string>
   onSelectEmail: (email: Email) => void
+  onToggleEmailSelection: (emailId: string) => void
 }
 
 export function EmailList({
   emails,
   selectedEmailId,
+  selectedEmailIds,
   onSelectEmail,
+  onToggleEmailSelection,
 }: EmailListProps) {
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString)
-      return new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(date)
-    } catch {
-      return dateString
-    }
-  }
-
-  const getFromName = (email: Email) => {
-    return email.from.value[0]?.name || email.from.value[0]?.address || "Unknown"
-  }
+  const { articleStats, isDetecting } = useArticleDetection(emails)
 
   if (emails.length === 0) {
     return (
@@ -51,31 +42,66 @@ export function EmailList({
 
   return (
     <div className="divide-y">
-      {emails.map((email) => (
-        <button
-          key={email.id}
-          onClick={() => onSelectEmail(email)}
-          className={cn(
-            "w-full py-4 px-4 text-left hover:bg-muted/50 transition-colors cursor-pointer rounded-md",
-            selectedEmailId === email.id && "bg-muted"
-          )}
-        >
-          <div className="space-y-1">
-            <div className="font-medium text-sm line-clamp-1">
-              {getFromName(email)}
-            </div>
-            <div className="text-sm font-semibold line-clamp-1">
-              {email.subject}
-            </div>
-            <div className="text-xs text-muted-foreground line-clamp-2">
-              {email.text || email.textAsHtml || "No preview available"}
-            </div>
-            <div className="text-xs text-muted-foreground mt-2">
-              {formatDate(email.date)}
+      {emails.map((email) => {
+        const stats = articleStats[email.id] || { detected: 0, allocated: 0, unallocated: 0 }
+        const hasArticles = stats.detected > 0
+        const isChecked = selectedEmailIds.has(email.id)
+
+        return (
+          <div
+            key={email.id}
+            className={cn(
+              "w-full py-4 px-4 hover:bg-muted/50 transition-colors rounded-md",
+              selectedEmailId === email.id && "bg-muted"
+            )}
+          >
+            <div className="flex items-start gap-3">
+              <Checkbox
+                checked={isChecked}
+                onCheckedChange={() => onToggleEmailSelection(email.id)}
+                onClick={(e) => e.stopPropagation()}
+                className="mt-0.5 shrink-0"
+              />
+              <button
+                onClick={() => onSelectEmail(email)}
+                className="flex-1 text-left space-y-1 min-w-0"
+              >
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 min-w-0">
+                    <div className="font-medium text-sm line-clamp-1 flex-1 min-w-0 wrap-break-word">
+                      {getEmailSenderName(email)}
+                    </div>
+                    {isDetecting ? (
+                      <Badge variant="outline" className="shrink-0 animate-pulse">
+                        Detecting...
+                      </Badge>
+                    ) : hasArticles ? (
+                      <div className="shrink-0 flex items-center gap-1 text-xs font-medium whitespace-nowrap">
+                        <span className="text-green-600 dark:text-green-500">
+                          A {stats.allocated}
+                        </span>
+                        <span className="text-muted-foreground">•</span>
+                        <span className="text-red-600 dark:text-red-500">
+                          U {stats.unallocated}
+                        </span>
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="text-sm font-semibold line-clamp-2 wrap-break-word">
+                    {email.subject}
+                  </div>
+                  <div className="text-xs text-muted-foreground line-clamp-2 wrap-break-word">
+                    {getEmailPreview(email)}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-2 whitespace-nowrap">
+                    {formatEmailDate(email.date)}
+                  </div>
+                </div>
+              </button>
             </div>
           </div>
-        </button>
-      ))}
+        )
+      })}
     </div>
   )
 }
