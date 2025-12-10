@@ -1,11 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AppSidebar } from "@/components/layout/app-sidebar"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { PageLayout } from "@/components/layout/page-layout"
 import { PortalDataContent } from "@/components/portal-data/portal-data-content"
 import { PageHeader } from "@/components/layout/page-header"
 
@@ -17,20 +13,14 @@ export default function Page() {
   }, [])
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="overflow-x-hidden">
-        <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 overflow-x-hidden">
-          <PageHeader
-            title="Portal"
-            description="Manage and track portal data and articles"
-          />
-          <PortalDataContent
-            globalFilter={globalFilter}
-            onGlobalFilterChange={setGlobalFilter}
-          />
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    <PageLayout>
+      <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 overflow-x-hidden">
+        <PageHeader title="Portal" />
+        <PortalDataContent
+          globalFilter={globalFilter}
+          onGlobalFilterChange={setGlobalFilter}
+        />
+      </div>
+    </PageLayout>
   )
 }

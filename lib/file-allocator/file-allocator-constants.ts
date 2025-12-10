@@ -3,7 +3,6 @@
  * 
  * This module contains:
  * - Type definitions for form data structures
- * - Default people/team members list
  * - Allocation method constants and options
  * - Helper functions for creating initial form state
  * 
@@ -22,18 +21,6 @@ export interface PriorityField {
   /** Number of articles allocated to this person */
   value: number
 }
-
-/**
- * Default list of team members available for article allocation.
- * Each person has an ID and label, but no initial allocation value.
- */
-export const DEFAULT_PEOPLE: Omit<PriorityField, "value">[] = [
-  { id: "1", label: "Ruchi" },
-  { id: "2", label: "Karishma" },
-  { id: "3", label: "Amiti" },
-  { id: "4", label: "Anuradha" },
-  { id: "5", label: "Ncxml" },
-]
 
 /**
  * Allocation method constants.
@@ -61,20 +48,21 @@ export const ALLOCATION_METHOD_OPTIONS = [
  * This function is used to initialize the form state with all team members
  * having zero allocated articles.
  * 
+ * @param members - Array of members to use
  * @returns Array of priority fields with default values
  * 
  * @example
  * ```ts
- * const fields = createInitialPriorityFields()
+ * const members = [{ id: "1", label: "John" }, { id: "2", label: "Jane" }]
+ * const fields = createInitialPriorityFields(members)
  * // Returns: [
- * //   { id: "1", label: "Ruchi", value: 0 },
- * //   { id: "2", label: "Karishma", value: 0 },
- * //   ...
+ * //   { id: "1", label: "John", value: 0 },
+ * //   { id: "2", label: "Jane", value: 0 },
  * // ]
  * ```
  */
-export function createInitialPriorityFields(): PriorityField[] {
-  return DEFAULT_PEOPLE.map((person) => ({
+export function createInitialPriorityFields(members: Omit<PriorityField, "value">[]): PriorityField[] {
+  return members.map((person) => ({
     ...person,
     value: 0,
   }))

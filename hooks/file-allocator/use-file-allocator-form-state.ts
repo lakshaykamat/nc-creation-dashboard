@@ -14,6 +14,7 @@
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useForm, useFieldArray, type Control, type UseFormWatch, type UseFormSetValue } from "react-hook-form"
 import { type PriorityField, ALLOCATION_METHODS, createInitialPriorityFields } from "@/lib/file-allocator/file-allocator-constants"
+import { useTeamMembers } from "./use-team-members"
 import {
   parseNewArticlesWithPages,
   validateDdnArticles,
@@ -121,6 +122,15 @@ export interface UseFileAllocatorFormStateReturn {
 export function useFileAllocatorFormState(
   newArticlesWithPages?: string[] | null
 ): UseFileAllocatorFormStateReturn {
+  // Fetch team members dynamically
+  const { members: teamMembers, isLoading: isLoadingMembers } = useTeamMembers()
+
+  // Create initial priority fields from team members
+  const initialPriorityFields = useMemo(() => {
+    const membersForFields = teamMembers.map(m => ({ id: m.id, label: m.label }))
+    return createInitialPriorityFields(membersForFields)
+  }, [teamMembers])
+
   // Initialize react-hook-form
   const {
     register,
@@ -133,9 +143,29 @@ export function useFileAllocatorFormState(
     defaultValues: {
       allocationMethod: ALLOCATION_METHODS.BY_PRIORITY,
       ddnArticles: "",
-      priorityFields: createInitialPriorityFields(),
+      priorityFields: initialPriorityFields,
     },
   })
+
+  // Update form when team members change (after initial load)
+  useEffect(() => {
+    if (!isLoadingMembers) {
+      const currentFields = watch("priorityFields")
+      const membersForFields = teamMembers.map(m => ({ id: m.id, label: m.label }))
+      const newFields = createInitialPriorityFields(membersForFields)
+      
+      // Only update if the members have changed (check by comparing labels)
+      const currentLabels = currentFields.map(f => f.label).sort().join(",")
+      const newLabels = newFields.map(f => f.label).sort().join(",")
+      
+      if (currentLabels !== newLabels) {
+        setValue("priorityFields", newFields, {
+          shouldValidate: false,
+          shouldDirty: false,
+        })
+      }
+    }
+  }, [teamMembers, isLoadingMembers, setValue, watch])
 
   const { fields, move } = useFieldArray({
     control,
