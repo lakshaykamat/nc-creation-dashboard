@@ -23,13 +23,13 @@ export const PAGE_PERMISSIONS: Record<string, PagePermission> = {
   "/file-allocator": {
     path: "/file-allocator",
     label: "File Allocator",
-    roles: ["MEMBER", "ADMIN"],
+    roles: ["ADMIN"],
     enabled: true,
   },
   "/file-allocator/form": {
     path: "/file-allocator/form",
     label: "File Allocator Form",
-    roles: ["MEMBER", "ADMIN"],
+    roles: ["ADMIN"],
     enabled: true,
   },
   "/settings": {
@@ -41,12 +41,12 @@ export const PAGE_PERMISSIONS: Record<string, PagePermission> = {
   "/sheet-data": {
     path: "/sheet-data",
     label: "Sheet Data",
-    roles: ["MEMBER", "ADMIN"],
+    roles: ["ADMIN"],
     enabled: true,
   },
   "/teams": {
     path: "/teams",
-    label: "Teams",
+    label: "Team",
     roles: ["ADMIN"],
     enabled: true,
   },
@@ -92,7 +92,7 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
   },
   {
     path: "/teams",
-    label: "Teams",
+    label: "Team",
     icon: "Users",
     group: "Navigation",
     roles: ["ADMIN"],

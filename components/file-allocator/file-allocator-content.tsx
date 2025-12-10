@@ -239,7 +239,7 @@ export function FileAllocatorContent() {
                 </div>
               ) : null}
             </div>
-            <div className="flex items-center justify-center gap-2 pt-4 border-t shrink-0">
+            <div className="flex items-center justify-center outline gap-2 pt-4 border-t shrink-0">
               <Button
                 variant="outline"
                 size="sm"

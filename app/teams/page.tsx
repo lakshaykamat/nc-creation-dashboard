@@ -14,7 +14,7 @@ export default function TeamsPage() {
   const { role, isLoading } = useUserRole()
 
   useEffect(() => {
-    document.title = "Teams | NC Creation"
+    document.title = "Team | NC Creation"
   }, [])
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function TeamsPage() {
   return (
     <PageLayout>
       <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6 overflow-x-hidden">
-        <PageHeader title="Teams" />
+        <PageHeader title="Team" />
         <TeamsContent />
       </div>
     </PageLayout>
