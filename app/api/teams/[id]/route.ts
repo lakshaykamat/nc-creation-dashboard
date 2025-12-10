@@ -57,7 +57,7 @@ export async function PUT(
     const collection = db.collection<TeamMember>("teams")
 
     // Check if member exists
-    const existingMember = await collection.findOne({ _id: new ObjectId(id) })
+    const existingMember = await collection.findOne({ _id: new ObjectId(id) } as any)
     if (!existingMember) {
       const response: TeamMemberResponse = {
         success: false,
@@ -70,7 +70,7 @@ export async function PUT(
     const duplicateMember = await collection.findOne({
       name: { $regex: new RegExp(`^${name}$`, "i") },
       _id: { $ne: new ObjectId(id) },
-    })
+    } as any)
     if (duplicateMember) {
       const response: TeamMemberResponse = {
         success: false,
@@ -81,7 +81,7 @@ export async function PUT(
 
     // Update member
     await collection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(id) } as any,
       { $set: { name } }
     )
 
@@ -172,7 +172,7 @@ export async function DELETE(
     const collection = db.collection<TeamMember>("teams")
 
     // Check if member exists
-    const existingMember = await collection.findOne({ _id: new ObjectId(id) })
+    const existingMember = await collection.findOne({ _id: new ObjectId(id) } as any)
     if (!existingMember) {
       const response: TeamMemberResponse = {
         success: false,
@@ -182,7 +182,7 @@ export async function DELETE(
     }
 
     // Delete member
-    await collection.deleteOne({ _id: new ObjectId(id) })
+    await collection.deleteOne({ _id: new ObjectId(id) } as any)
 
     const duration = Date.now() - startTime
 
