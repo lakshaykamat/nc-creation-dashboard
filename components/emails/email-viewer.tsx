@@ -12,12 +12,7 @@ import { useMemo } from "react"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getEmailHtmlContent, formatEmailDateRelative, getEmailSenderName, getEmailSenderAddress, getEmailRecipients } from "@/lib/emails/email-utils"
-import type { Email } from "@/types/emails"
-
-interface EmailViewerProps {
-  email: Email | null
-  onBack?: () => void
-}
+import type { EmailViewerProps } from "@/types/emails"
 
 export function EmailViewer({ email, onBack }: EmailViewerProps) {
   const iframeContent = useMemo(() => {

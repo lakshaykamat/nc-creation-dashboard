@@ -18,18 +18,7 @@ import {
 } from "@/lib/emails/article-utils"
 import { getUniqueArticleNumbers } from "@/lib/emails/article-allocation-utils"
 import { useLastTwoDaysFiles } from "./use-last-two-days-files"
-import type { Email } from "@/types/emails"
-
-interface ArticleStats {
-  detected: number
-  allocated: number
-  unallocated: number
-}
-
-interface UseArticleDetectionResult {
-  articleStats: Record<string, ArticleStats>
-  isDetecting: boolean
-}
+import type { Email, ArticleStats, UseArticleDetectionResult } from "@/types/emails"
 
 /**
  * Calculate article stats for a single email
@@ -98,6 +87,8 @@ export function useArticleDetection(emails: Email[]): UseArticleDetectionResult 
     }
 
     if (lastTwoDaysFiles.length === 0) {
+      setArticleStats({})
+      setIsDetecting(false)
       return
     }
 

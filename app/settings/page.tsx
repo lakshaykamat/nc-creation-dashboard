@@ -1,14 +1,12 @@
 "use client"
 
-import { useEffect } from "react"
 import { PageLayout } from "@/components/layout/page-layout"
 import { PageHeader } from "@/components/layout/page-header"
 import { SettingsContent } from "@/components/settings/settings-content"
+import { useDocumentTitle } from "@/hooks/common/use-document-title"
 
 export default function SettingsPage() {
-  useEffect(() => {
-    document.title = "Settings | NC Creation"
-  }, [])
+  useDocumentTitle("Settings")
 
   return (
     <PageLayout>

@@ -4,6 +4,7 @@ import { useEffect, Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { FileAllocatorForm } from "@/components/file-allocator/file-allocator-form"
 import { useUserRole } from "@/hooks/auth/use-user-role"
+import { useDocumentTitle } from "@/hooks/common/use-document-title"
 import { Skeleton } from "@/components/ui/skeleton"
 import { canAccessPage } from "@/lib/common/page-permissions"
 import { decompressFromBase64 } from "@/lib/common/compress-utils"
@@ -11,10 +12,7 @@ function FileAllocatorFormContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { role, isLoading } = useUserRole()
-
-  useEffect(() => {
-    document.title = "Article Allocator Form | NC Creation"
-  }, [])
+  useDocumentTitle("Article Allocator Form")
 
   useEffect(() => {
     if (!isLoading && !canAccessPage("/file-allocator/form", role)) {

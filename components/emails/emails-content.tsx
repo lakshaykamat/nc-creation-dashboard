@@ -13,29 +13,22 @@ import { useEmails } from "@/hooks/emails/use-emails"
 import { useArticleDetection } from "@/hooks/emails/use-article-detection"
 import { EmailList } from "./email-list"
 import { EmailViewer } from "./email-viewer"
+import { EmailFilterPanel } from "./email-filter-panel"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorCard } from "@/components/common/error-card"
-import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useIsMobile } from "@/hooks/common/use-mobile"
-import { extractUniqueArticlesFromEmail } from "@/lib/emails/article-allocation-utils"
+import { extractUniqueArticlesFromMultipleEmails } from "@/lib/emails/article-allocation-utils"
 import { compressToBase64 } from "@/lib/common/compress-utils"
 import { useRouter } from "next/navigation"
-import type { Email } from "@/types/emails"
+import type { Email, EmailFilter } from "@/types/emails"
 
 export function EmailsContent() {
   const router = useRouter()
   const { data: emails = [], isLoading, error, refetch, isRefetching } = useEmails()
-  const { articleStats } = useArticleDetection(emails)
+  const { articleStats, isDetecting } = useArticleDetection(emails)
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null)
   const [selectedEmailIds, setSelectedEmailIds] = useState<Set<string>>(new Set())
-  const [emailFilter, setEmailFilter] = useState<"all" | "unallocated">("all")
+  const [emailFilter, setEmailFilter] = useState<EmailFilter>("all")
   const isMobile = useIsMobile()
 
   // Filter emails with unallocated articles
@@ -49,9 +42,13 @@ export function EmailsContent() {
   }, [emails, emailFilter, articleStats])
 
   // Auto-select first email when filtered emails change (desktop only)
+  // Only auto-select if current selection is not in the filtered list
   useEffect(() => {
-    if (!isLoading && filteredEmails.length > 0 && !selectedEmail && !isMobile) {
-      setSelectedEmail(filteredEmails[0])
+    if (!isLoading && filteredEmails.length > 0 && !isMobile) {
+      const isCurrentSelectionValid = selectedEmail && filteredEmails.some(e => e.id === selectedEmail.id)
+      if (!isCurrentSelectionValid) {
+        setSelectedEmail(filteredEmails[0])
+      }
     }
   }, [filteredEmails, isLoading, selectedEmail, isMobile])
 
@@ -68,32 +65,11 @@ export function EmailsContent() {
   }
 
   const handleAllocate = () => {
-    const selectedEmails = emails.filter((email) => selectedEmailIds.has(email.id))
+    if (selectedEmailsForAllocation.length === 0) return
     
-    if (selectedEmails.length === 0) return
+    const { formattedEntries } = extractUniqueArticlesFromMultipleEmails(selectedEmailsForAllocation)
     
-    // Collect all unique articles from selected emails
-    const allArticles = new Set<string>()
-    const articlePageMap: Record<string, number> = {}
-
-    selectedEmails.forEach((email) => {
-      const { articleNumbers, pageMap } = extractUniqueArticlesFromEmail(email)
-      
-      articleNumbers.forEach((article) => {
-        if (!allArticles.has(article)) {
-          allArticles.add(article)
-          articlePageMap[article] = pageMap[article] || 0
-        }
-      })
-    })
-
-    if (allArticles.size === 0) return
-
-    // Build formatted entries
-    const formattedEntries = Array.from(allArticles).map((article) => {
-      const pages = articlePageMap[article] || 0
-      return `${article} [${pages}]`
-    })
+    if (formattedEntries.length === 0) return
 
     // Compress and navigate to file allocator form
     const jsonString = JSON.stringify(formattedEntries)
@@ -118,22 +94,11 @@ export function EmailsContent() {
   const selectedEmailsArticles = useMemo(() => {
     if (selectedEmailsForAllocation.length === 0) return null
 
-    const allArticles = new Set<string>()
-    let totalArticles = 0
-
-    selectedEmailsForAllocation.forEach((email) => {
-      const { articleNumbers } = extractUniqueArticlesFromEmail(email)
-      articleNumbers.forEach((article) => {
-        if (!allArticles.has(article)) {
-          allArticles.add(article)
-          totalArticles++
-        }
-      })
-    })
-
+    const { articleNumbers } = extractUniqueArticlesFromMultipleEmails(selectedEmailsForAllocation)
+    
     return {
-      totalArticles,
-      uniqueArticles: Array.from(allArticles),
+      totalArticles: articleNumbers.length,
+      uniqueArticles: articleNumbers,
     }
   }, [selectedEmailsForAllocation])
 
@@ -188,44 +153,23 @@ export function EmailsContent() {
     }
     return (
       <div className="h-full flex flex-col overflow-hidden">
-        <div className="p-4 border-b shrink-0 space-y-3">
-          <Select value={emailFilter} onValueChange={(value) => setEmailFilter(value as "all" | "unallocated")}>
-            <SelectTrigger className="w-full cursor-pointer">
-              <SelectValue placeholder="Filter emails" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Emails</SelectItem>
-              <SelectItem value="unallocated">Unallocated Articles</SelectItem>
-            </SelectContent>
-          </Select>
-          {hasSelectedEmails && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <div className="text-sm font-medium">
-                  Selected: {selectedEmailIds.size}
-                </div>
-                {selectedEmailsArticles && (
-                  <div className="text-sm text-muted-foreground">
-                    Articles: {selectedEmailsArticles.totalArticles}
-                  </div>
-                )}
-              </div>
-              <Button
-                onClick={handleAllocate}
-                disabled={selectedEmailIds.size === 0}
-                size="sm"
-                className="w-full"
-              >
-                Allocate Articles
-              </Button>
-            </div>
-          )}
+        <div className="p-4 border-b shrink-0">
+          <EmailFilterPanel
+            emailFilter={emailFilter}
+            onFilterChange={setEmailFilter}
+            hasSelectedEmails={hasSelectedEmails}
+            selectedCount={selectedEmailIds.size}
+            totalArticles={selectedEmailsArticles?.totalArticles ?? null}
+            onAllocate={handleAllocate}
+          />
         </div>
         <div className="flex-1 overflow-y-auto min-w-0">
           <EmailList
             emails={filteredEmails}
             selectedEmailId={null}
             selectedEmailIds={selectedEmailIds}
+            articleStats={articleStats}
+            isDetecting={isDetecting}
             onSelectEmail={handleSelectEmail}
             onToggleEmailSelection={handleToggleEmailSelection}
           />
@@ -238,44 +182,23 @@ export function EmailsContent() {
   return (
     <div className="grid grid-cols-[30%_1fr] gap-4 h-full overflow-hidden min-h-0">
       <div className="border-r overflow-hidden min-h-0 flex flex-col">
-        <div className="py-4 border-b shrink-0 space-y-3">
-          <Select value={emailFilter} onValueChange={(value) => setEmailFilter(value as "all" | "unallocated")}>
-            <SelectTrigger className="w-full cursor-pointer">
-              <SelectValue placeholder="Filter emails" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Emails</SelectItem>
-              <SelectItem value="unallocated">Unallocated Articles</SelectItem>
-            </SelectContent>
-          </Select>
-          {hasSelectedEmails && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <div className="text-sm font-medium">
-                  Selected: {selectedEmailIds.size}
-                </div>
-                {selectedEmailsArticles && (
-                  <div className="text-sm text-muted-foreground">
-                    Articles: {selectedEmailsArticles.totalArticles}
-                  </div>
-                )}
-              </div>
-              <Button
-                onClick={handleAllocate}
-                disabled={selectedEmailIds.size === 0}
-                size="sm"
-                className="w-full"
-              >
-                Allocate Articles
-              </Button>
-            </div>
-          )}
+        <div className="py-4 border-b shrink-0 px-4">
+          <EmailFilterPanel
+            emailFilter={emailFilter}
+            onFilterChange={setEmailFilter}
+            hasSelectedEmails={hasSelectedEmails}
+            selectedCount={selectedEmailIds.size}
+            totalArticles={selectedEmailsArticles?.totalArticles ?? null}
+            onAllocate={handleAllocate}
+          />
         </div>
         <div className="flex-1 overflow-y-auto min-w-0">
           <EmailList
             emails={filteredEmails}
             selectedEmailId={selectedEmail?.id || null}
             selectedEmailIds={selectedEmailIds}
+            articleStats={articleStats}
+            isDetecting={isDetecting}
             onSelectEmail={handleSelectEmail}
             onToggleEmailSelection={handleToggleEmailSelection}
           />

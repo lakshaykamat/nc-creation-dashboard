@@ -91,3 +91,66 @@ export interface Email {
 
 export type EmailsResponse = Email[]
 
+/**
+ * Article statistics for an email
+ */
+export interface ArticleStats {
+  detected: number
+  allocated: number
+  unallocated: number
+}
+
+/**
+ * Result type for article detection hook
+ */
+export interface UseArticleDetectionResult {
+  articleStats: Record<string, ArticleStats>
+  isDetecting: boolean
+}
+
+/**
+ * Email filter type
+ */
+export type EmailFilter = "all" | "unallocated"
+
+/**
+ * Props for EmailList component
+ */
+export interface EmailListProps {
+  emails: Email[]
+  selectedEmailId: string | null
+  selectedEmailIds: Set<string>
+  articleStats: Record<string, ArticleStats>
+  isDetecting: boolean
+  onSelectEmail: (email: Email) => void
+  onToggleEmailSelection: (emailId: string) => void
+}
+
+/**
+ * Props for EmailViewer component
+ */
+export interface EmailViewerProps {
+  email: Email | null
+  onBack?: () => void
+}
+
+/**
+ * Props for EmailFilterPanel component
+ */
+export interface EmailFilterPanelProps {
+  emailFilter: EmailFilter
+  onFilterChange: (value: EmailFilter) => void
+  hasSelectedEmails: boolean
+  selectedCount: number
+  totalArticles: number | null
+  onAllocate: () => void
+  isAllocating?: boolean
+}
+
+/**
+ * Payload for article allocation API
+ */
+export interface AllocationPayload {
+  newArticlesWithPages: string[]
+}
+

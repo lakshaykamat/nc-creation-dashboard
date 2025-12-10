@@ -5,12 +5,8 @@
  */
 
 import { useState } from "react"
-import { extractUniqueArticlesFromEmail } from "@/lib/emails/article-allocation-utils"
-import type { Email } from "@/types/emails"
-
-interface AllocationPayload {
-  newArticlesWithPages: string[]
-}
+import { extractUniqueArticlesFromEmail, extractUniqueArticlesFromMultipleEmails } from "@/lib/emails/article-allocation-utils"
+import type { Email, AllocationPayload } from "@/types/emails"
 
 /**
  * Allocate articles to the system
@@ -68,30 +64,11 @@ export function useArticleAllocation() {
     setError(null)
 
     try {
-      // Collect all unique articles from all selected emails
-      const allArticles = new Set<string>()
-      const articlePageMap = new Map<string, number>()
+      const { formattedEntries } = extractUniqueArticlesFromMultipleEmails(emails)
 
-      for (const email of emails) {
-        const { articleNumbers, pageMap } = extractUniqueArticlesFromEmail(email)
-        
-        articleNumbers.forEach((article) => {
-          if (!allArticles.has(article)) {
-            allArticles.add(article)
-            articlePageMap.set(article, pageMap[article] || 0)
-          }
-        })
-      }
-
-      if (allArticles.size === 0) {
+      if (formattedEntries.length === 0) {
         throw new Error("No articles found to allocate")
       }
-
-      // Build formatted entries
-      const formattedEntries = Array.from(allArticles).map((article) => {
-        const pages = articlePageMap.get(article) || 0
-        return `${article} [${pages}]`
-      })
 
       await allocateArticles({
         newArticlesWithPages: formattedEntries,

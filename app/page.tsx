@@ -1,16 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { PageLayout } from "@/components/layout/page-layout"
 import { PortalDataContent } from "@/components/portal-data/portal-data-content"
 import { PageHeader } from "@/components/layout/page-header"
+import { useDocumentTitle } from "@/hooks/common/use-document-title"
 
 export default function Page() {
   const [globalFilter, setGlobalFilter] = useState("")
-
-  useEffect(() => {
-    document.title = "Portal | NC Creation"
-  }, [])
+  useDocumentTitle("Portal")
 
   return (
     <PageLayout>

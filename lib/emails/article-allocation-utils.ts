@@ -78,3 +78,37 @@ export function extractUniqueArticlesFromEmail(email: Email): {
   }
 }
 
+/**
+ * Extract unique articles from multiple emails, removing duplicates across emails
+ */
+export function extractUniqueArticlesFromMultipleEmails(emails: Email[]): {
+  articleNumbers: string[]
+  pageMap: Record<string, number>
+  formattedEntries: string[]
+} {
+  const allArticles = new Set<string>()
+  const articlePageMap: Record<string, number> = {}
+
+  emails.forEach((email) => {
+    const { articleNumbers, pageMap } = extractUniqueArticlesFromEmail(email)
+    
+    articleNumbers.forEach((article) => {
+      if (!allArticles.has(article)) {
+        allArticles.add(article)
+        articlePageMap[article] = pageMap[article] || 0
+      }
+    })
+  })
+
+  const formattedEntries = Array.from(allArticles).map((article) => {
+    const pages = articlePageMap[article] || 0
+    return `${article} [${pages}]`
+  })
+
+  return {
+    articleNumbers: Array.from(allArticles),
+    pageMap: articlePageMap,
+    formattedEntries,
+  }
+}
+

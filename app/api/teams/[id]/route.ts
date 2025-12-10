@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
 import clientPromise from "@/lib/db/mongo"
 import { logger } from "@/lib/common/logger"
+import { findByIdFilter, excludeByIdFilter } from "@/lib/db/mongo-helpers"
 import type { TeamMember, UpdateTeamMemberRequest, TeamMemberResponse } from "@/types/teams"
 
 // Force dynamic rendering - never cache
@@ -57,7 +58,7 @@ export async function PUT(
     const collection = db.collection<TeamMember>("teams")
 
     // Check if member exists
-    const existingMember = await collection.findOne({ _id: new ObjectId(id) } as any)
+    const existingMember = await collection.findOne(findByIdFilter(id))
     if (!existingMember) {
       const response: TeamMemberResponse = {
         success: false,
@@ -69,8 +70,8 @@ export async function PUT(
     // Check for duplicate name (excluding current member)
     const duplicateMember = await collection.findOne({
       name: { $regex: new RegExp(`^${name}$`, "i") },
-      _id: { $ne: new ObjectId(id) },
-    } as any)
+      ...excludeByIdFilter(id),
+    })
     if (duplicateMember) {
       const response: TeamMemberResponse = {
         success: false,
@@ -81,7 +82,7 @@ export async function PUT(
 
     // Update member
     await collection.updateOne(
-      { _id: new ObjectId(id) } as any,
+      findByIdFilter(id),
       { $set: { name } }
     )
 
@@ -172,7 +173,7 @@ export async function DELETE(
     const collection = db.collection<TeamMember>("teams")
 
     // Check if member exists
-    const existingMember = await collection.findOne({ _id: new ObjectId(id) } as any)
+    const existingMember = await collection.findOne(findByIdFilter(id))
     if (!existingMember) {
       const response: TeamMemberResponse = {
         success: false,
@@ -182,7 +183,7 @@ export async function DELETE(
     }
 
     // Delete member
-    await collection.deleteOne({ _id: new ObjectId(id) } as any)
+    await collection.deleteOne(findByIdFilter(id))
 
     const duration = Date.now() - startTime
 

@@ -6,16 +6,14 @@ import { PageLayout } from "@/components/layout/page-layout"
 import { PageHeader } from "@/components/layout/page-header"
 import { EmailsContent } from "@/components/emails"
 import { useUserRole } from "@/hooks/auth/use-user-role"
+import { useDocumentTitle } from "@/hooks/common/use-document-title"
 import { Skeleton } from "@/components/ui/skeleton"
 import { canAccessPage } from "@/lib/common/page-permissions"
 
 export default function EmailsPage() {
   const router = useRouter()
   const { role, isLoading } = useUserRole()
-
-  useEffect(() => {
-    document.title = "Emails | NC Creation"
-  }, [])
+  useDocumentTitle("Emails")
 
   useEffect(() => {
     if (!isLoading && !canAccessPage("/emails", role)) {

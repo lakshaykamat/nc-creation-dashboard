@@ -1,16 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { PageLayout } from "@/components/layout/page-layout"
 import { PeopleDataContentWithChart } from "@/components/people-data/people-data-content"
 import { PageHeader } from "@/components/layout/page-header"
+import { useDocumentTitle } from "@/hooks/common/use-document-title"
 
 export default function WorkHistoryPage() {
   const [globalFilter, setGlobalFilter] = useState("")
-
-  useEffect(() => {
-    document.title = "Work History | NC Creation"
-  }, [])
+  useDocumentTitle("Work History")
 
   return (
     <PageLayout>

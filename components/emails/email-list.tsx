@@ -11,26 +11,18 @@
 import { cn } from "@/lib/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useArticleDetection } from "@/hooks/emails/use-article-detection"
 import { formatEmailDate, getEmailSenderName, getEmailPreview } from "@/lib/emails/email-utils"
-import type { Email } from "@/types/emails"
-
-interface EmailListProps {
-  emails: Email[]
-  selectedEmailId: string | null
-  selectedEmailIds: Set<string>
-  onSelectEmail: (email: Email) => void
-  onToggleEmailSelection: (emailId: string) => void
-}
+import type { EmailListProps } from "@/types/emails"
 
 export function EmailList({
   emails,
   selectedEmailId,
   selectedEmailIds,
+  articleStats,
+  isDetecting,
   onSelectEmail,
   onToggleEmailSelection,
 }: EmailListProps) {
-  const { articleStats, isDetecting } = useArticleDetection(emails)
 
   if (emails.length === 0) {
     return (

@@ -6,6 +6,7 @@ import { PageLayout } from "@/components/layout/page-layout"
 import { PageHeader } from "@/components/layout/page-header"
 import { TeamsContent } from "@/components/teams"
 import { useUserRole } from "@/hooks/auth/use-user-role"
+import { useDocumentTitle } from "@/hooks/common/use-document-title"
 import { Skeleton } from "@/components/ui/skeleton"
 import { canAccessPage } from "@/lib/common/page-permissions"
 
@@ -13,9 +14,7 @@ export default function TeamsPage() {
   const router = useRouter()
   const { role, isLoading } = useUserRole()
 
-  useEffect(() => {
-    document.title = "Team | NC Creation"
-  }, [])
+  useDocumentTitle("Team")
 
   useEffect(() => {
     if (!isLoading && !canAccessPage("/teams", role)) {
