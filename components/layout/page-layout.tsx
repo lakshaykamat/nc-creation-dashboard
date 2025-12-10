@@ -23,7 +23,7 @@ export function PageLayout({ children }: PageLayoutProps) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="overflow-x-hidden">
+      <SidebarInset className="overflow-x-hidden flex flex-col h-full">
         {children}
       </SidebarInset>
     </SidebarProvider>

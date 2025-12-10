@@ -91,14 +91,6 @@ export function TeamsContent() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end gap-2">
-        <Button
-          variant="outline"
-          onClick={() => refetch()}
-          disabled={isRefetching}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
         <Button onClick={handleAddClick} disabled={isMutating}>
           <Plus className="h-4 w-4 mr-2" />
           Add Member
