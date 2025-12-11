@@ -6,7 +6,7 @@
  * @module lib/emails/article-extraction-from-multiple-emails-utils
  */
 
-import { extractUniqueArticlesFromEmail } from "@/lib/emails/article-extraction-from-email-utils"
+import { extractUniqueArticlesFromEmail } from "@/lib/emails/articles/article-extraction-from-email-utils"
 import type { Email } from "@/types/emails"
 
 /**

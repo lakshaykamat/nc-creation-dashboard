@@ -8,8 +8,8 @@
 
 import type { ParsedArticle } from "@/types/file-allocator"
 import type { LastTwoDaysFileData } from "@/types/portal-data"
-import { extractArticleNumbersFromLastTwoDaysFiles } from "@/lib/emails/article-extraction-utils"
-import { createArticleNumberSet } from "@/lib/emails/article-set-utils"
+import { extractArticleNumbersFromLastTwoDaysFiles } from "@/lib/emails/articles/article-extraction-utils"
+import { createArticleNumberSet } from "@/lib/emails/articles/article-set-utils"
 
 /**
  * Result of filtering articles

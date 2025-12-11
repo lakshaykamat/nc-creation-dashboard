@@ -7,7 +7,7 @@
  */
 
 import type { AllocatedArticle } from "@/types/file-allocator"
-import { ALLOCATION_METHODS } from "./file-allocator-constants"
+import { ALLOCATION_METHODS } from "@/lib/constants/file-allocator-constants"
 
 /**
  * Normalize allocation method string for comparison

@@ -8,7 +8,7 @@ import { TeamsContent } from "@/components/teams"
 import { useUserRole } from "@/hooks/auth/use-user-role"
 import { useDocumentTitle } from "@/hooks/common/use-document-title"
 import { Skeleton } from "@/components/ui/skeleton"
-import { canAccessPage } from "@/lib/common/page-permissions"
+import { canAccessPage } from "@/lib/common/page-permissions-utils"
 
 export default function TeamsPage() {
   const router = useRouter()

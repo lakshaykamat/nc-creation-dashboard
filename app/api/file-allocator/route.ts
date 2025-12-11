@@ -4,6 +4,7 @@ import {
   getSampleAllocationData,
   shouldUseSampleData,
 } from "@/lib/file-allocator/sample-allocation"
+import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
     const externalApiStartTime = Date.now()
     
     // Build URL with query parameters
-    let externalUrl = "https://n8n-ex6e.onrender.com/webhook/allocations"
+    let externalUrl = N8N_WEBHOOK_ENDPOINTS.ALLOCATIONS
     const urlParams = new URLSearchParams()
     if (recent) {
       urlParams.append("recent", recent)

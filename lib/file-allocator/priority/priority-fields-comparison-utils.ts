@@ -6,7 +6,7 @@
  * @module lib/file-allocator/priority-fields-comparison-utils
  */
 
-import type { PriorityField } from "./file-allocator-constants"
+import type { PriorityField } from "@/lib/constants/file-allocator-constants"
 
 /**
  * Extract sorted labels from priority fields

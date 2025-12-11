@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
+import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const externalApiStartTime = Date.now()
-    const externalUrl = "https://n8n-ex6e.onrender.com/webhook/last-two-days-files"
+    const externalUrl = N8N_WEBHOOK_ENDPOINTS.LAST_TWO_DAYS_FILES
 
     let response: Response
     let data: unknown

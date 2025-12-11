@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
 import type { EmailsResponse } from "@/types/emails"
+import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const webhookUrl = "https://n8n-ex6e.onrender.com/webhook/today-emails"
+    const webhookUrl = N8N_WEBHOOK_ENDPOINTS.TODAY_EMAILS
 
     const webhookResponse = await fetch(webhookUrl, {
       method: "GET",

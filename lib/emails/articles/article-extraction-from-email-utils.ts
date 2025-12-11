@@ -7,9 +7,9 @@
  */
 
 import { extractArticleData } from "@/lib/common/article-extractor"
-import { getEmailHtmlContent } from "@/lib/emails/email-content-utils"
-import { getUniqueArticleNumbers } from "@/lib/emails/article-uniqueness-utils"
-import { buildArticlePageMapAndEntries } from "@/lib/emails/article-page-map-utils"
+import { getEmailHtmlContent } from "@/lib/emails/email/email-content-utils"
+import { getUniqueArticleNumbers } from "@/lib/emails/articles/article-uniqueness-utils"
+import { buildArticlePageMapAndEntries } from "@/lib/emails/articles/article-page-map-utils"
 import type { Email } from "@/types/emails"
 
 /**

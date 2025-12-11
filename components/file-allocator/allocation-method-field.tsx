@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ALLOCATION_METHOD_OPTIONS } from "@/lib/file-allocator/file-allocator-constants"
+import { ALLOCATION_METHOD_OPTIONS } from "@/lib/constants/file-allocator-constants"
 import { Controller, type Control } from "react-hook-form"
 import { type FormValues } from "@/types/file-allocator"
 

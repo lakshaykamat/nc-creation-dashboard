@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table"
 import type { PortalData } from "@/types/portal-data"
 import { ArrowUpDown, ArrowUp, ArrowDown, Columns, Download } from "lucide-react"
+import { buildPortalDownloadUrl } from "@/lib/constants/portal-constants"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -95,7 +96,7 @@ const columns: ColumnDef<PortalData>[] = [
     header: ({ column }) => createSortableHeader(column, "Article ID"),
     cell: ({ row }) => {
       const articleId = row.getValue("articleId") as string
-      const downloadUrl = `https://powertrack3.aptaracorp.com/AptaraVendorAPI/downloadfile.html?clientReference=${encodeURIComponent(articleId)}&ipaddress=powertrack3.aptaracorp.com&username=cedit&password=cedit&basepath=/CEFTP/VEND/XMLREVIEW&clientid=1722`
+      const downloadUrl = buildPortalDownloadUrl(articleId)
       
       return (
         <div className="flex items-center justify-between">

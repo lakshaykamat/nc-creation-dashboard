@@ -6,10 +6,10 @@
 
 import { useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { extractUniqueArticlesFromMultipleEmails } from "@/lib/emails/article-extraction-from-multiple-emails-utils"
+import { extractUniqueArticlesFromMultipleEmails } from "@/lib/emails/articles/article-extraction-from-multiple-emails-utils"
 import { compressToBase64 } from "@/lib/common/compress-utils"
-import { extractArticleNumbersFromLastTwoDaysFiles } from "@/lib/emails/article-extraction-utils"
-import { createArticleNumberSet } from "@/lib/emails/article-set-utils"
+import { extractArticleNumbersFromLastTwoDaysFiles } from "@/lib/emails/articles/article-extraction-utils"
+import { createArticleNumberSet } from "@/lib/emails/articles/article-set-utils"
 import { useLastTwoDaysFiles } from "./use-last-two-days-files"
 import type { Email, ArticleStats } from "@/types/emails"
 

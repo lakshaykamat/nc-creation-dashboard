@@ -6,8 +6,8 @@
  * @module lib/file-allocator/priority-fields-transformation-utils
  */
 
-import { createInitialPriorityFields } from "./file-allocator-constants"
-import type { PriorityField } from "./file-allocator-constants"
+import { createInitialPriorityFields } from "@/lib/constants/file-allocator-constants"
+import type { PriorityField } from "@/lib/constants/file-allocator-constants"
 
 /**
  * Transform team members to priority fields format

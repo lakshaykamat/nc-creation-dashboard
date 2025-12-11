@@ -13,21 +13,22 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useForm, useFieldArray, type Control, type UseFormWatch, type UseFormSetValue } from "react-hook-form"
-import { type PriorityField, ALLOCATION_METHODS } from "@/lib/file-allocator/file-allocator-constants"
+import { type PriorityField, ALLOCATION_METHODS } from "@/lib/constants/file-allocator-constants"
 import { useTeamMembers } from "./use-team-members"
 import { useLastTwoDaysFiles } from "@/hooks/emails/use-last-two-days-files"
-import { parseNewArticlesWithPages } from "@/lib/file-allocator/parse-article-utils"
-import { validateDdnArticles, isOverAllocated } from "@/lib/file-allocator/allocation-validation-utils"
-import { calculateAllocatedFiles, calculateRemainingFiles } from "@/lib/file-allocator/allocation-calculation-utils"
-import { getOverAllocationMessage } from "@/lib/file-allocator/allocation-message-utils"
-import { distributeArticles } from "@/lib/file-allocator/allocation-distribution-utils"
-import { buildFinalAllocation } from "@/lib/file-allocator/allocation-result-utils"
-import { filterAllocatedArticles } from "@/lib/file-allocator/filter-allocated-articles-utils"
-import { generateFilteredArticlesToastMessage } from "@/lib/file-allocator/allocation-message-utils"
-import { hasPriorityFieldsChanged } from "@/lib/file-allocator/priority-fields-comparison-utils"
-import { transformTeamMembersToPriorityFields } from "@/lib/file-allocator/priority-fields-transformation-utils"
-import { getCurrentMonthAndDate } from "@/lib/file-allocator/date-utils"
-import { getUnallocatedArticles } from "@/lib/file-allocator/unallocated-articles-extraction-utils"
+import { parseNewArticlesWithPages } from "@/lib/file-allocator/articles/parse-article-utils"
+import { validateDdnArticles, isOverAllocated } from "@/lib/file-allocator/allocation/allocation-validation-utils"
+import { calculateAllocatedFiles, calculateRemainingFiles } from "@/lib/file-allocator/allocation/allocation-calculation-utils"
+import { getOverAllocationMessage, generateFilteredArticlesToastMessage } from "@/lib/file-allocator/allocation/allocation-message-utils"
+import { distributeArticles } from "@/lib/file-allocator/allocation/allocation-distribution-utils"
+import { buildFinalAllocation } from "@/lib/file-allocator/allocation/allocation-result-utils"
+import { filterAllocatedArticles } from "@/lib/file-allocator/articles/filter-allocated-articles-utils"
+import { hasPriorityFieldsChanged } from "@/lib/file-allocator/priority/priority-fields-comparison-utils"
+import { transformTeamMembersToPriorityFields } from "@/lib/file-allocator/priority/priority-fields-transformation-utils"
+import { getCurrentMonthAndDate } from "@/lib/common/date-utils"
+import { getUnallocatedArticles } from "@/lib/file-allocator/articles/unallocated-articles-extraction-utils"
+import { savePriorityOrder, loadPriorityOrder } from "@/lib/file-allocator/priority/priority-order-storage-utils"
+import { reorderPriorityFields, extractPriorityOrder } from "@/lib/file-allocator/priority/priority-order-utils"
 import type {
   FormValues,
   AllocatedArticle,
@@ -140,7 +141,15 @@ export function useFileAllocatorFormState(
   // Create initial priority fields from team members
   const initialPriorityFields = useMemo(() => {
     const membersForFields = teamMembers.map(m => ({ id: m.id, label: m.label }))
-    return transformTeamMembersToPriorityFields(membersForFields)
+    const baseFields = transformTeamMembersToPriorityFields(membersForFields)
+    
+    // Try to restore saved order from localStorage
+    const savedOrder = loadPriorityOrder()
+    if (savedOrder && savedOrder.length > 0) {
+      return reorderPriorityFields(baseFields, savedOrder)
+    }
+    
+    return baseFields
   }, [teamMembers])
 
   // Initialize react-hook-form
@@ -164,10 +173,16 @@ export function useFileAllocatorFormState(
     if (!isLoadingMembers) {
       const currentFields = watch("priorityFields")
       const membersForFields = teamMembers.map(m => ({ id: m.id, label: m.label }))
-      const newFields = transformTeamMembersToPriorityFields(membersForFields)
+      const baseFields = transformTeamMembersToPriorityFields(membersForFields)
       
       // Only update if the members have changed
-      if (hasPriorityFieldsChanged(currentFields, newFields)) {
+      if (hasPriorityFieldsChanged(currentFields, baseFields)) {
+        // Try to restore saved order from localStorage
+        const savedOrder = loadPriorityOrder()
+        const newFields = savedOrder && savedOrder.length > 0
+          ? reorderPriorityFields(baseFields, savedOrder)
+          : baseFields
+        
         setValue("priorityFields", newFields, {
           shouldValidate: false,
           shouldDirty: false,
@@ -346,6 +361,14 @@ export function useFileAllocatorFormState(
     }
 
     move(draggedIndex, dropIndex)
+    
+    // Save the new order to localStorage after a short delay to ensure form state is updated
+    setTimeout(() => {
+      const currentFields = watch("priorityFields") || []
+      const order = extractPriorityOrder(currentFields as PriorityField[])
+      savePriorityOrder(order)
+    }, 0)
+    
     setDraggedIndex(null)
     setDragOverIndex(null)
   }

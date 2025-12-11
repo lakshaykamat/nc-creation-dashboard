@@ -6,9 +6,9 @@
  * @module lib/file-allocator/allocation-distribution-utils
  */
 
-import type { PriorityField } from "./file-allocator-constants"
+import type { PriorityField } from "@/lib/constants/file-allocator-constants"
 import type { ParsedArticle, AllocatedArticle } from "@/types/file-allocator"
-import { ALLOCATION_METHODS } from "./file-allocator-constants"
+import { ALLOCATION_METHODS } from "@/lib/constants/file-allocator-constants"
 
 /**
  * Normalize allocation method string for comparison

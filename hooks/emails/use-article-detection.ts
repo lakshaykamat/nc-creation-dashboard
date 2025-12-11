@@ -8,12 +8,12 @@
 
 import { useEffect, useState, useMemo, useRef } from "react"
 import { extractArticleData } from "@/lib/common/article-extractor"
-import { getEmailHtmlContent } from "@/lib/emails/email-content-utils"
-import { extractArticleNumbersFromLastTwoDaysFiles } from "@/lib/emails/article-extraction-utils"
-import { createArticleNumberSet } from "@/lib/emails/article-set-utils"
-import { createArticleNumbersKey, createEmailIdsKey } from "@/lib/emails/article-key-utils"
-import { countAllocatedArticles } from "@/lib/emails/article-counting-utils"
-import { getUniqueArticleNumbers } from "@/lib/emails/article-uniqueness-utils"
+import { getEmailHtmlContent } from "@/lib/emails/email/email-content-utils"
+import { extractArticleNumbersFromLastTwoDaysFiles } from "@/lib/emails/articles/article-extraction-utils"
+import { createArticleNumberSet } from "@/lib/emails/articles/article-set-utils"
+import { createArticleNumbersKey, createEmailIdsKey } from "@/lib/emails/articles/article-key-utils"
+import { countAllocatedArticles } from "@/lib/emails/articles/article-counting-utils"
+import { getUniqueArticleNumbers } from "@/lib/emails/articles/article-uniqueness-utils"
 import { useLastTwoDaysFiles } from "./use-last-two-days-files"
 import type { Email, ArticleStats, UseArticleDetectionResult } from "@/types/emails"
 

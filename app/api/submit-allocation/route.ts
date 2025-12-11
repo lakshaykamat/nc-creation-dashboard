@@ -14,6 +14,7 @@ import { logger } from "@/lib/common/logger"
 import type { FinalAllocationResult } from "@/types/file-allocator"
 import { transformAllocationToPayload } from "@/hooks/file-allocator/transform-allocation-to-payload"
 import type { AllocationItem } from "@/types/file-allocator"
+import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const webhookUrl = "https://n8n-ex6e.onrender.com/webhook/update-allocation"
+    const webhookUrl = N8N_WEBHOOK_ENDPOINTS.UPDATE_ALLOCATION
 
     const webhookResponse = await fetch(webhookUrl, {
       method: "POST",

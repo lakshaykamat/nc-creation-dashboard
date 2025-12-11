@@ -65,22 +65,6 @@ export function validateCredentials(credentials: LoginCredentials): {
   return { valid: true }
 }
 
-/**
- * Cookie configuration constants
- */
-export const AUTH_COOKIE_CONFIG = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  maxAge: 30 * 24 * 60 * 60, // 30 days in seconds
-  path: "/",
-} as const
-
-/**
- * Cookie names
- */
-export const AUTH_COOKIE_NAMES = {
-  TOKEN: "auth_token",
-  ROLE: "auth_role",
-} as const
+// Re-export constants for backward compatibility
+export { AUTH_COOKIE_CONFIG, AUTH_COOKIE_NAMES } from "@/lib/constants/auth-constants"
 

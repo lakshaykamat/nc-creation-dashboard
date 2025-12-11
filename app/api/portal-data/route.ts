@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-import { extractRows } from "@/lib/portal-data/extract-rows"
-import { fetchPortalHtml } from "@/lib/portal-data/portal-html-fetcher-utils"
-import { fetchLastTwoDaysFilesData } from "@/lib/portal-data/last-two-days-files-fetcher-utils"
-import { buildDoneByMap } from "@/lib/portal-data/done-by-map-utils"
-import { combinePortalData } from "@/lib/portal-data/portal-data-combiner-utils"
+import { extractRows } from "@/lib/portal-data/processing/extract-rows"
+import { fetchPortalHtml } from "@/lib/portal-data/fetchers/portal-html-fetcher-utils"
+import { fetchLastTwoDaysFilesData } from "@/lib/portal-data/fetchers/last-two-days-files-fetcher-utils"
+import { buildDoneByMap } from "@/lib/portal-data/processing/done-by-map-utils"
+import { combinePortalData } from "@/lib/portal-data/processing/portal-data-combiner-utils"
 import { logger } from "@/lib/common/logger"
+import { PORTAL_WORKFLOW_URL } from "@/lib/constants/portal-constants"
 
 // Force dynamic rendering - never cache on the server
 export const dynamic = "force-dynamic"
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
       html = await fetchPortalHtml()
       externalApiCalls.push(
         logger.logExternalApiCall(
-          "https://powertrack3.aptaracorp.com/AptaraVendorAPI/vendorWorkflow.html",
+          PORTAL_WORKFLOW_URL,
           "POST",
           portalStartTime,
           200
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       externalApiCalls.push(
         logger.logExternalApiCall(
-          "https://powertrack3.aptaracorp.com/AptaraVendorAPI/vendorWorkflow.html",
+          PORTAL_WORKFLOW_URL,
           "POST",
           portalStartTime,
           0,
@@ -49,29 +50,11 @@ export async function GET(request: NextRequest) {
       throw error
     }
 
-    // Fetch last two days files data
-    const filesStartTime = Date.now()
+    // Fetch last two days files data from internal API route
     let lastTwoDaysFilesData
     try {
-      lastTwoDaysFilesData = await fetchLastTwoDaysFilesData()
-      externalApiCalls.push(
-        logger.logExternalApiCall(
-          "https://n8n-ex6e.onrender.com/webhook/last-two-days-files",
-          "GET",
-          filesStartTime,
-          200
-        )
-      )
+      lastTwoDaysFilesData = await fetchLastTwoDaysFilesData(request)
     } catch (error) {
-      externalApiCalls.push(
-        logger.logExternalApiCall(
-          "https://n8n-ex6e.onrender.com/webhook/last-two-days-files",
-          "GET",
-          filesStartTime,
-          0,
-          error instanceof Error ? error.message : String(error)
-        )
-      )
       throw error
     }
 

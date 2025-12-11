@@ -6,7 +6,7 @@
  * @module lib/file-allocator/allocation-result-utils
  */
 
-import type { PriorityField } from "./file-allocator-constants"
+import type { PriorityField } from "@/lib/constants/file-allocator-constants"
 import type {
   ParsedArticle,
   AllocatedArticle,

@@ -23,7 +23,7 @@ import { Button } from "../ui/button"
 import { useUserRole } from "@/hooks/auth/use-user-role"
 import { useAuth } from "@/hooks/auth/use-auth"
 import { Skeleton } from "../ui/skeleton"
-import { getGroupedSidebarItems } from "@/lib/common/page-permissions"
+import { getGroupedSidebarItems } from "@/lib/common/page-permissions-utils"
 import { Separator } from "../ui/separator"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

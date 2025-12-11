@@ -6,7 +6,7 @@ import { FileAllocatorForm } from "@/components/file-allocator/file-allocator-fo
 import { useUserRole } from "@/hooks/auth/use-user-role"
 import { useDocumentTitle } from "@/hooks/common/use-document-title"
 import { Skeleton } from "@/components/ui/skeleton"
-import { canAccessPage } from "@/lib/common/page-permissions"
+import { canAccessPage } from "@/lib/common/page-permissions-utils"
 import { decompressFromBase64 } from "@/lib/common/compress-utils"
 function FileAllocatorFormContent() {
   const searchParams = useSearchParams()

@@ -5,17 +5,19 @@
  */
 
 import { useState } from "react"
-import { extractUniqueArticlesFromEmail } from "@/lib/emails/article-extraction-from-email-utils"
-import { extractUniqueArticlesFromMultipleEmails } from "@/lib/emails/article-extraction-from-multiple-emails-utils"
+import { extractUniqueArticlesFromEmail } from "@/lib/emails/articles/article-extraction-from-email-utils"
+import { extractUniqueArticlesFromMultipleEmails } from "@/lib/emails/articles/article-extraction-from-multiple-emails-utils"
 import type { Email, AllocationPayload } from "@/types/emails"
+import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 
 /**
  * Allocate articles to the system
  */
+
 async function allocateArticles(payload: AllocationPayload): Promise<void> {
   const apiKey = process.env.NEXT_PUBLIC_NC_API_KEY
   
-  const response = await fetch("https://n8n-ex6e.onrender.com/webhook/allocations", {
+  const response = await fetch(N8N_WEBHOOK_ENDPOINTS.ALLOCATIONS, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -9,7 +9,7 @@ import { useUserRole } from "@/hooks/auth/use-user-role"
 import { useDocumentTitle } from "@/hooks/common/use-document-title"
 import { useIsMobile } from "@/hooks/common/use-mobile"
 import { Skeleton } from "@/components/ui/skeleton"
-import { canAccessPage } from "@/lib/common/page-permissions"
+import { canAccessPage } from "@/lib/common/page-permissions-utils"
 
 export default function EmailsPage() {
   const router = useRouter()

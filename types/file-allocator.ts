@@ -5,7 +5,7 @@
  */
 
 import type { Control, UseFormWatch, UseFormSetValue } from "react-hook-form"
-import type { PriorityField } from "@/lib/file-allocator/file-allocator-constants"
+import type { PriorityField } from "@/lib/constants/file-allocator-constants"
 
 /**
  * Form values structure for Article Allocation Form

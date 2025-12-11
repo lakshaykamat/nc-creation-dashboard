@@ -11,8 +11,8 @@
 import { cn } from "@/lib/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { getEmailPreview } from "@/lib/emails/email-content-utils"
-import { formatEmailDateRelative } from "@/lib/emails/email-date-formatting-utils"
+import { getEmailPreview } from "@/lib/emails/email/email-content-utils"
+import { formatEmailDateRelative } from "@/lib/emails/email/email-date-formatting-utils"
 import type { EmailListProps } from "@/types/emails"
 
 export function EmailList({

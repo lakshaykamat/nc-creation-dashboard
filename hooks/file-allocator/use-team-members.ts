@@ -8,7 +8,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import type { TeamMember } from "@/types/teams"
-import type { PriorityField } from "@/lib/file-allocator/file-allocator-constants"
+import type { PriorityField } from "@/lib/constants/file-allocator-constants"
 
 const QUERY_KEY = ["teams"]
 
