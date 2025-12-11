@@ -9,6 +9,7 @@
  */
 
 import { Field, FieldLabel } from "@/components/ui/field"
+import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/common/utils"
 import { PriorityFieldItem } from "./priority-field-item"
 import { type Control } from "react-hook-form"
@@ -22,6 +23,7 @@ interface PriorityFieldsListProps {
   remainingFiles: number
   draggedIndex: number | null
   dragOverIndex: number | null
+  isLoadingMembers: boolean
   onDragStart: (index: number) => void
   onDragOver: (e: React.DragEvent, index: number) => void
   onDragLeave: () => void
@@ -50,6 +52,7 @@ export function PriorityFieldsList({
   remainingFiles,
   draggedIndex,
   dragOverIndex,
+  isLoadingMembers,
   onDragStart,
   onDragOver,
   onDragLeave,
@@ -82,22 +85,35 @@ export function PriorityFieldsList({
             </span>
           )}
         </div>
-        <div className="space-y-2">
-          {fields.map((field, index) => (
-            <PriorityFieldItem
-              key={field.id}
-              field={field}
-              index={index}
-              control={control}
-              isDragging={draggedIndex === index}
-              isDragOver={dragOverIndex === index}
-              onDragStart={() => onDragStart(index)}
-              onDragOver={(e) => onDragOver(e, index)}
-              onDragLeave={onDragLeave}
-              onDrop={() => onDrop(index)}
-            />
-          ))}
-        </div>
+        {isLoadingMembers ? (
+          <div className="space-y-2">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-lg border">
+                <Skeleton className="h-5 w-5 rounded-full" />
+                <Skeleton className="h-7 w-7 rounded-full" />
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-9 w-32" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {fields.map((field, index) => (
+              <PriorityFieldItem
+                key={field.id}
+                field={field}
+                index={index}
+                control={control}
+                isDragging={draggedIndex === index}
+                isDragOver={dragOverIndex === index}
+                onDragStart={() => onDragStart(index)}
+                onDragOver={(e) => onDragOver(e, index)}
+                onDragLeave={onDragLeave}
+                onDrop={() => onDrop(index)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </Field>
   )

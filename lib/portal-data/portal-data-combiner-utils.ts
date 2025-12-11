@@ -1,6 +1,21 @@
-import type { PortalData } from "@/types/portal-data"
-import type { ExtractedRow } from "./extract-rows"
+/**
+ * Portal Data Combiner Utility Functions
+ * 
+ * Pure utility functions for combining portal data
+ * 
+ * @module lib/portal-data/portal-data-combiner-utils
+ */
 
+import type { PortalData } from "@/types/portal-data"
+import type { ExtractedRow } from "@/types/portal-data"
+
+/**
+ * Combine extracted rows with done-by map into portal data
+ * 
+ * @param extractedRows - Array of extracted rows
+ * @param doneByMap - Map of article IDs to done-by values
+ * @returns Array of portal data
+ */
 export function combinePortalData(
   extractedRows: ExtractedRow[],
   doneByMap: Map<string, string>

@@ -10,7 +10,9 @@
 
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { formatEmailDateRelative, getEmailSenderName, getEmailSenderAddress, getEmailRecipients } from "@/lib/emails/email-utils"
+import { formatEmailDateRelative } from "@/lib/emails/email-date-formatting-utils"
+import { getEmailSenderName, getEmailSenderAddress } from "@/lib/emails/email-sender-utils"
+import { getEmailRecipients } from "@/lib/emails/email-recipient-utils"
 import type { Email } from "@/types/emails"
 
 interface EmailViewerHeaderProps {

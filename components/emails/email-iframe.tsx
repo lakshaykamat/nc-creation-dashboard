@@ -9,7 +9,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { getEmailHtmlContent } from "@/lib/emails/email-utils"
+import { getEmailHtmlContent } from "@/lib/emails/email-content-utils"
 import type { Email } from "@/types/emails"
 
 interface EmailIframeProps {

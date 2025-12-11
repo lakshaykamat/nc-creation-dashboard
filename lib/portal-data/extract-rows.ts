@@ -1,8 +1,5 @@
 import type { ExtractedRow } from "@/types/portal-data"
 
-// Re-export for backward compatibility
-export type { ExtractedRow }
-
 // Pre-compile regex patterns for better performance
 const ROW_REGEX = /<tr[^>]*class="([^"]*)"[^>]*>([\s\S]*?)<\/tr>/g
 const CELL_REGEX = /<td[^>]*>([\s\S]*?)<\/td>/g

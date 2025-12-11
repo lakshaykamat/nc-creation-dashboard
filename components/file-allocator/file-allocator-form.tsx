@@ -73,6 +73,7 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
                 remainingFiles={formState.remainingFiles}
                 draggedIndex={formState.draggedIndex}
                 dragOverIndex={formState.dragOverIndex}
+                isLoadingMembers={formState.isLoadingMembers}
                 onDragStart={formState.handleDragStart}
                 onDragOver={formState.handleDragOver}
                 onDragLeave={formState.handleDragLeave}
@@ -114,7 +115,7 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
       {formState.showToast && (
         <Toast
           message={formState.toastMessage}
-          type="error"
+          type={formState.toastType || "info"}
           onClose={() => formState.setShowToast(false)}
         />
       )}

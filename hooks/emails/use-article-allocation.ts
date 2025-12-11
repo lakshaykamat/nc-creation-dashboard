@@ -5,7 +5,8 @@
  */
 
 import { useState } from "react"
-import { extractUniqueArticlesFromEmail, extractUniqueArticlesFromMultipleEmails } from "@/lib/emails/article-allocation-utils"
+import { extractUniqueArticlesFromEmail } from "@/lib/emails/article-extraction-from-email-utils"
+import { extractUniqueArticlesFromMultipleEmails } from "@/lib/emails/article-extraction-from-multiple-emails-utils"
 import type { Email, AllocationPayload } from "@/types/emails"
 
 /**

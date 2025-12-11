@@ -1,15 +1,16 @@
 /**
- * Email Utility Functions
+ * Email Date Formatting Utility Functions
  * 
- * Pure utility functions for email formatting and data extraction
+ * Pure utility functions for formatting email dates
  * 
- * @module lib/emails/email-utils
+ * @module lib/emails/email-date-formatting-utils
  */
-
-import type { Email } from "@/types/emails"
 
 /**
  * Format email date to readable string
+ * 
+ * @param dateString - ISO date string
+ * @returns Formatted date string
  */
 export function formatEmailDate(dateString: string): string {
   try {
@@ -27,28 +28,10 @@ export function formatEmailDate(dateString: string): string {
 }
 
 /**
- * Get sender name from email
- */
-export function getEmailSenderName(email: Email): string {
-  return email.from.value[0]?.name || email.from.value[0]?.address || "Unknown"
-}
-
-/**
- * Get email preview text
- */
-export function getEmailPreview(email: Email): string {
-  return email.text || email.textAsHtml || "No preview available"
-}
-
-/**
- * Get email HTML content (prioritizes html, then textAsHtml, then text)
- */
-export function getEmailHtmlContent(email: Email): string {
-  return email.html || email.textAsHtml || email.text || ""
-}
-
-/**
  * Format email date to relative time (e.g., "2h ago", "3d ago")
+ * 
+ * @param dateString - ISO date string
+ * @returns Relative time string
  */
 export function formatEmailDateRelative(dateString: string): string {
   try {
@@ -72,19 +55,5 @@ export function formatEmailDateRelative(dateString: string): string {
   } catch {
     return dateString
   }
-}
-
-/**
- * Get sender address from email
- */
-export function getEmailSenderAddress(email: Email): string {
-  return email.from.value[0]?.address || ""
-}
-
-/**
- * Get recipient addresses as formatted string
- */
-export function getEmailRecipients(email: Email): string {
-  return email.to.value.map((addr) => addr.name || addr.address).join(", ")
 }
 

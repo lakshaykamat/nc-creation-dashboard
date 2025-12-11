@@ -13,16 +13,21 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useForm, useFieldArray, type Control, type UseFormWatch, type UseFormSetValue } from "react-hook-form"
-import { type PriorityField, ALLOCATION_METHODS, createInitialPriorityFields } from "@/lib/file-allocator/file-allocator-constants"
+import { type PriorityField, ALLOCATION_METHODS } from "@/lib/file-allocator/file-allocator-constants"
 import { useTeamMembers } from "./use-team-members"
-import {
-  parseNewArticlesWithPages,
-  validateDdnArticles,
-  calculateAllocatedFiles,
-  calculateRemainingFiles,
-  isOverAllocated,
-  getOverAllocationMessage,
-} from "@/lib/file-allocator/file-allocator-utils"
+import { useLastTwoDaysFiles } from "@/hooks/emails/use-last-two-days-files"
+import { parseNewArticlesWithPages } from "@/lib/file-allocator/parse-article-utils"
+import { validateDdnArticles, isOverAllocated } from "@/lib/file-allocator/allocation-validation-utils"
+import { calculateAllocatedFiles, calculateRemainingFiles } from "@/lib/file-allocator/allocation-calculation-utils"
+import { getOverAllocationMessage } from "@/lib/file-allocator/allocation-message-utils"
+import { distributeArticles } from "@/lib/file-allocator/allocation-distribution-utils"
+import { buildFinalAllocation } from "@/lib/file-allocator/allocation-result-utils"
+import { filterAllocatedArticles } from "@/lib/file-allocator/filter-allocated-articles-utils"
+import { generateFilteredArticlesToastMessage } from "@/lib/file-allocator/allocation-message-utils"
+import { hasPriorityFieldsChanged } from "@/lib/file-allocator/priority-fields-comparison-utils"
+import { transformTeamMembersToPriorityFields } from "@/lib/file-allocator/priority-fields-transformation-utils"
+import { getCurrentMonthAndDate } from "@/lib/file-allocator/date-utils"
+import { getUnallocatedArticles } from "@/lib/file-allocator/unallocated-articles-extraction-utils"
 import type {
   FormValues,
   AllocatedArticle,
@@ -65,6 +70,7 @@ export interface UseFileAllocatorFormStateReturn {
   showToast: boolean
   setShowToast: (show: boolean) => void
   toastMessage: string
+  toastType?: "error" | "success" | "info"
   
   // Loading state
   showLoading: boolean
@@ -77,6 +83,9 @@ export interface UseFileAllocatorFormStateReturn {
   // Failure state
   showFailure: boolean
   failureMessage: string
+  
+  // Team members loading state
+  isLoadingMembers: boolean
   
   // Computed values
   allocationMethod: string
@@ -124,11 +133,14 @@ export function useFileAllocatorFormState(
 ): UseFileAllocatorFormStateReturn {
   // Fetch team members dynamically
   const { members: teamMembers, isLoading: isLoadingMembers } = useTeamMembers()
+  
+  // Fetch last-two-days-files in parallel to check for already allocated articles
+  const { data: lastTwoDaysFiles = [] } = useLastTwoDaysFiles()
 
   // Create initial priority fields from team members
   const initialPriorityFields = useMemo(() => {
     const membersForFields = teamMembers.map(m => ({ id: m.id, label: m.label }))
-    return createInitialPriorityFields(membersForFields)
+    return transformTeamMembersToPriorityFields(membersForFields)
   }, [teamMembers])
 
   // Initialize react-hook-form
@@ -152,13 +164,10 @@ export function useFileAllocatorFormState(
     if (!isLoadingMembers) {
       const currentFields = watch("priorityFields")
       const membersForFields = teamMembers.map(m => ({ id: m.id, label: m.label }))
-      const newFields = createInitialPriorityFields(membersForFields)
+      const newFields = transformTeamMembersToPriorityFields(membersForFields)
       
-      // Only update if the members have changed (check by comparing labels)
-      const currentLabels = currentFields.map(f => f.label).sort().join(",")
-      const newLabels = newFields.map(f => f.label).sort().join(",")
-      
-      if (currentLabels !== newLabels) {
+      // Only update if the members have changed
+      if (hasPriorityFieldsChanged(currentFields, newFields)) {
         setValue("priorityFields", newFields, {
           shouldValidate: false,
           shouldDirty: false,
@@ -179,6 +188,7 @@ export function useFileAllocatorFormState(
   // Toast state
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState("")
+  const [toastType, setToastType] = useState<"error" | "success" | "info">("info")
   
   // Track previous allocation method for reset logic
   const prevAllocationMethodRef = useRef<string>("")
@@ -190,11 +200,21 @@ export function useFileAllocatorFormState(
   const textareaValue = formValues.ddnArticles || ""
   const priorityFields = formValues.priorityFields || []
 
-  // Parse articles from input data
-  const parsedArticles = useMemo(
-    () => parseNewArticlesWithPages(newArticlesWithPages),
-    [newArticlesWithPages]
-  )
+  // Parse articles from input data and filter out already allocated articles
+  const { parsedArticles, filteredOutCount, filteredOutArticles } = useMemo(() => {
+    const allParsed = parseNewArticlesWithPages(newArticlesWithPages)
+    return filterAllocatedArticles(allParsed, lastTwoDaysFiles)
+  }, [newArticlesWithPages, lastTwoDaysFiles])
+
+  // Show toast when articles are filtered out
+  useEffect(() => {
+    if (filteredOutCount > 0 && lastTwoDaysFiles.length > 0) {
+      const message = generateFilteredArticlesToastMessage(filteredOutCount, filteredOutArticles)
+      setToastMessage(message)
+      setToastType("info")
+      setShowToast(true)
+    }
+  }, [filteredOutCount, filteredOutArticles, lastTwoDaysFiles.length])
 
   // Get available article IDs for DDN validation
   const availableArticleIds = useMemo(
@@ -233,19 +253,7 @@ export function useFileAllocatorFormState(
   )
 
   // Get current date and month for allocation
-  const { month, date } = useMemo(() => {
-    const now = new Date()
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ]
-    const month = monthNames[now.getMonth()]
-    const day = String(now.getDate()).padStart(2, "0")
-    const monthNum = String(now.getMonth() + 1).padStart(2, "0")
-    const year = now.getFullYear()
-    const date = `${day}/${monthNum}/${year}`
-    return { month, date }
-  }, [])
+  const { month, date } = useMemo(() => getCurrentMonthAndDate(), [])
 
   // Build allocated articles based on current form state
   // Using formValues ensures reactivity when nested array values change
@@ -279,25 +287,13 @@ export function useFileAllocatorFormState(
   )
 
   const unallocatedArticles = useMemo(() => {
-    const unallocated = parsedArticles
-      .filter((article) => !allocatedArticleIds.has(article.articleId))
-      .map((article) => ({
-        name: "NEED TO ALLOCATE",
-        articleId: article.articleId,
-        pages: article.pages,
-        month,
-        date,
-      }))
-
-    // Sort unallocated articles based on allocation method
-    const normalizedMethod = allocationMethod?.toLowerCase().trim() || ""
-    const isAllocateByPages = normalizedMethod === "allocate by pages"
-    
-    if (isAllocateByPages) {
-      return [...unallocated].sort((a, b) => b.pages - a.pages)
-    }
-    
-    return unallocated
+    return getUnallocatedArticles(
+      parsedArticles,
+      allocatedArticleIds,
+      allocationMethod,
+      month,
+      date
+    )
   }, [parsedArticles, allocatedArticleIds, allocationMethod, month, date])
 
   // Combine allocated and unallocated for display
@@ -484,6 +480,7 @@ export function useFileAllocatorFormState(
     showToast,
     setShowToast,
     toastMessage,
+    toastType,
     
     // Loading state
     showLoading,
@@ -496,6 +493,9 @@ export function useFileAllocatorFormState(
     // Failure state
     showFailure,
     failureMessage,
+    
+    // Team members loading state
+    isLoadingMembers,
     
     // Computed values
     allocationMethod,
@@ -522,228 +522,4 @@ export function useFileAllocatorFormState(
   }
 }
 
-/**
- * BUSINESS LOGIC FUNCTIONS
- * 
- * These functions contain the core business logic for article allocation.
- * They implement the allocation rules and distribution algorithms.
- */
-
-/**
- * Distributes articles to people based on allocation method and priority fields.
- * 
- * Allocation rules:
- * 1. DDN articles are always allocated first (top priority)
- * 2. DDN articles are never allocated to people (no double-assignment)
- * 3. Remaining articles are allocated based on the selected method:
- *    - "allocate by pages": Allocates N largest articles (by page count) to each person
- *    - "allocate by priority": Allocates first N available articles in order
- * 4. Each article is only allocated once (no duplicates)
- * 
- * @param priorityFields - Array of priority fields with allocation counts
- * @param parsedArticles - Array of parsed articles to distribute
- * @param ddnArticles - Array of DDN article IDs (already allocated)
- * @param allocationMethod - Allocation method ("allocate by pages" or "allocate by priority")
- * @returns Array of allocated articles with person/DDN name
- */
-function distributeArticles(
-  priorityFields: PriorityField[],
-  parsedArticles: ParsedArticle[],
-  ddnArticles: string[],
-  allocationMethod: string,
-  month: string,
-  date: string
-): AllocatedArticle[] {
-  const result: AllocatedArticle[] = []
-
-  // Early return if no articles
-  if (!parsedArticles || parsedArticles.length === 0) {
-    return []
-  }
-
-  const ddnSet = new Set(ddnArticles)
-
-  // 1) DDN rows (top priority)
-  const ddnRows: AllocatedArticle[] = parsedArticles
-    .filter((article) => ddnSet.has(article.articleId))
-    .map((article) => ({
-      name: "DDN",
-      articleId: article.articleId,
-      pages: article.pages,
-      month,
-      date,
-    }))
-
-  // 2) Remaining articles available for people allocation
-  let availableArticles = parsedArticles.filter(
-    (article) => !ddnSet.has(article.articleId)
-  )
-
-  // Normalize allocation method for comparison
-  // Default to priority if method is empty or invalid
-  const normalizedMethod = (allocationMethod?.toLowerCase().trim() || "allocate by priority")
-  const isAllocateByPages = normalizedMethod === "allocate by pages"
-
-  // When allocating by pages, sort articles by pages (descending - highest first)
-  if (isAllocateByPages) {
-    availableArticles = [...availableArticles].sort((a, b) => b.pages - a.pages)
-  }
-
-  // Track which articles have been assigned to avoid duplicates
-  const assignedArticleIds = new Set<string>()
-
-  // Iterate through priority fields in order
-  for (const field of priorityFields) {
-    const rawValue = field?.value || 0
-
-    if (rawValue <= 0) continue
-
-    if (isAllocateByPages) {
-      // Treat value as count of largest articles to allocate
-      // Articles are already sorted by pages (descending) when isAllocateByPages is true
-      const count = rawValue
-      let articlesAllocated = 0
-
-      for (const article of availableArticles) {
-        if (assignedArticleIds.has(article.articleId)) {
-          continue
-        }
-
-        if (articlesAllocated < count) {
-          result.push({
-            name: field.label,
-            articleId: article.articleId,
-            pages: article.pages,
-            month,
-            date,
-          })
-          assignedArticleIds.add(article.articleId)
-          articlesAllocated++
-        }
-
-        if (articlesAllocated >= count) {
-          break
-        }
-      }
-    } else {
-      // Default / priority mode: treat value as article count
-      let articlesAllocated = 0
-
-      for (const article of availableArticles) {
-        if (assignedArticleIds.has(article.articleId)) {
-          continue
-        }
-
-        result.push({
-          name: field.label,
-          articleId: article.articleId,
-          pages: article.pages,
-          month,
-          date,
-        })
-        assignedArticleIds.add(article.articleId)
-        articlesAllocated++
-
-        if (articlesAllocated >= rawValue) {
-          break
-        }
-      }
-    }
-  }
-  
-  // DDN first, then person allocations
-  return [...ddnRows, ...result]
-}
-
-/**
- * Builds the final allocation object from form data for submission.
- * 
- * This function:
- * - Groups articles by person name
- * - Separates DDN articles into their own array
- * - Identifies unallocated articles
- * 
- * @param priorityFields - Array of priority fields with allocation counts
- * @param parsedArticles - Array of all parsed articles
- * @param ddnArticles - Array of DDN article IDs
- * @param allocationMethod - Allocation method used
- * @returns Final allocation object ready for submission
- */
-function buildFinalAllocation(
-  priorityFields: PriorityField[],
-  parsedArticles: ParsedArticle[],
-  ddnArticles: string[],
-  allocationMethod: string,
-  month: string,
-  date: string
-): FinalAllocationResult {
-  const ddnSet = new Set(ddnArticles)
-  
-  // Get DDN articles with pages
-  const ddnArticlesWithPages = parsedArticles
-    .filter((article) => ddnSet.has(article.articleId))
-    .map((article) => ({
-      articleId: article.articleId,
-      pages: article.pages,
-      month,
-      date,
-    }))
-
-  // Get allocated articles
-  const allocatedArticles = distributeArticles(
-    priorityFields,
-    parsedArticles,
-    ddnArticles,
-    allocationMethod,
-    month,
-    date
-  )
-
-  // Get all allocated article IDs (DDN + person allocations)
-  const allocatedArticleIds = new Set(
-    allocatedArticles.map((a) => a.articleId)
-  )
-
-  // Find unallocated articles
-  const unallocatedArticles = parsedArticles
-    .filter((article) => !allocatedArticleIds.has(article.articleId))
-    .map((article) => ({
-      articleId: article.articleId,
-      pages: article.pages,
-      month,
-      date,
-    }))
-
-  // Group person allocations by person name
-  const personMap = new Map<string, Array<{ articleId: string; pages: number; month: string; date: string }>>()
-  
-  for (const allocated of allocatedArticles) {
-    // Skip DDN articles
-    if (allocated.name === "DDN") continue
-    
-    if (!personMap.has(allocated.name)) {
-      personMap.set(allocated.name, [])
-    }
-    personMap.get(allocated.name)!.push({
-      articleId: allocated.articleId,
-      pages: allocated.pages,
-      month: allocated.month,
-      date: allocated.date,
-    })
-  }
-
-  // Convert map to array
-  const personAllocations: PersonAllocation[] = Array.from(personMap.entries()).map(
-    ([person, articles]) => ({
-      person,
-      articles,
-    })
-  )
-
-  return {
-    personAllocations,
-    ddnArticles: ddnArticlesWithPages,
-    unallocatedArticles,
-  }
-}
 

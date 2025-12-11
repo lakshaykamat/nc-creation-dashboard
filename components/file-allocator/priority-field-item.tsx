@@ -70,7 +70,7 @@ export function PriorityFieldItem({
     >
       {/* Mobile: Priority Count + Name on first row */}
       {/* Desktop: Grip + Priority Count + Name on same row */}
-      <div className="flex items-center gap-2 sm:gap-2 w-full sm:w-auto">
+      <div className="flex items-center gap-2 sm:gap-2 w-full sm:flex-1 sm:min-w-0">
         <GripVertical
           className={cn(
             "h-5 w-5 transition-colors shrink-0",
@@ -86,8 +86,8 @@ export function PriorityFieldItem({
       </div>
       
       {/* Mobile: Input on second row */}
-      {/* Desktop: Input on same row */}
-      <div className="w-full sm:w-32 space-y-1">
+      {/* Desktop: Input on right side */}
+      <div className="w-full sm:w-32 sm:ml-auto space-y-1">
         <Label
           htmlFor={`priority-${field.id}`}
           className="text-xs text-muted-foreground block sm:hidden"
