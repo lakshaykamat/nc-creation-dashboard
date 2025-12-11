@@ -8,44 +8,13 @@
 
 "use client"
 
-import { useMemo } from "react"
-import { ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { getEmailHtmlContent, formatEmailDateRelative, getEmailSenderName, getEmailSenderAddress, getEmailRecipients } from "@/lib/emails/email-utils"
+import { EmailViewerHeader } from "./email-viewer-header"
+import { EmailIframe } from "./email-iframe"
+import { useIsMobile } from "@/hooks/common/use-mobile"
 import type { EmailViewerProps } from "@/types/emails"
 
 export function EmailViewer({ email, onBack }: EmailViewerProps) {
-  const iframeContent = useMemo(() => {
-    if (!email) return ""
-    return getEmailHtmlContent(email)
-  }, [email])
-
-  const iframeSrcDoc = useMemo(() => {
-    if (!iframeContent) return ""
-    
-    return `
-      <!DOCTYPE html>
-      <html style="height: 100%; overflow: hidden;">
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            html, body {
-              height: 100%;
-              margin: 0;
-              padding: 16px;
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-              overflow-y: auto;
-              overflow-x: hidden;
-            }
-          </style>
-        </head>
-        <body>
-          ${iframeContent}
-        </body>
-      </html>
-    `
-  }, [iframeContent])
+  const isMobile = useIsMobile()
 
   if (!email) {
     return (
@@ -58,59 +27,17 @@ export function EmailViewer({ email, onBack }: EmailViewerProps) {
     )
   }
 
-  const fromName = getEmailSenderName(email)
-  const fromAddress = getEmailSenderAddress(email)
-  const toAddresses = getEmailRecipients(email)
-
-  const handleBackClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (onBack) {
-      onBack()
-    }
-  }
+  // Mobile: full screen with fixed positioning, accounting for page header
+  // PageHeader is ~2.5rem tall + mb-6 (1.5rem) = ~4rem total
+  // Desktop: normal flex layout
+  const containerClasses = isMobile && onBack
+    ? "h-[calc(100vh-4rem)] w-screen flex flex-col fixed top-16 left-0 right-0 bg-background z-50"
+    : "h-full flex flex-col min-h-0"
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="border-b pb-4 shrink-0 relative z-10 bg-background">
-        {onBack && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBackClick}
-            className="mb-3 -ml-2 relative z-10 pointer-events-auto"
-            type="button"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-        )}
-        <div className="space-y-2">
-          <div className="font-semibold text-lg">{email.subject}</div>
-          <div className="text-sm text-muted-foreground">
-            <span className="font-medium">{fromName}</span>
-            {fromAddress && fromName !== fromAddress && (
-              <span className="text-muted-foreground/70"> &lt;{fromAddress}&gt;</span>
-            )}
-            {toAddresses && (
-              <>
-                <span className="mx-2">→</span>
-                <span>{toAddresses}</span>
-              </>
-            )}
-            <span className="ml-2">• {formatEmailDateRelative(email.date)}</span>
-          </div>
-        </div>
-      </div>
-      <div className="flex-1 overflow-hidden min-h-0">
-        <iframe
-          srcDoc={iframeSrcDoc}
-          className="w-full h-full border-0 block"
-          title="Email content"
-          sandbox="allow-same-origin"
-          scrolling="yes"
-        />
-      </div>
+    <div className={containerClasses}>
+      <EmailViewerHeader email={email} onBack={onBack} isMobile={isMobile} />
+      <EmailIframe email={email} />
     </div>
   )
 }
