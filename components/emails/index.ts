@@ -13,4 +13,5 @@ export { EmailsMobileView } from "./emails-mobile-view"
 export { EmailsDesktopView } from "./emails-desktop-view"
 export { EmailViewerHeader } from "./email-viewer-header"
 export { EmailIframe } from "./email-iframe"
+export { EmailArticlesPreviewDialog } from "./email-articles-preview-dialog"
 

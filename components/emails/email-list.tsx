@@ -11,7 +11,7 @@
 import { cn } from "@/lib/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { formatEmailDate, getEmailSenderName, getEmailPreview } from "@/lib/emails/email-utils"
+import { getEmailPreview, formatEmailDateRelative } from "@/lib/emails/email-utils"
 import type { EmailListProps } from "@/types/emails"
 
 export function EmailList({
@@ -43,7 +43,7 @@ export function EmailList({
           <div
             key={email.id}
             className={cn(
-              "w-full py-4 px-4 hover:bg-muted/50 transition-colors rounded-md",
+              "w-full py-4 px-4 hover:bg-muted/50 transition-colors rounded-md cursor-pointer",
               selectedEmailId === email.id && "bg-muted"
             )}
           >
@@ -56,38 +56,43 @@ export function EmailList({
               />
               <button
                 onClick={() => onSelectEmail(email)}
-                className="flex-1 text-left space-y-1 min-w-0"
+                className="flex-1 text-left space-y-2 min-w-0"
               >
-                <div className="space-y-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 min-w-0">
-                    <div className="font-medium text-sm line-clamp-1 flex-1 min-w-0 wrap-break-word">
-                      {getEmailSenderName(email)}
-                    </div>
-                    {isDetecting ? (
+                <div className="space-y-2 min-w-0">
+                  {isDetecting ? (
+                    <div className="flex items-center justify-end">
                       <Badge variant="outline" className="shrink-0 animate-pulse">
                         Detecting...
                       </Badge>
-                    ) : hasArticles ? (
-                      <div className="shrink-0 flex items-center gap-1 text-xs font-medium whitespace-nowrap">
-                        <span className="text-green-600 dark:text-green-500">
-                          A {stats.allocated}
-                        </span>
-                        <span className="text-muted-foreground">•</span>
-                        <span className="text-red-600 dark:text-red-500">
-                          U {stats.unallocated}
-                        </span>
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="text-sm font-semibold line-clamp-2 wrap-break-word">
-                    {email.subject}
+                    </div>
+                  ) : null}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-sm font-semibold line-clamp-2 wrap-break-word flex-1 min-w-0">
+                      {email.subject}
+                    </div>
+                    <span className="text-xs text-muted-foreground shrink-0 whitespace-nowrap">
+                      {formatEmailDateRelative(email.date)}
+                    </span>
                   </div>
                   <div className="text-xs text-muted-foreground line-clamp-2 wrap-break-word">
                     {getEmailPreview(email)}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-2 whitespace-nowrap">
-                    {formatEmailDate(email.date)}
-                  </div>
+                  {hasArticles && !isDetecting ? (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-green-500/10 dark:bg-green-500/20 border border-green-500/20">
+                        <div className="h-1.5 w-1.5 rounded-full bg-green-600 dark:bg-green-500" />
+                        <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                          Allocated {stats.allocated}
+                        </span>
+                      </div>
+                      <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-red-500/10 dark:bg-red-500/20 border border-red-500/20">
+                        <div className="h-1.5 w-1.5 rounded-full bg-red-600 dark:bg-red-500" />
+                        <span className="text-xs font-medium text-red-700 dark:text-red-400">
+                          Unallocated {stats.unallocated}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </button>
             </div>

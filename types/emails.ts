@@ -145,6 +145,7 @@ export interface EmailFilterPanelProps {
   totalArticles: number | null
   onAllocate: () => void
   isAllocating?: boolean
+  previewArticles?: Array<{ articleId: string; pages: number }>
 }
 
 /**

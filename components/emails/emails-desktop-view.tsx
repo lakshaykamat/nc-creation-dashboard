@@ -22,6 +22,7 @@ interface EmailsDesktopViewProps {
   isDetecting: boolean
   hasSelectedEmails: boolean
   totalArticles: number | null
+  previewArticles?: Array<{ articleId: string; pages: number }>
   onSelectEmail: (email: Email) => void
   onFilterChange: (value: EmailFilter) => void
   onToggleEmailSelection: (emailId: string) => void
@@ -37,14 +38,15 @@ export function EmailsDesktopView({
   isDetecting,
   hasSelectedEmails,
   totalArticles,
+  previewArticles,
   onSelectEmail,
   onFilterChange,
   onToggleEmailSelection,
   onAllocate,
 }: EmailsDesktopViewProps) {
   return (
-    <div className="grid grid-cols-[30%_1fr] gap-4 h-full overflow-hidden min-h-0">
-      <div className="border-r overflow-hidden min-h-0 flex flex-col">
+    <div className="grid grid-cols-[30%_1fr] gap-4 h-full overflow-hidden">
+      <div className="border-r overflow-hidden flex flex-col h-full">
         <div className="py-4 border-b shrink-0 px-4">
           <EmailFilterPanel
             emailFilter={emailFilter}
@@ -52,6 +54,7 @@ export function EmailsDesktopView({
             hasSelectedEmails={hasSelectedEmails}
             selectedCount={selectedEmailIds.size}
             totalArticles={totalArticles}
+            previewArticles={previewArticles}
             onAllocate={onAllocate}
           />
         </div>
@@ -67,10 +70,8 @@ export function EmailsDesktopView({
           />
         </div>
       </div>
-      <div className="overflow-hidden h-full min-h-0 flex flex-col">
-        <div className="flex-1 overflow-hidden min-h-0">
-          <EmailViewer email={selectedEmail} />
-        </div>
+      <div className="overflow-hidden h-full flex flex-col">
+        <EmailViewer email={selectedEmail} />
       </div>
     </div>
   )

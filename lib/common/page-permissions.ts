@@ -20,12 +20,6 @@ export const PAGE_PERMISSIONS: Record<string, PagePermission> = {
     roles: ["MEMBER", "ADMIN"],
     enabled: true,
   },
-  "/file-allocator": {
-    path: "/file-allocator",
-    label: "File Allocator",
-    roles: ["ADMIN"],
-    enabled: true,
-  },
   "/file-allocator/form": {
     path: "/file-allocator/form",
     label: "File Allocator Form",

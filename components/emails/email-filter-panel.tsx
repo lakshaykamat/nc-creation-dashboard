@@ -8,6 +8,7 @@
 
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -16,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { EmailArticlesPreviewDialog } from "./email-articles-preview-dialog"
 import type { EmailFilterPanelProps, EmailFilter } from "@/types/emails"
 
 export function EmailFilterPanel({
@@ -26,41 +28,54 @@ export function EmailFilterPanel({
   totalArticles,
   onAllocate,
   isAllocating = false,
+  previewArticles,
 }: EmailFilterPanelProps) {
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
+
+  const handlePreview = () => {
+    setIsPreviewOpen(true)
+  }
+
   return (
-    <div className="space-y-3">
-      <Select value={emailFilter} onValueChange={(value) => onFilterChange(value as EmailFilter)}>
-        <SelectTrigger className="w-full cursor-pointer">
-          <SelectValue placeholder="Filter emails" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Emails</SelectItem>
-          <SelectItem value="unallocated">Unallocated Articles</SelectItem>
-        </SelectContent>
-      </Select>
-      {hasSelectedEmails && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="text-sm font-medium">
-              Selected: {selectedCount}
-            </div>
-            {totalArticles !== null && (
-              <div className="text-sm text-muted-foreground">
-                Articles: {totalArticles}
-              </div>
-            )}
+    <>
+      <div className="space-y-3">
+        <Select value={emailFilter} onValueChange={(value) => onFilterChange(value as EmailFilter)}>
+          <SelectTrigger className="w-full cursor-pointer">
+            <SelectValue placeholder="Filter emails" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Emails</SelectItem>
+            <SelectItem value="unallocated">Unallocated Articles</SelectItem>
+          </SelectContent>
+        </Select>
+        {hasSelectedEmails && (
+          <div className="flex gap-2">
+            <Button
+              onClick={handlePreview}
+              disabled={selectedCount === 0}
+              variant="outline"
+              size="sm"
+              className="flex-1"
+            >
+              Preview Articles
+            </Button>
+            <Button
+              onClick={onAllocate}
+              disabled={selectedCount === 0 || isAllocating}
+              size="sm"
+              className="flex-1"
+            >
+              {isAllocating ? "Allocating..." : "Allocate Articles"}{totalArticles ? ` (${totalArticles})` : ""}
+            </Button>
           </div>
-          <Button
-            onClick={onAllocate}
-            disabled={selectedCount === 0 || isAllocating}
-            size="sm"
-            className="w-full"
-          >
-            {isAllocating ? "Allocating..." : "Allocate Articles"}
-          </Button>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+      <EmailArticlesPreviewDialog
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        articles={previewArticles || []}
+      />
+    </>
   )
 }
 

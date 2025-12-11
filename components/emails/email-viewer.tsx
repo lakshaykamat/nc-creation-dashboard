@@ -29,7 +29,7 @@ export function EmailViewer({ email, onBack }: EmailViewerProps) {
 
   // Mobile: full screen with fixed positioning, accounting for page header
   // PageHeader is ~2.5rem tall + mb-6 (1.5rem) = ~4rem total
-  // Desktop: normal flex layout
+  // Desktop: full height container with scrollable iframe
   const containerClasses = isMobile && onBack
     ? "h-[calc(100vh-4rem)] w-screen flex flex-col fixed top-16 left-0 right-0 bg-background z-50"
     : "h-full flex flex-col min-h-0"

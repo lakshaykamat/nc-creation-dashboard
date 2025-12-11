@@ -20,11 +20,18 @@ export function useEmailAllocation(emails: Email[], selectedEmailIds: Set<string
   const selectedEmailsArticles = useMemo(() => {
     if (selectedEmailsForAllocation.length === 0) return null
 
-    const { articleNumbers } = extractUniqueArticlesFromMultipleEmails(selectedEmailsForAllocation)
+    const { articleNumbers, pageMap } = extractUniqueArticlesFromMultipleEmails(selectedEmailsForAllocation)
+    
+    // Format articles for preview table
+    const previewArticles = articleNumbers.map((articleId) => ({
+      articleId,
+      pages: pageMap[articleId] || 0,
+    }))
     
     return {
       totalArticles: articleNumbers.length,
       uniqueArticles: articleNumbers,
+      previewArticles,
     }
   }, [selectedEmailsForAllocation])
 

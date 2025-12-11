@@ -22,6 +22,7 @@ interface EmailsMobileViewProps {
   isDetecting: boolean
   hasSelectedEmails: boolean
   totalArticles: number | null
+  previewArticles?: Array<{ articleId: string; pages: number }>
   onSelectEmail: (email: Email) => void
   onBackToList: () => void
   onFilterChange: (value: EmailFilter) => void
@@ -38,6 +39,7 @@ export function EmailsMobileView({
   isDetecting,
   hasSelectedEmails,
   totalArticles,
+  previewArticles,
   onSelectEmail,
   onBackToList,
   onFilterChange,
@@ -61,6 +63,7 @@ export function EmailsMobileView({
           hasSelectedEmails={hasSelectedEmails}
           selectedCount={selectedEmailIds.size}
           totalArticles={totalArticles}
+          previewArticles={previewArticles}
           onAllocate={onAllocate}
         />
       </div>
