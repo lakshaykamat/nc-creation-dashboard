@@ -6,7 +6,7 @@
  * @module hooks/file-allocator/use-copy-allocation
  */
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import type { FinalAllocationResult } from "@/types/file-allocator"
 
 /**
@@ -74,8 +74,20 @@ function formatAllocationForCopy(allocation: FinalAllocationResult): string {
  *   - copy: Async function to copy allocation data (no-op if no allocation)
  *   - copied: Boolean indicating if copy was successful (resets after 2s)
  */
+const COPY_FEEDBACK_DURATION = 2000 // 2 seconds
+
 export function useCopyAllocation(allocation?: FinalAllocationResult) {
   const [copied, setCopied] = useState(false)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
 
   const copy = async () => {
     if (!allocation) {
@@ -159,7 +171,7 @@ export function useCopyAllocation(allocation?: FinalAllocationResult) {
         const success = fallbackCopy()
         if (success) {
           setCopied(true)
-          setTimeout(() => setCopied(false), 2000)
+          timeoutRef.current = setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION)
         }
         return
       }
@@ -168,7 +180,7 @@ export function useCopyAllocation(allocation?: FinalAllocationResult) {
       try {
         await navigator.clipboard.writeText(textToCopy)
         setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
+        timeoutRef.current = setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION)
         return
       } catch (clipboardErr) {
         // If clipboard API fails (e.g., document not focused), use fallback
@@ -179,13 +191,9 @@ export function useCopyAllocation(allocation?: FinalAllocationResult) {
       const success = fallbackCopy()
       if (success) {
         setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
+        timeoutRef.current = setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION)
       } else {
-        // If both methods fail, still set copied state to show user they can manually copy
-        // The text is available in the button or we can show it in a message
         console.warn("Both copy methods failed - user may need to manually copy")
-        // Still set copied to true so UI shows feedback, even if copy didn't work
-        // User can click the button to try again
         setCopied(false)
       }
     } catch (err) {
@@ -194,7 +202,7 @@ export function useCopyAllocation(allocation?: FinalAllocationResult) {
       const success = fallbackCopy()
       if (success) {
         setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
+        timeoutRef.current = setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION)
       } else {
         setCopied(false)
       }

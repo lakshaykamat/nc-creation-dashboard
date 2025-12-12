@@ -11,6 +11,8 @@ import type { TeamMember } from "@/types/teams"
 import type { PriorityField } from "@/lib/constants/file-allocator-constants"
 
 const QUERY_KEY = ["teams"]
+const STALE_TIME = 5 * 60 * 1000 // 5 minutes
+const GC_TIME = 10 * 60 * 1000 // 10 minutes
 
 /**
  * Fetch team members from API
@@ -33,6 +35,15 @@ async function fetchTeamMembers(): Promise<TeamMember[]> {
 }
 
 /**
+ * Return type for useTeamMembers hook
+ */
+export interface UseTeamMembersReturn {
+  members: PriorityField[]
+  isLoading: boolean
+  error: Error | null
+}
+
+/**
  * Hook to fetch team members for allocation form
  * 
  * Returns team members transformed to PriorityField format.
@@ -40,15 +51,15 @@ async function fetchTeamMembers(): Promise<TeamMember[]> {
  * 
  * @returns Object with members array, isLoading, and error state
  */
-export function useTeamMembers() {
+export function useTeamMembers(): UseTeamMembersReturn {
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: fetchTeamMembers,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
     retry: 1,
   })
 
@@ -64,7 +75,7 @@ export function useTeamMembers() {
   return {
     members,
     isLoading: query.isLoading,
-    error: query.error,
+    error: query.error as Error | null,
   }
 }
 

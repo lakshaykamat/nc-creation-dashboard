@@ -224,12 +224,10 @@ export function useFileAllocatorFormState(
   // Track previous allocation method for reset logic
   const prevAllocationMethodRef = useRef<string>("")
 
-  // Watch form values - use watch() to ensure reactivity for nested arrays
-  // Watching all fields ensures nested array changes are detected
-  const formValues = watch()
-  const allocationMethod = formValues.allocationMethod || ""
-  const textareaValue = formValues.ddnArticles || ""
-  const priorityFields = formValues.priorityFields || []
+  // Watch specific form fields for better reactivity
+  const allocationMethod = watch("allocationMethod") || ""
+  const textareaValue = watch("ddnArticles") || ""
+  const priorityFields = watch("priorityFields") || []
 
   // Parse articles from input data
   const parsedArticles = useMemo(() => {
@@ -256,10 +254,9 @@ export function useFileAllocatorFormState(
   const effectiveTotalFiles = Math.max(totalFiles - ddnArticleCount, 0)
 
   // Calculate allocation metrics
-  // Use formValues to ensure reactivity when nested values change
   const allocatedFiles = useMemo(
-    () => calculateAllocatedFiles(formValues.priorityFields || []),
-    [formValues]
+    () => calculateAllocatedFiles(priorityFields),
+    [priorityFields]
   )
 
   const remainingFiles = useMemo(
@@ -276,13 +273,8 @@ export function useFileAllocatorFormState(
   const { month, date } = useMemo(() => getCurrentMonthAndDate(), [])
 
   // Build allocated articles based on current form state
-  // Using formValues ensures reactivity when nested array values change
   const allocatedArticles = useMemo(() => {
-    // Get current priorityFields from formValues to ensure we have latest values
-    const currentPriorityFields = formValues.priorityFields || []
-    const method = formValues.allocationMethod || ALLOCATION_METHODS.BY_PRIORITY
-    
-    if (!Array.isArray(currentPriorityFields) || currentPriorityFields.length === 0) {
+    if (!Array.isArray(priorityFields) || priorityFields.length === 0) {
       return []
     }
     
@@ -291,14 +283,14 @@ export function useFileAllocatorFormState(
     }
     
     return distributeArticles(
-      currentPriorityFields,
+      priorityFields,
       parsedArticles,
       ddnArticles,
-      method,
+      allocationMethod || ALLOCATION_METHODS.BY_PRIORITY,
       month,
       date
     )
-  }, [formValues, ddnArticles, parsedArticles, month, date])
+  }, [priorityFields, parsedArticles, ddnArticles, allocationMethod, month, date])
 
   // Get unallocated articles for display
   const allocatedArticleIds = useMemo(
@@ -339,22 +331,16 @@ export function useFileAllocatorFormState(
   )
 
   // Build final allocation object
-  // Using formValues ensures reactivity when nested array values change
   const finalAllocation = useMemo(() => {
-    // Get current values from formValues to ensure we have latest values
-    const currentPriorityFields = formValues.priorityFields || []
-    const currentDdnArticles = ddnArticles
-    const currentMethod = formValues.allocationMethod || ""
-    
     return buildFinalAllocation(
-      currentPriorityFields,
+      priorityFields,
       parsedArticles,
-      currentDdnArticles,
-      currentMethod,
+      ddnArticles,
+      allocationMethod || "",
       month,
       date
     )
-  }, [formValues, ddnArticles, parsedArticles, month, date])
+  }, [priorityFields, ddnArticles, parsedArticles, allocationMethod, month, date])
 
   // Drag and drop handlers
   const handleDragStart = (index: number) => {
@@ -381,12 +367,10 @@ export function useFileAllocatorFormState(
 
     move(draggedIndex, dropIndex)
     
-    // Save the new order to localStorage after a short delay to ensure form state is updated
-    setTimeout(() => {
-      const currentFields = watch("priorityFields") || []
-      const order = extractPriorityOrder(currentFields as PriorityField[])
-      savePriorityOrder(order)
-    }, 0)
+    // Get updated fields after move and save to localStorage
+    const updatedFields = watch("priorityFields") || []
+    const order = extractPriorityOrder(updatedFields as PriorityField[])
+    savePriorityOrder(order)
     
     setDraggedIndex(null)
     setDragOverIndex(null)
@@ -409,7 +393,7 @@ export function useFileAllocatorFormState(
       }
     })
     return () => subscription.unsubscribe()
-  }, [watch, effectiveTotalFiles])
+  }, [watch, effectiveTotalFiles, isOverAllocated, getOverAllocationMessage])
 
   // Reset form when allocation method changes
   useEffect(() => {
