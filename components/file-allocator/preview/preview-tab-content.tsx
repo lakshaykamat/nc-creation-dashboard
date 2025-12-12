@@ -60,7 +60,7 @@ export function PreviewTabContent({
         </p>
         <PreviewMessage message={editMessage} />
       </div>
-      <div className="flex-1 min-h-0 p-[3px] rounded-md focus-within:p-0 focus-within:shadow-[0_0_0_3px_hsl(var(--ring)),0_0_0_1px_hsl(var(--border))] transition-all flex flex-col">
+      <div className="flex-1 min-h-0 flex flex-col p-1 rounded-md focus-within:p-0 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 transition-all">
         <div
           ref={tableRef}
           className="flex-1 min-h-0 overflow-y-auto overflow-x-auto rounded-md border-2 border-border bg-background focus:outline-none"
