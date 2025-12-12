@@ -85,29 +85,20 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
                 validationError={formState.ddnValidationError}
               />
 
-              {formState.hasAllocations && (
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <div className="flex-1">
-                    <AllocationPreviewDialog
-                      displayArticles={formState.displayArticles}
-                      disabled={formState.isOverAllocated}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <FormSubmitButtonWithDialog
-                      isDisabled={formState.isOverAllocated || (formState.parsedArticles.length > 0 && formState.unallocatedArticles.length === 0)}
-                      onSubmit={handleFormSubmit}
-                    />
-                  </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <AllocationPreviewDialog
+                    displayArticles={formState.displayArticles}
+                    disabled={formState.previewDisabled}
+                  />
                 </div>
-              )}
-
-              {!formState.hasAllocations && (
-                <FormSubmitButtonWithDialog
-                  isDisabled={formState.isOverAllocated || (formState.parsedArticles.length > 0 && formState.unallocatedArticles.length === 0)}
-                  onSubmit={handleFormSubmit}
-                />
-              )}
+                <div className="flex-1">
+                  <FormSubmitButtonWithDialog
+                    isDisabled={formState.allocateDisabled}
+                    onSubmit={handleFormSubmit}
+                  />
+                </div>
+              </div>
             </FieldGroup>
           </form>
         </CardContent>

@@ -47,10 +47,6 @@ export function AllocationPreviewDialog({
 }: AllocationPreviewDialogProps) {
   const [open, setOpen] = useState(false)
 
-  if (displayArticles.length === 0) {
-    return null
-  }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

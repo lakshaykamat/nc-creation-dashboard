@@ -104,6 +104,8 @@ export interface UseFileAllocatorFormStateReturn {
   displayArticles: AllocatedArticle[]
   finalAllocation: FinalAllocationResult
   hasAllocations: boolean
+  previewDisabled: boolean
+  allocateDisabled: boolean
   
   // Handlers
   handleDragStart: (index: number) => void
@@ -319,6 +321,20 @@ export function useFileAllocatorFormState(
   )
 
   const hasAllocations = displayArticles.length > 0 || parsedArticles.length > 0
+
+  // Disable conditions
+  const previewDisabled = useMemo(
+    () => isOverAllocatedValue || parsedArticles.length === 0,
+    [isOverAllocatedValue, parsedArticles.length]
+  )
+
+  const allocateDisabled = useMemo(
+    () => 
+      isOverAllocatedValue || 
+      parsedArticles.length === 0 || 
+      (unallocatedArticles.length === 0 && allocatedFiles === 0),
+    [isOverAllocatedValue, parsedArticles.length, unallocatedArticles.length, allocatedFiles]
+  )
 
   // Build final allocation object
   // Using formValues ensures reactivity when nested array values change
@@ -537,6 +553,8 @@ export function useFileAllocatorFormState(
     displayArticles,
     finalAllocation,
     hasAllocations,
+    previewDisabled,
+    allocateDisabled,
     
     // Handlers
     handleDragStart,
