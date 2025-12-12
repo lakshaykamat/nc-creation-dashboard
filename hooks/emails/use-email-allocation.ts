@@ -11,12 +11,25 @@ import { compressToBase64 } from "@/lib/common/compress-utils"
 import { extractArticleNumbersFromLastTwoDaysFiles } from "@/lib/emails/articles/article-extraction-utils"
 import { createArticleNumberSet } from "@/lib/emails/articles/article-set-utils"
 import { useLastTwoDaysFiles } from "./use-last-two-days-files"
-import type { Email, ArticleStats } from "@/types/emails"
+import type { Email } from "@/types/emails"
 
+/**
+ * Manages article allocation from selected emails
+ * 
+ * Extracts unique articles from selected emails, filters out already allocated articles
+ * by comparing against last two days files data, and provides navigation to the
+ * file allocator form with compressed article data.
+ * 
+ * @param emails - All available emails
+ * @param selectedEmailIds - Set of selected email IDs to process
+ * @returns Object containing:
+ *   - selectedEmailsForAllocation: Filtered emails that are selected
+ *   - selectedEmailsArticles: Unallocated articles with counts and preview data
+ *   - handleAllocate: Function to navigate to allocation form with article data
+ */
 export function useEmailAllocation(
   emails: Email[],
-  selectedEmailIds: Set<string>,
-  articleStats: Record<string, ArticleStats>
+  selectedEmailIds: Set<string>
 ) {
   const router = useRouter()
   const { data: lastTwoDaysFiles = [] } = useLastTwoDaysFiles()

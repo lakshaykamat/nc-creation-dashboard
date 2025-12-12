@@ -86,6 +86,15 @@ async function fetchLastTwoDaysFilesData(): Promise<LastTwoDaysFileDataResponse>
   } as LastTwoDaysFileDataError
 }
 
+/**
+ * Fetches last two days files data from API endpoint
+ * 
+ * Retrieves allocation data for articles processed in the last two days.
+ * Used to determine which articles are already allocated. Configured to
+ * always fetch fresh data with no caching.
+ * 
+ * @returns React Query result with last two days files data array
+ */
 export function useLastTwoDaysFilesData() {
   return useQuery({
     queryKey: ["last-two-days-files-data"],
@@ -101,6 +110,22 @@ export function useLastTwoDaysFilesData() {
 
 type DateFilter = "today" | "yesterday" | "all"
 
+/**
+ * Fetches and filters last two days files by date with grouping
+ * 
+ * Extends useLastTwoDaysFilesData with date filtering (today/yesterday/all)
+ * and grouping by "Done by" person. Groups are case-insensitive and trimmed,
+ * preserving original name formatting for display. Date filtering uses
+ * DD/MM/YYYY format matching the data structure.
+ * 
+ * @returns Object containing:
+ *   - data: Filtered data by selected date (today/yesterday/all)
+ *   - allData: Unfiltered data from API
+ *   - groupedByPerson: Data grouped by person name (case-insensitive keys)
+ *   - dateFilter: Current date filter selection
+ *   - setDateFilter: Function to change date filter
+ *   - isLoading, error, refetch, isRefetching: Query state from useLastTwoDaysFilesData
+ */
 export function useFilteredLastTwoDaysFilesData() {
   const { data: response, isLoading, error, refetch, isRefetching } = useLastTwoDaysFilesData()
   const [dateFilter, setDateFilter] = useState<DateFilter>("today")

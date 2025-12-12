@@ -85,6 +85,15 @@ async function fetchPortalData(): Promise<PortalDataResponse> {
       }
 }
 
+/**
+ * Fetches portal data from API endpoint
+ * 
+ * Retrieves portal workflow data including article IDs, status, and workflow
+ * information. Configured to always fetch fresh data (no caching) and retry
+ * once on failure.
+ * 
+ * @returns React Query result with portal data array, loading, and error state
+ */
 export function usePortalData() {
   return useQuery({
     queryKey: ["portal-data"],
@@ -98,6 +107,23 @@ export function usePortalData() {
   })
 }
 
+/**
+ * Fetches and filters portal data with TEX/QA row visibility controls
+ * 
+ * Extends usePortalData with filtering capabilities. By default, hides TEX rows
+ * (where src === "TEX") and QA rows (where isInQA === true). Provides toggle
+ * controls to show/hide these rows and counts for UI display. Computes row
+ * counts and existence checks in a single pass for efficiency.
+ * 
+ * @returns Object containing:
+ *   - data: Filtered portal data based on TEX/QA visibility settings
+ *   - allData: Unfiltered portal data
+ *   - showTexRows/showQARows: Boolean states for row visibility
+ *   - setShowTexRows/setShowQARows: Functions to toggle row visibility
+ *   - hasTexRows/hasQARows: Boolean indicating if rows exist in data
+ *   - texRowCount/qaRowCount: Number of TEX/QA rows in data
+ *   - isLoading, error, refetch, isRefetching: Query state from usePortalData
+ */
 export function useFilteredPortalData() {
   const { data: response, isLoading, error, refetch, isRefetching } = usePortalData()
   const [showTexRows, setShowTexRows] = useState(false)

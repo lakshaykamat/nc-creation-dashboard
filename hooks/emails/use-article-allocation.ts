@@ -11,9 +11,8 @@ import type { Email, AllocationPayload } from "@/types/emails"
 import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 
 /**
- * Allocate articles to the system
+ * Sends allocation payload to n8n webhook
  */
-
 async function allocateArticles(payload: AllocationPayload): Promise<void> {
   const apiKey = process.env.NEXT_PUBLIC_NC_API_KEY
   
@@ -33,7 +32,17 @@ async function allocateArticles(payload: AllocationPayload): Promise<void> {
 }
 
 /**
- * Hook to handle article allocation
+ * Manages article allocation state and operations
+ * 
+ * Provides functions to allocate articles from single or multiple emails by
+ * extracting articles, formatting them, and sending to n8n webhook endpoint.
+ * Handles loading and error states during allocation process.
+ * 
+ * @returns Object containing:
+ *   - allocate: Function to allocate articles from a single email
+ *   - allocateMultiple: Function to allocate articles from multiple emails
+ *   - isAllocating: Boolean indicating if allocation is in progress
+ *   - error: Error message if allocation fails
  */
 export function useArticleAllocation() {
   const [isAllocating, setIsAllocating] = useState(false)

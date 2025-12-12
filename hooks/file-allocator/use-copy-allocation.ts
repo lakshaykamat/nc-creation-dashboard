@@ -62,10 +62,17 @@ function formatAllocationForCopy(allocation: FinalAllocationResult): string {
 }
 
 /**
- * Hook for copying allocation data to clipboard
+ * Formats and copies allocation data to clipboard
  * 
- * @param allocation - Optional allocation data to copy
- * @returns Object with copy function and copied state
+ * Formats allocation data as "ARTICLE_ID NAME" lines, sorted by name then
+ * article ID. Includes person allocations, DDN articles, and unallocated
+ * articles. Uses modern Clipboard API with fallback to execCommand for
+ * older browsers. Handles iOS-specific clipboard requirements.
+ * 
+ * @param allocation - Optional allocation result to copy to clipboard
+ * @returns Object containing:
+ *   - copy: Async function to copy allocation data (no-op if no allocation)
+ *   - copied: Boolean indicating if copy was successful (resets after 2s)
  */
 export function useCopyAllocation(allocation?: FinalAllocationResult) {
   const [copied, setCopied] = useState(false)

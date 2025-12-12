@@ -44,7 +44,17 @@ function calculateEmailArticleStats(
 }
 
 /**
- * Hook to detect articles in emails and calculate allocated/unallocated
+ * Detects articles in emails and calculates allocation statistics
+ * 
+ * Processes each email's HTML content to extract article numbers, then compares
+ * them against already allocated articles from last two days files to determine
+ * which articles are allocated vs unallocated. Uses refs and stable keys to
+ * optimize re-processing only when emails or allocated articles change.
+ * 
+ * @param emails - Array of emails to process for article detection
+ * @returns Object containing:
+ *   - articleStats: Record mapping email ID to stats (detected, allocated, unallocated counts)
+ *   - isDetecting: Boolean indicating if detection is in progress
  */
 export function useArticleDetection(emails: Email[]): UseArticleDetectionResult {
   const [articleStats, setArticleStats] = useState<Record<string, ArticleStats>>({})

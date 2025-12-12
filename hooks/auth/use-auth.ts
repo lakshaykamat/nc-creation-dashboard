@@ -46,6 +46,20 @@ async function logoutUser(): Promise<void> {
   }
 }
 
+/**
+ * Manages authentication state and operations
+ * 
+ * Handles user login and logout with automatic query invalidation and
+ * navigation. On successful login, invalidates all queries to refresh
+ * data and redirects to the requested page (or home). On logout, clears
+ * all cached queries and redirects to login page.
+ * 
+ * @returns Object containing:
+ *   - login: Function to login with credentials
+ *   - logout: Function to logout current user
+ *   - isLoggingIn/isLoggingOut: Boolean states for mutation progress
+ *   - loginError/logoutError: Error objects if mutations fail
+ */
 export function useAuth() {
   const router = useRouter()
   const queryClient = useQueryClient()

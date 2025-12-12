@@ -42,7 +42,7 @@ export function EmailsContent({ onViewingEmailChange }: EmailsContentProps = {})
   const {
     selectedEmailsArticles,
     handleAllocate,
-  } = useEmailAllocation(emails, selectedEmailIds, articleStats)
+  } = useEmailAllocation(emails, selectedEmailIds)
 
   // Filter emails with unallocated articles
   const filteredEmails = useMemo(() => {

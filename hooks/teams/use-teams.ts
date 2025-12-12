@@ -105,7 +105,9 @@ async function deleteTeam(id: string): Promise<void> {
 }
 
 /**
- * Hook to fetch all team members
+ * Fetches all team members from API
+ * 
+ * @returns React Query result with team members data
  */
 export function useTeams() {
   return useQuery({
@@ -120,7 +122,9 @@ export function useTeams() {
 }
 
 /**
- * Hook to create a new team member
+ * Creates a new team member
+ * 
+ * @returns Mutation object with create function and state
  */
 export function useCreateTeam() {
   const queryClient = useQueryClient()
@@ -134,7 +138,9 @@ export function useCreateTeam() {
 }
 
 /**
- * Hook to update a team member
+ * Updates an existing team member
+ * 
+ * @returns Mutation object with update function and state
  */
 export function useUpdateTeam() {
   const queryClient = useQueryClient()
@@ -149,7 +155,9 @@ export function useUpdateTeam() {
 }
 
 /**
- * Hook to delete a team member
+ * Deletes a team member
+ * 
+ * @returns Mutation object with delete function and state
  */
 export function useDeleteTeam() {
   const queryClient = useQueryClient()

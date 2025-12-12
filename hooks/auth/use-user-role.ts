@@ -23,6 +23,11 @@ async function fetchUserRole(): Promise<UserRoleResponse> {
   return response.json()
 }
 
+/**
+ * Fetches current user role from API
+ * 
+ * @returns User role and loading state
+ */
 export function useUserRole() {
   const { data, isLoading } = useQuery({
     queryKey: ["user-role"],

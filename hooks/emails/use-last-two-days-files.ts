@@ -7,9 +7,6 @@
 import { useQuery } from "@tanstack/react-query"
 import type { LastTwoDaysFileData } from "@/types/portal-data"
 
-/**
- * Fetch last-two-days-files data from API
- */
 async function fetchLastTwoDaysFiles(): Promise<LastTwoDaysFileData[]> {
   const res = await fetch("/api/last-two-days-files", {
     method: "GET",
@@ -28,7 +25,9 @@ async function fetchLastTwoDaysFiles(): Promise<LastTwoDaysFileData[]> {
 }
 
 /**
- * Hook to fetch last-two-days-files data
+ * Fetches last two days files data for checking allocated articles
+ * 
+ * @returns React Query result with last two days files data
  */
 export function useLastTwoDaysFiles() {
   return useQuery({

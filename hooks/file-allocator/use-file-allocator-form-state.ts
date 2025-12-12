@@ -118,8 +118,26 @@ export interface UseFileAllocatorFormStateReturn {
 /**
  * Custom hook that manages all state and logic for the Article Allocation Form.
  * 
- * @param newArticlesWithPages - Array of article strings in format "ARTICLE_ID [PAGES]"
- * @returns Object containing all form state, computed values, and handlers
+ * Centralizes form state management, business logic, and computed values:
+ * - Integrates React Hook Form for form state
+ * - Filters out already allocated articles from input
+ * - Calculates allocation metrics (total, allocated, remaining files)
+ * - Distributes articles based on selected allocation method
+ * - Validates DDN articles and over-allocation scenarios
+ * - Manages drag-and-drop reordering of priority fields
+ * - Handles form submission and API communication
+ * 
+ * The hook uses formValues watching to ensure reactivity when nested array
+ * values change, and memoizes expensive computations to prevent unnecessary
+ * recalculations.
+ * 
+ * @param newArticlesWithPages - Optional array of article strings in format "ARTICLE_ID [PAGES]"
+ * @returns Object containing:
+ *   - Form control: control, register, watch, setValue, errors
+ *   - Field array: fields, move (for drag-and-drop)
+ *   - State: drag/drop indices, toast, loading, success, failure states
+ *   - Computed values: allocation metrics, articles, disable conditions
+ *   - Handlers: drag-and-drop, form submission
  * 
  * @example
  * ```tsx

@@ -9,9 +9,6 @@ import type { Email, EmailsResponse } from "@/types/emails"
 
 const QUERY_KEY = ["emails"]
 
-/**
- * Fetch emails from API
- */
 async function fetchEmails(): Promise<Email[]> {
   const res = await fetch("/api/emails", {
     method: "GET",
@@ -31,7 +28,9 @@ async function fetchEmails(): Promise<Email[]> {
 }
 
 /**
- * Hook to fetch emails
+ * Fetches emails from API endpoint
+ * 
+ * @returns React Query result with emails data, loading, and error state
  */
 export function useEmails() {
   return useQuery({
