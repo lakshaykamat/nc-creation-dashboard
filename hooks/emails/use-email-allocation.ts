@@ -55,28 +55,18 @@ export function useEmailAllocation(
   }, [selectedEmailsForAllocation, allocatedArticleSet])
 
   const handleAllocate = useCallback(() => {
-    if (selectedEmailsForAllocation.length === 0) return
-    
-    const { articleNumbers, pageMap } = extractUniqueArticlesFromMultipleEmails(selectedEmailsForAllocation)
-    
-    // Filter out already allocated articles
-    const unallocatedArticles = articleNumbers.filter(
-      (articleId) => !allocatedArticleSet.has(articleId.toUpperCase())
-    )
-    
-    if (unallocatedArticles.length === 0) return
+    if (!selectedEmailsArticles || selectedEmailsArticles.totalArticles === 0) return
 
-    // Format entries for allocation (only unallocated articles)
-    const formattedEntries = unallocatedArticles.map((articleId) => {
-      const pages = pageMap[articleId] || 0
-      return `${articleId} [${pages}]`
-    })
+    // Reuse previewArticles which already has unallocated articles with pages
+    const formattedEntries = selectedEmailsArticles.previewArticles.map(
+      (article) => `${article.articleId} [${article.pages}]`
+    )
 
     // Compress and navigate to file allocator form
     const jsonString = JSON.stringify(formattedEntries)
     const compressedData = compressToBase64(jsonString)
     router.push(`/file-allocator/form?data=${encodeURIComponent(compressedData)}`)
-  }, [selectedEmailsForAllocation, allocatedArticleSet, router])
+  }, [selectedEmailsArticles, router])
 
   return {
     selectedEmailsForAllocation,

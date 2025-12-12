@@ -61,7 +61,7 @@ export function EmailFilterPanel({
             </Button>
             <Button
               onClick={onAllocate}
-              disabled={selectedCount === 0 || isAllocating}
+              disabled={selectedCount === 0 || isAllocating || (totalArticles !== null && totalArticles === 0)}
               size="sm"
               className="flex-1"
             >

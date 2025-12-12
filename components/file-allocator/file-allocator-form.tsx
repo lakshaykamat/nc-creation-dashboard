@@ -95,7 +95,7 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
                   </div>
                   <div className="flex-1">
                     <FormSubmitButtonWithDialog
-                      isDisabled={formState.isOverAllocated}
+                      isDisabled={formState.isOverAllocated || (formState.parsedArticles.length > 0 && formState.unallocatedArticles.length === 0)}
                       onSubmit={handleFormSubmit}
                     />
                   </div>
@@ -104,7 +104,7 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
 
               {!formState.hasAllocations && (
                 <FormSubmitButtonWithDialog
-                  isDisabled={formState.isOverAllocated}
+                  isDisabled={formState.isOverAllocated || (formState.parsedArticles.length > 0 && formState.unallocatedArticles.length === 0)}
                   onSubmit={handleFormSubmit}
                 />
               )}

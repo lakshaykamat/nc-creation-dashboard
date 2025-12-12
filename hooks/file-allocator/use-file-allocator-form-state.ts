@@ -100,6 +100,7 @@ export interface UseFileAllocatorFormStateReturn {
   remainingFiles: number
   isOverAllocated: boolean
   allocatedArticles: AllocatedArticle[]
+  unallocatedArticles: AllocatedArticle[]
   displayArticles: AllocatedArticle[]
   finalAllocation: FinalAllocationResult
   hasAllocations: boolean
@@ -532,6 +533,7 @@ export function useFileAllocatorFormState(
     remainingFiles,
     isOverAllocated: isOverAllocatedValue,
     allocatedArticles,
+    unallocatedArticles,
     displayArticles,
     finalAllocation,
     hasAllocations,
