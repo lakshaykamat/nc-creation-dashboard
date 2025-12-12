@@ -27,6 +27,7 @@ import { getCurrentMonthAndDate } from "@/lib/common/date-utils"
 import { getUnallocatedArticles } from "@/lib/file-allocator/articles/unallocated-articles-extraction-utils"
 import { savePriorityOrder, loadPriorityOrder } from "@/lib/file-allocator/priority/priority-order-storage-utils"
 import { reorderPriorityFields, extractPriorityOrder } from "@/lib/file-allocator/priority/priority-order-utils"
+import { parsePastedAllocation, calculateProportionalDistribution } from "@/lib/file-allocator/articles/parse-pasted-allocation"
 import type {
   FormValues,
   AllocatedArticle,
@@ -92,6 +93,7 @@ export interface UseFileAllocatorFormStateReturn {
   ddnArticles: string[]
   ddnValidationError: string | null
   parsedArticles: ReturnType<typeof parseNewArticlesWithPages>
+  manuallyAddedArticleIds: Set<string>
   totalFiles: number
   effectiveTotalFiles: number
   allocatedFiles: number
@@ -110,6 +112,7 @@ export interface UseFileAllocatorFormStateReturn {
   handleDragOver: (e: React.DragEvent, index: number) => void
   handleDragLeave: () => void
   handleDrop: (dropIndex: number) => void
+  handleUpdateFromPastedData: (pastedText: string) => { success: boolean; message: string }
   onSubmit: (values: FormValues) => void
 }
 
@@ -221,6 +224,9 @@ export function useFileAllocatorFormState(
   const [toastMessage, setToastMessage] = useState("")
   const [toastType, setToastType] = useState<"error" | "success" | "info">("info")
   
+  // Manually added articles from preview dialog
+  const [manuallyAddedArticles, setManuallyAddedArticles] = useState<ParsedArticle[]>([])
+  
   // Track previous allocation method for reset logic
   const prevAllocationMethodRef = useRef<string>("")
 
@@ -230,14 +236,38 @@ export function useFileAllocatorFormState(
   const priorityFields = watch("priorityFields") || []
 
   // Parse articles from input data
-  const parsedArticles = useMemo(() => {
+  const parsedArticlesFromInput = useMemo(() => {
     return parseNewArticlesWithPages(newArticlesWithPages)
   }, [newArticlesWithPages])
+
+  // Merge parsed articles with manually added articles
+  // Manually added articles take precedence (replace duplicates by articleId)
+  const parsedArticles = useMemo(() => {
+    const articleMap = new Map<string, ParsedArticle>()
+    
+    // Add parsed articles from input first
+    parsedArticlesFromInput.forEach(article => {
+      articleMap.set(article.articleId, article)
+    })
+    
+    // Override with manually added articles
+    manuallyAddedArticles.forEach(article => {
+      articleMap.set(article.articleId, article)
+    })
+    
+    return Array.from(articleMap.values())
+  }, [parsedArticlesFromInput, manuallyAddedArticles])
 
   // Get available article IDs for DDN validation
   const availableArticleIds = useMemo(
     () => parsedArticles.map((item) => item.articleId),
     [parsedArticles]
+  )
+
+  // Set of manually added article IDs for preview highlighting
+  const manuallyAddedArticleIds = useMemo(
+    () => new Set(manuallyAddedArticles.map(article => article.articleId)),
+    [manuallyAddedArticles]
   )
 
   // Total files count
@@ -483,6 +513,53 @@ export function useFileAllocatorFormState(
     }
   }
 
+  // Handler to update priority fields from pasted article data
+  const handleUpdateFromPastedData = (pastedText: string): { success: boolean; message: string } => {
+    try {
+      const entries = parsePastedAllocation(pastedText)
+      
+      if (entries.length === 0) {
+        return {
+          success: false,
+          message: "No valid article data found. Please paste article IDs in format: 'ARTICLE_ID [PAGES]' or just 'ARTICLE_ID'",
+        }
+      }
+
+      // Convert entries to ParsedArticle format and store as manually added
+      const newManuallyAddedArticles: ParsedArticle[] = entries.map(entry => ({
+        articleId: entry.articleId.toUpperCase().trim(),
+        pages: entry.pages,
+      }))
+      
+      // Update manually added articles (merge with existing, new ones override)
+      setManuallyAddedArticles(prev => {
+        const articleMap = new Map<string, ParsedArticle>()
+        // Keep existing manually added articles
+        prev.forEach(article => {
+          articleMap.set(article.articleId, article)
+        })
+        // Add/override with new articles
+        newManuallyAddedArticles.forEach(article => {
+          articleMap.set(article.articleId, article)
+        })
+        return Array.from(articleMap.values())
+      })
+
+      // Manually added articles remain unallocated (NEED TO ALLOCATE)
+      // Don't update priority fields - let user allocate them manually
+
+      return {
+        success: true,
+        message: `Added ${entries.length} article${entries.length > 1 ? "s" : ""}. They will appear as "NEED TO ALLOCATE" in the preview.`,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to parse article data",
+      }
+    }
+  }
+
   return {
     // Form control
     control,
@@ -529,6 +606,7 @@ export function useFileAllocatorFormState(
     ddnArticles,
     ddnValidationError,
     parsedArticles,
+    manuallyAddedArticleIds,
     totalFiles,
     effectiveTotalFiles,
     allocatedFiles,
@@ -547,6 +625,7 @@ export function useFileAllocatorFormState(
     handleDragOver,
     handleDragLeave,
     handleDrop,
+    handleUpdateFromPastedData,
     onSubmit,
   }
 }

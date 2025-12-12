@@ -8,6 +8,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import type { FinalAllocationResult } from "@/types/file-allocator"
+import { IOS_DEVICE_PATTERN } from "@/lib/constants/article-regex-constants"
 
 /**
  * Formats allocation data for copying to clipboard
@@ -133,7 +134,7 @@ export function useCopyAllocation(allocation?: FinalAllocationResult) {
         textArea.focus()
         
         // Select the text
-        if (navigator.userAgent.match(/ipad|iphone/i)) {
+        if (IOS_DEVICE_PATTERN.test(navigator.userAgent)) {
           // iOS specific handling
           const range = document.createRange()
           range.selectNodeContents(textArea)

@@ -6,6 +6,17 @@
  * @module lib/common/article-extractor
  */
 
+import {
+  ARTICLE_ID_PATTERN,
+  DATE_PATTERN_SLASH,
+  DATE_PATTERN_DASH,
+  TIME_PATTERN,
+  EMFC_PATTERN,
+  EMFC_WITH_NUMBER_PATTERN,
+  PAGE_COUNT_PATTERN,
+  SOURCE_CODE_PATTERN,
+} from "@/lib/constants/article-regex-constants"
+
 /**
  * Result object returned by extractArticleData function
  */
@@ -52,9 +63,7 @@ export function extractArticleData(html: string): ArticleExtractionResult {
   // --- Step 2: Tokenize text ---
   const tokens = cleanedText.split(/\s+/).filter(Boolean)
 
-  // --- Step 3: Define regex to detect article codes ---
-  const ARTICLE_CODE_PATTERN = /^[A-Z]{2,}[A-Z0-9]*\d$/
-
+  // --- Step 3: Use regex to detect article codes ---
   // Initialize storage for results
   const articleNumbers: string[] = []
   const seenArticleCodes = new Set<string>()  // Prevent duplicates
@@ -67,7 +76,7 @@ export function extractArticleData(html: string): ArticleExtractionResult {
     const token = tokens[i].trim()
 
     // Check if token is an article code
-    if (ARTICLE_CODE_PATTERN.test(token)) {
+    if (ARTICLE_ID_PATTERN.test(token)) {
       const articleCode = token.toUpperCase()
 
       // Skip duplicates
@@ -80,31 +89,48 @@ export function extractArticleData(html: string): ArticleExtractionResult {
       let lastPageNumber: number | null = null
 
       // --- Step 5: Scan forward to find page numbers ---
-      for (let j = i + 1; j < tokens.length; j++) {
-        const nextToken = tokens[j].trim()
-
-        // Skip eMFC tokens or hyphen placeholders
-        if (/^eMFC$/i.test(nextToken) || /^eMFC[-:]\d+$/i.test(nextToken) || nextToken === "-") continue
-
-        // Capture numeric token as potential page count
-        if (/^\d+$/.test(nextToken)) {
-          const pageNumber = parseInt(nextToken, 10)
-          if (pageNumber >= 0 && pageNumber <= 10000) lastPageNumber = pageNumber   // Allow 0 as valid page
+      // Look for the number immediately following the article ID
+      // In table format: ARTICLE_ID SOURCE PAGES DATE TIME ...
+      let nextIndex = i + 1
+      
+      // Skip the first non-numeric token after article ID (typically "TEX" or source)
+      if (nextIndex < tokens.length) {
+        const firstToken = tokens[nextIndex].trim()
+        // If it's not numeric and looks like a source code (e.g., "TEX"), skip it
+        if (!PAGE_COUNT_PATTERN.test(firstToken) && SOURCE_CODE_PATTERN.test(firstToken)) {
+          nextIndex++
         }
+      }
+      
+      // Now check the next token for page number
+      if (nextIndex < tokens.length) {
+        const nextToken = tokens[nextIndex].trim()
+        
+        // Skip eMFC tokens or hyphen placeholders
+        if (!EMFC_PATTERN.test(nextToken) && !EMFC_WITH_NUMBER_PATTERN.test(nextToken) && nextToken !== "-") {
+          // Capture numeric token as page count
+          if (PAGE_COUNT_PATTERN.test(nextToken)) {
+            const pageNumber = parseInt(nextToken, 10)
+            if (pageNumber >= 0 && pageNumber <= 10000) {
+              lastPageNumber = pageNumber
+              pageCount = pageNumber
+            }
+          }
+        }
+      }
+      
+      // Continue scanning for dates/times to validate we're in the right block
+      for (let j = nextIndex + 1; j < tokens.length && j < i + 5; j++) {
+        const scanToken = tokens[j].trim()
 
         // Detect dates to identify end of block
-        const datePatternSlash = /^\d{1,2}\/\d{1,2}\/\d{4}$/
-        const datePatternDash = /^\d{1,2}-\d{1,2}-\d{4}$/
-        const timePattern = /^\d{1,2}:\d{2}$/
-
-        // If a date is found followed by a time, finalize page count
-        if ((datePatternSlash.test(nextToken) || datePatternDash.test(nextToken)) && timePattern.test(tokens[j + 1] || "")) {
-          if (lastPageNumber !== null) pageCount = lastPageNumber
+        // If a date is found followed by a time, we've found the complete article block
+        if ((DATE_PATTERN_SLASH.test(scanToken) || DATE_PATTERN_DASH.test(scanToken)) && TIME_PATTERN.test(tokens[j + 1] || "")) {
           break // End of article block
         }
 
         // End scan if time appears alone
-        if (timePattern.test(nextToken)) break
+        if (TIME_PATTERN.test(scanToken)) break
       }
 
       // --- Step 6: Add article if page number is valid ---

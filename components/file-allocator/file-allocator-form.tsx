@@ -90,6 +90,8 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
                   <AllocationPreviewDialog
                     displayArticles={formState.displayArticles}
                     disabled={formState.previewDisabled}
+                    manuallyAddedArticleIds={formState.manuallyAddedArticleIds}
+                    onUpdateFromPastedData={formState.handleUpdateFromPastedData}
                   />
                 </div>
                 <div className="flex-1">

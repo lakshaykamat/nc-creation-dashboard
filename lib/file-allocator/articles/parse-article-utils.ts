@@ -7,6 +7,7 @@
  */
 
 import type { ParsedArticle } from "@/types/file-allocator"
+import { ARTICLE_WITH_PAGES_PATTERN } from "@/lib/constants/article-regex-constants"
 
 // Re-export for backward compatibility
 export type { ParsedArticle }
@@ -38,7 +39,7 @@ export function parseNewArticlesWithPages(
 
   return newArticlesWithPages.map((entry) => {
     // Match format: "ARTICLE_ID [PAGES]"
-    const match = entry.match(/^([^\s\[]+)\s*\[(\d+)\]/)
+    const match = entry.match(ARTICLE_WITH_PAGES_PATTERN)
     const articleId = match?.[1] ?? entry.trim()
     const pages = match ? Number(match[2]) || 0 : 0
 
