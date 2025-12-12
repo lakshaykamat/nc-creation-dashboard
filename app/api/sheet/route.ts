@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/db/mongo"
 import { logger } from "@/lib/common/logger"
+import { DATABASE_NAME } from "@/lib/constants/database-constants"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const client = await clientPromise
-    const db = client.db("nc")
+    const db = client.db(DATABASE_NAME)
     const collection = db.collection("sheet")
 
     // Fetch all documents from the sheet collection, sorted by Date descending (latest first)

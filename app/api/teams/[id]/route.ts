@@ -12,6 +12,7 @@ import { ObjectId } from "mongodb"
 import clientPromise from "@/lib/db/mongo"
 import { logger } from "@/lib/common/logger"
 import { findByIdFilter, excludeByIdFilter } from "@/lib/db/mongo-helpers"
+import { DATABASE_NAME } from "@/lib/constants/database-constants"
 import type { TeamMember, UpdateTeamMemberRequest, TeamMemberResponse } from "@/types/teams"
 
 // Force dynamic rendering - never cache
@@ -54,7 +55,7 @@ export async function PUT(
     const name = body.name.trim()
 
     const client = await clientPromise
-    const db = client.db()
+    const db = client.db(DATABASE_NAME)
     const collection = db.collection<TeamMember>("teams")
 
     // Check if member exists
@@ -169,7 +170,7 @@ export async function DELETE(
     }
 
     const client = await clientPromise
-    const db = client.db()
+    const db = client.db(DATABASE_NAME)
     const collection = db.collection<TeamMember>("teams")
 
     // Check if member exists

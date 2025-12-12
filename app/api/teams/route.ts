@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
 import clientPromise from "@/lib/db/mongo"
 import { logger } from "@/lib/common/logger"
+import { DATABASE_NAME } from "@/lib/constants/database-constants"
 import type { TeamMember, CreateTeamMemberRequest, TeamMembersResponse, TeamMemberResponse } from "@/types/teams"
 
 // Force dynamic rendering - never cache
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const client = await clientPromise
-    const db = client.db()
+    const db = client.db(DATABASE_NAME)
     const collection = db.collection<TeamMember>("teams")
 
     const members = await collection.find({}).toArray()
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
     const name = body.name.trim()
 
     const client = await clientPromise
-    const db = client.db()
+    const db = client.db(DATABASE_NAME)
     const collection = db.collection<TeamMember>("teams")
 
     // Check for duplicate name
