@@ -24,9 +24,9 @@ export function Toast({ message, type = "error", duration = 4000, onClose }: Toa
     <div
       className={cn(
         "fixed top-4 right-4 z-50 flex items-center gap-3 rounded-lg border px-4 py-3 shadow-lg animate-in slide-in-from-top-5",
-        type === "error" && "border-destructive/50 bg-destructive/10 text-destructive",
-        type === "success" && "border-green-500/50 bg-green-500/10 text-green-600",
-        type === "info" && "border-blue-500/50 bg-blue-500/10 text-blue-600"
+        type === "error" && "border-destructive/50 bg-card text-destructive",
+        type === "success" && "border-green-500/50 bg-card text-green-600 dark:text-green-400",
+        type === "info" && "border-blue-500/50 bg-card text-blue-600 dark:text-blue-400"
       )}
     >
       <p className="text-sm font-medium">{message}</p>
