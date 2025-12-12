@@ -15,14 +15,12 @@ import { useState, useEffect, useMemo, useRef } from "react"
 import { useForm, useFieldArray, type Control, type UseFormWatch, type UseFormSetValue } from "react-hook-form"
 import { type PriorityField, ALLOCATION_METHODS } from "@/lib/constants/file-allocator-constants"
 import { useTeamMembers } from "./use-team-members"
-import { useLastTwoDaysFiles } from "@/hooks/emails/use-last-two-days-files"
 import { parseNewArticlesWithPages } from "@/lib/file-allocator/articles/parse-article-utils"
 import { validateDdnArticles, isOverAllocated } from "@/lib/file-allocator/allocation/allocation-validation-utils"
 import { calculateAllocatedFiles, calculateRemainingFiles } from "@/lib/file-allocator/allocation/allocation-calculation-utils"
-import { getOverAllocationMessage, generateFilteredArticlesToastMessage } from "@/lib/file-allocator/allocation/allocation-message-utils"
+import { getOverAllocationMessage } from "@/lib/file-allocator/allocation/allocation-message-utils"
 import { distributeArticles } from "@/lib/file-allocator/allocation/allocation-distribution-utils"
 import { buildFinalAllocation } from "@/lib/file-allocator/allocation/allocation-result-utils"
-import { filterAllocatedArticles } from "@/lib/file-allocator/articles/filter-allocated-articles-utils"
 import { hasPriorityFieldsChanged } from "@/lib/file-allocator/priority/priority-fields-comparison-utils"
 import { transformTeamMembersToPriorityFields } from "@/lib/file-allocator/priority/priority-fields-transformation-utils"
 import { getCurrentMonthAndDate } from "@/lib/common/date-utils"
@@ -120,7 +118,7 @@ export interface UseFileAllocatorFormStateReturn {
  * 
  * Centralizes form state management, business logic, and computed values:
  * - Integrates React Hook Form for form state
- * - Filters out already allocated articles from input
+ * - Parses articles from input data
  * - Calculates allocation metrics (total, allocated, remaining files)
  * - Distributes articles based on selected allocation method
  * - Validates DDN articles and over-allocation scenarios
@@ -155,9 +153,6 @@ export function useFileAllocatorFormState(
 ): UseFileAllocatorFormStateReturn {
   // Fetch team members dynamically
   const { members: teamMembers, isLoading: isLoadingMembers } = useTeamMembers()
-  
-  // Fetch last-two-days-files in parallel to check for already allocated articles
-  const { data: lastTwoDaysFiles = [] } = useLastTwoDaysFiles()
 
   // Create initial priority fields from team members
   const initialPriorityFields = useMemo(() => {
@@ -236,21 +231,10 @@ export function useFileAllocatorFormState(
   const textareaValue = formValues.ddnArticles || ""
   const priorityFields = formValues.priorityFields || []
 
-  // Parse articles from input data and filter out already allocated articles
-  const { parsedArticles, filteredOutCount, filteredOutArticles } = useMemo(() => {
-    const allParsed = parseNewArticlesWithPages(newArticlesWithPages)
-    return filterAllocatedArticles(allParsed, lastTwoDaysFiles)
-  }, [newArticlesWithPages, lastTwoDaysFiles])
-
-  // Show toast when articles are filtered out
-  useEffect(() => {
-    if (filteredOutCount > 0 && lastTwoDaysFiles.length > 0) {
-      const message = generateFilteredArticlesToastMessage(filteredOutCount, filteredOutArticles)
-      setToastMessage(message)
-      setToastType("info")
-      setShowToast(true)
-    }
-  }, [filteredOutCount, filteredOutArticles, lastTwoDaysFiles.length])
+  // Parse articles from input data
+  const parsedArticles = useMemo(() => {
+    return parseNewArticlesWithPages(newArticlesWithPages)
+  }, [newArticlesWithPages])
 
   // Get available article IDs for DDN validation
   const availableArticleIds = useMemo(
