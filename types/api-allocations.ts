@@ -53,7 +53,7 @@ export interface PreviewAllocationResponse {
  */
 export interface ValidateAllocationRequest {
   priorityFields: PriorityField[]
-  totalFiles: number
+  totalArticles: number
   ddnArticles: string[]
   availableArticleIds: string[]
   ddnText?: string
@@ -64,8 +64,8 @@ export interface ValidateAllocationRequest {
  */
 export interface ValidateAllocationResponse {
   isOverAllocated: boolean
-  remainingFiles: number
-  allocatedFiles: number
+  remainingArticles: number
+  allocatedArticleCount: number
   ddnValidationError: string | null
   errors: string[]
 }

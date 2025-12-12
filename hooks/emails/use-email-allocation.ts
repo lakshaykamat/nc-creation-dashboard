@@ -10,7 +10,7 @@ import { extractUniqueArticlesFromMultipleEmails } from "@/lib/emails/articles/a
 import { compressToBase64 } from "@/lib/common/compress-utils"
 import { extractArticleNumbersFromLastTwoDaysFiles } from "@/lib/emails/articles/article-extraction-utils"
 import { createArticleNumberSet } from "@/lib/emails/articles/article-set-utils"
-import { useLastTwoDaysFiles } from "./use-last-two-days-files"
+import { useRecentlyAllocatedArticles } from "./use-last-two-days-files"
 import type { Email } from "@/types/emails"
 
 /**
@@ -32,7 +32,7 @@ export function useEmailAllocation(
   selectedEmailIds: Set<string>
 ) {
   const router = useRouter()
-  const { data: lastTwoDaysFiles = [] } = useLastTwoDaysFiles()
+  const { data: lastTwoDaysFiles = [] } = useRecentlyAllocatedArticles()
 
   // Get allocated article set for filtering
   const allocatedArticleSet = useMemo(() => {

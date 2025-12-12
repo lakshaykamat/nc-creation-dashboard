@@ -1,15 +1,15 @@
 /**
- * Hook for fetching last-two-days-files data
+ * Hook for fetching recently allocated articles
  * 
- * @module hooks/emails/use-last-two-days-files
+ * @module hooks/emails/use-recently-allocated-articles
  */
 
 import { useQuery } from "@tanstack/react-query"
 import { getApiHeaders } from "@/lib/api/api-client"
 import type { LastTwoDaysFileData } from "@/types/portal-data"
 
-async function fetchLastTwoDaysFiles(): Promise<LastTwoDaysFileData[]> {
-    const res = await fetch("/api/files/recent", {
+async function fetchRecentlyAllocatedArticles(): Promise<LastTwoDaysFileData[]> {
+    const res = await fetch("/api/articles/recently-allocated", {
     method: "GET",
     headers: getApiHeaders(),
     cache: "no-store",
@@ -17,7 +17,7 @@ async function fetchLastTwoDaysFiles(): Promise<LastTwoDaysFileData[]> {
   })
 
   if (!res.ok) {
-    throw new Error("Failed to fetch last two days files")
+    throw new Error("Failed to fetch recently allocated articles")
   }
 
   const data = await res.json()
@@ -25,14 +25,14 @@ async function fetchLastTwoDaysFiles(): Promise<LastTwoDaysFileData[]> {
 }
 
 /**
- * Fetches last two days files data for checking allocated articles
+ * Fetches recently allocated articles for checking allocation status
  * 
- * @returns React Query result with last two days files data
+ * @returns React Query result with recently allocated articles data
  */
-export function useLastTwoDaysFiles() {
+export function useRecentlyAllocatedArticles() {
   return useQuery({
-    queryKey: ["last-two-days-files"],
-    queryFn: fetchLastTwoDaysFiles,
+    queryKey: ["recently-allocated-articles"],
+    queryFn: fetchRecentlyAllocatedArticles,
     refetchOnWindowFocus: false,
     staleTime: 0,
     gcTime: 0,

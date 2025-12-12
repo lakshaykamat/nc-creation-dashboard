@@ -69,8 +69,8 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
               <PriorityFieldsList
                 fields={formState.fields}
                 control={formState.control}
-                totalFiles={formState.totalFiles}
-                remainingFiles={formState.remainingFiles}
+                totalArticles={formState.totalArticles}
+                remainingArticles={formState.remainingArticles}
                 draggedIndex={formState.draggedIndex}
                 dragOverIndex={formState.dragOverIndex}
                 isLoadingMembers={formState.isLoadingMembers}

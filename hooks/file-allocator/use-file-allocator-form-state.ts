@@ -91,10 +91,10 @@ export interface UseFileAllocatorFormStateReturn {
   ddnValidationError: string | null
   parsedArticles: ReturnType<typeof parseNewArticlesWithPages>
   manuallyAddedArticleIds: Set<string>
-  totalFiles: number
-  effectiveTotalFiles: number
-  allocatedFiles: number
-  remainingFiles: number
+  totalArticles: number
+  effectiveTotalArticles: number
+  allocatedArticleCount: number
+  remainingArticles: number
   isOverAllocated: boolean
   allocatedArticles: AllocatedArticle[]
   unallocatedArticles: AllocatedArticle[]
@@ -237,8 +237,8 @@ export function useFileAllocatorFormState(
   
   // API computation results state
   const [validationResult, setValidationResult] = useState<{
-    allocatedFiles: number
-    remainingFiles: number
+    allocatedArticleCount: number
+    remainingArticles: number
     isOverAllocated: boolean
     ddnValidationError: string | null
   } | null>(null)
@@ -304,8 +304,8 @@ export function useFileAllocatorFormState(
     [manuallyAddedArticles]
   )
 
-  // Total files count
-  const totalFiles = parsedArticles.length
+  // Total articles count
+  const totalArticles = parsedArticles.length
 
   // Get current date and month for allocation
   const { month, date } = useMemo(() => getCurrentMonthAndDate(), [])
@@ -318,16 +318,16 @@ export function useFileAllocatorFormState(
       .filter((line) => line.length > 0)
   }, [textareaValue])
 
-  // Effective total files (excluding DDN articles)
+  // Effective total articles (excluding DDN articles)
   const ddnArticleCount = ddnArticles.length
-  const effectiveTotalFiles = Math.max(totalFiles - ddnArticleCount, 0)
+  const effectiveTotalArticles = Math.max(totalArticles - ddnArticleCount, 0)
 
   // Compute validation and preview via API
   useEffect(() => {
     if (!priorityFields || priorityFields.length === 0 || !parsedArticles || parsedArticles.length === 0) {
       setValidationResult({
-        allocatedFiles: 0,
-        remainingFiles: effectiveTotalFiles,
+        allocatedArticleCount: 0,
+        remainingArticles: effectiveTotalArticles,
         isOverAllocated: false,
         ddnValidationError: null,
       })
@@ -348,7 +348,7 @@ export function useFileAllocatorFormState(
         const [validationResponse, previewResponse] = await Promise.all([
           validateAllocation({
             priorityFields,
-            totalFiles: effectiveTotalFiles,
+            totalArticles: effectiveTotalArticles,
             ddnArticles,
             availableArticleIds,
             ddnText: textareaValue,
@@ -367,8 +367,8 @@ export function useFileAllocatorFormState(
         if (cancelled) return
 
         setValidationResult({
-          allocatedFiles: validationResponse.allocatedFiles,
-          remainingFiles: validationResponse.remainingFiles,
+          allocatedArticleCount: validationResponse.allocatedArticleCount,
+          remainingArticles: validationResponse.remainingArticles,
           isOverAllocated: validationResponse.isOverAllocated,
           ddnValidationError: validationResponse.ddnValidationError,
         })
@@ -395,8 +395,8 @@ export function useFileAllocatorFormState(
         if (!cancelled) {
           // Fallback to empty results on error
           setValidationResult({
-            allocatedFiles: 0,
-            remainingFiles: effectiveTotalFiles,
+            allocatedArticleCount: 0,
+            remainingArticles: effectiveTotalArticles,
             isOverAllocated: false,
             ddnValidationError: "Error computing allocation",
           })
@@ -425,15 +425,15 @@ export function useFileAllocatorFormState(
     allocationMethod,
     month,
     date,
-    effectiveTotalFiles,
+    effectiveTotalArticles,
     availableArticleIds,
     textareaValue,
     articleDisplayOverrides,
   ])
 
   // Use API results or fallback values
-  const allocatedFiles = validationResult?.allocatedFiles ?? 0
-  const remainingFiles = validationResult?.remainingFiles ?? effectiveTotalFiles
+  const allocatedArticleCount = validationResult?.allocatedArticleCount ?? 0
+  const remainingArticles = validationResult?.remainingArticles ?? effectiveTotalArticles
   const isOverAllocatedValue = validationResult?.isOverAllocated ?? false
   const ddnValidationError = validationResult?.ddnValidationError ?? null
 
@@ -453,8 +453,8 @@ export function useFileAllocatorFormState(
     () => 
       isOverAllocatedValue || 
       parsedArticles.length === 0 || 
-      (unallocatedArticles.length === 0 && allocatedFiles === 0),
-    [isOverAllocatedValue, parsedArticles.length, unallocatedArticles.length, allocatedFiles]
+      (unallocatedArticles.length === 0 && allocatedArticleCount === 0),
+    [isOverAllocatedValue, parsedArticles.length, unallocatedArticles.length, allocatedArticleCount]
   )
 
   // Build final allocation object
@@ -508,13 +508,13 @@ export function useFileAllocatorFormState(
     if (!validationResult) return
 
     if (validationResult.isOverAllocated) {
-      const overBy = validationResult.allocatedFiles - effectiveTotalFiles
+      const overBy = validationResult.allocatedArticleCount - effectiveTotalArticles
       setToastMessage(getOverAllocationMessage(overBy))
       setShowToast(true)
     } else {
       setShowToast(false)
     }
-  }, [validationResult, effectiveTotalFiles, getOverAllocationMessage])
+  }, [validationResult, effectiveTotalArticles, getOverAllocationMessage])
 
   // Reset form when allocation method changes
   useEffect(() => {
@@ -779,10 +779,10 @@ export function useFileAllocatorFormState(
     ddnValidationError,
     parsedArticles,
     manuallyAddedArticleIds,
-    totalFiles,
-    effectiveTotalFiles,
-    allocatedFiles,
-    remainingFiles,
+    totalArticles,
+    effectiveTotalArticles,
+    allocatedArticleCount,
+    remainingArticles,
     isOverAllocated: isOverAllocatedValue,
     allocatedArticles,
     unallocatedArticles,

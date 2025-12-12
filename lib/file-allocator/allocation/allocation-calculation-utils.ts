@@ -14,22 +14,22 @@ import type { PriorityField } from "@/lib/constants/file-allocator-constants"
  * @param priorityFields - Array of priority fields with allocation counts
  * @returns Total number of articles allocated
  */
-export function calculateAllocatedFiles(priorityFields: PriorityField[]): number {
+export function calculateAllocatedArticleCount(priorityFields: PriorityField[]): number {
   return priorityFields.reduce((sum, field) => sum + (field.value || 0), 0)
 }
 
 /**
  * Calculates the number of articles remaining to be allocated.
  * 
- * @param totalFiles - Total number of articles available
- * @param allocatedFiles - Number of articles already allocated
+ * @param totalArticles - Total number of articles available
+ * @param allocatedArticleCount - Number of articles already allocated
  * @returns Number of remaining articles (can be negative if over-allocated)
  */
-export function calculateRemainingFiles(
-  totalFiles: number,
-  allocatedFiles: number
+export function calculateRemainingArticles(
+  totalArticles: number,
+  allocatedArticleCount: number
 ): number {
-  return totalFiles - allocatedFiles
+  return totalArticles - allocatedArticleCount
 }
 
 /**

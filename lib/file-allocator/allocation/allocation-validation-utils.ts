@@ -14,12 +14,12 @@ export type { DdnValidationResult }
 /**
  * Checks if the allocation exceeds the available number of articles.
  * 
- * @param totalFiles - Total number of articles available
- * @param allocatedFiles - Number of articles allocated
+ * @param totalArticles - Total number of articles available
+ * @param allocatedArticleCount - Number of articles allocated
  * @returns True if over-allocated, false otherwise
  */
-export function isOverAllocated(totalFiles: number, allocatedFiles: number): boolean {
-  return allocatedFiles > totalFiles && totalFiles > 0
+export function isOverAllocated(totalArticles: number, allocatedArticleCount: number): boolean {
+  return allocatedArticleCount > totalArticles && totalArticles > 0
 }
 
 /**

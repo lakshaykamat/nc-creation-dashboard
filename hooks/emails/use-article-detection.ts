@@ -14,7 +14,7 @@ import { createArticleNumberSet } from "@/lib/emails/articles/article-set-utils"
 import { createArticleNumbersKey, createEmailIdsKey } from "@/lib/emails/articles/article-key-utils"
 import { countAllocatedArticles } from "@/lib/emails/articles/article-counting-utils"
 import { getUniqueArticleNumbers } from "@/lib/emails/articles/article-uniqueness-utils"
-import { useLastTwoDaysFiles } from "./use-last-two-days-files"
+import { useRecentlyAllocatedArticles } from "./use-last-two-days-files"
 import type { Email, ArticleStats, UseArticleDetectionResult } from "@/types/emails"
 
 /**
@@ -61,7 +61,7 @@ export function useArticleDetection(emails: Email[]): UseArticleDetectionResult 
   const [isDetecting, setIsDetecting] = useState(false)
 
   // Fetch last-two-days-files data in parallel
-  const { data: lastTwoDaysFiles = [] } = useLastTwoDaysFiles()
+  const { data: lastTwoDaysFiles = [] } = useRecentlyAllocatedArticles()
 
   // Extract and prepare allocated article numbers
   const allocatedArticleNumbersRef = useRef<Set<string>>(new Set())

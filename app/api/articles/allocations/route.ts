@@ -1,17 +1,20 @@
 /**
- * API Route for Recent Files Data
+ * API Route for Article Allocations
  * 
- * GET /api/files/recent
+ * GET /api/articles/allocations
  * 
- * Fetches last two days files data from external API.
- * Used to determine which articles are already allocated.
+ * Fetches article allocation data from external API.
  * 
- * @module app/api/files/recent
+ * @module app/api/articles/allocations
  */
 
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
+import {
+  getSampleAllocationData,
+  shouldUseSampleData,
+} from "@/lib/file-allocator/sample-allocation"
 import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 
 // Force dynamic rendering - never cache
@@ -35,7 +38,7 @@ export async function GET(request: NextRequest) {
       },
       [],
       {
-        endpoint: "files/recent",
+        endpoint: "articles/allocations",
         error: "Unauthorized session",
       }
     )
@@ -43,8 +46,73 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Get query parameters
+    const { searchParams } = new URL(request.url)
+    const recent = searchParams.get("recent")
+
+    // Use sample data if enabled
+    if (shouldUseSampleData()) {
+      const data = getSampleAllocationData(recent)
+      const duration = Date.now() - startTime
+      const responseSize = JSON.stringify(data).length
+
+      logger.logRequest(
+        requestContext,
+        {
+          status: 200,
+          statusText: "OK",
+          duration,
+          dataSize: responseSize,
+        },
+        [],
+        {
+          endpoint: "articles/allocations",
+          hasData: true,
+          queryParams: {
+            recent: recent || null,
+          },
+          usingSampleData: true,
+        }
+      )
+
+      return NextResponse.json(data)
+    }
+
+    // Continue with external API fetch
+    const apiKey = process.env.NEXT_PUBLIC_NC_API_KEY
+
+    if (!apiKey) {
+      logger.logRequest(requestContext, {
+        status: 500,
+        statusText: "Internal Server Error",
+        duration: Date.now() - startTime,
+        error: {
+          message: "API key not configured",
+          code: "CONFIG_ERROR",
+        },
+      })
+
+      return NextResponse.json(
+        {
+          code: 500,
+          message: "API key not configured",
+        },
+        { status: 500 }
+      )
+    }
+
     const externalApiStartTime = Date.now()
-    const externalUrl = N8N_WEBHOOK_ENDPOINTS.LAST_TWO_DAYS_FILES
+    
+    // Build URL with query parameters
+    let externalUrl = N8N_WEBHOOK_ENDPOINTS.ALLOCATIONS
+    const urlParams = new URLSearchParams()
+    if (recent) {
+      urlParams.append("recent", recent)
+    }
+    
+    if (urlParams.toString()) {
+      externalUrl += `?${urlParams.toString()}`
+    }
 
     let response: Response
     let data: unknown
@@ -56,6 +124,7 @@ export async function GET(request: NextRequest) {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
+          "X-API-KEY": apiKey,
           "Connection": "keep-alive",
         },
         cache: "no-store",
@@ -86,7 +155,7 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const errorMessage =
-        (data as { message?: string })?.message || "Failed to fetch last two days files data"
+        (data as { message?: string })?.message || "Failed to fetch article allocation data"
 
       logger.logRequest(
         requestContext,
@@ -115,7 +184,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate response
-    if (!Array.isArray(data)) {
+    if (!data || typeof data !== "object") {
       logger.logRequest(
         requestContext,
         {
@@ -123,7 +192,7 @@ export async function GET(request: NextRequest) {
           statusText: "Internal Server Error",
           duration,
           error: {
-            message: "Invalid response format: expected an array",
+            message: "Invalid response format",
             code: "VALIDATION_ERROR",
           },
         },
@@ -133,7 +202,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           code: 500,
-          message: "Invalid response format: expected an array",
+          message: "Invalid response format",
         },
         { status: 500 }
       )
@@ -151,21 +220,23 @@ export async function GET(request: NextRequest) {
       },
       [externalApiCall],
       {
-        endpoint: "files/recent",
-        recordCount: data.length,
-        hasData: data.length > 0,
+        endpoint: "articles/allocations",
+        hasData: true,
+        queryParams: {
+          recent: recent || null,
+        },
       }
     )
 
     return NextResponse.json(data)
   } catch (error) {
     logger.logError(requestContext, error, {
-      endpoint: "last-two-days-files",
+      endpoint: "articles/allocations",
       duration: Date.now() - startTime,
     })
 
     const errorMessage =
-      error instanceof Error ? error.message : "Failed to fetch last two days files data"
+      error instanceof Error ? error.message : "Failed to fetch article allocation data"
 
     return NextResponse.json(
       {

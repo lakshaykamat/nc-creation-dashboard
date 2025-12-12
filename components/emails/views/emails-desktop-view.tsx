@@ -23,6 +23,7 @@ interface EmailsDesktopViewProps {
   hasSelectedEmails: boolean
   totalArticles: number | null
   previewArticles?: Array<{ articleId: string; pages: number }>
+  totalEmailsCount?: number
   onSelectEmail: (email: Email) => void
   onFilterChange: (value: EmailFilter) => void
   onToggleEmailSelection: (emailId: string) => void
@@ -39,6 +40,7 @@ export function EmailsDesktopView({
   hasSelectedEmails,
   totalArticles,
   previewArticles,
+  totalEmailsCount = 0,
   onSelectEmail,
   onFilterChange,
   onToggleEmailSelection,
@@ -67,6 +69,8 @@ export function EmailsDesktopView({
             isDetecting={isDetecting}
             onSelectEmail={onSelectEmail}
             onToggleEmailSelection={onToggleEmailSelection}
+            emailFilter={emailFilter}
+            totalEmailsCount={totalEmailsCount}
           />
         </div>
       </div>

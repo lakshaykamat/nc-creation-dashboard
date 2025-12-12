@@ -19,8 +19,8 @@ import { type FieldArrayWithId } from "react-hook-form"
 interface PriorityFieldsListProps {
   fields: FieldArrayWithId<FormValues, "priorityFields", "id">[]
   control: Control<FormValues>
-  totalFiles: number
-  remainingFiles: number
+  totalArticles: number
+  remainingArticles: number
   draggedIndex: number | null
   dragOverIndex: number | null
   isLoadingMembers: boolean
@@ -36,8 +36,8 @@ interface PriorityFieldsListProps {
  * @param props - Component props
  * @param props.fields - Array of priority fields from react-hook-form
  * @param props.control - React Hook Form control
- * @param props.totalFiles - Total number of articles available
- * @param props.remainingFiles - Number of articles remaining to allocate
+ * @param props.totalArticles - Total number of articles available
+ * @param props.remainingArticles - Number of articles remaining to allocate
  * @param props.draggedIndex - Index of the field being dragged
  * @param props.dragOverIndex - Index of the field being dragged over
  * @param props.onDragStart - Handler for drag start
@@ -48,8 +48,8 @@ interface PriorityFieldsListProps {
 export function PriorityFieldsList({
   fields,
   control,
-  totalFiles,
-  remainingFiles,
+  totalArticles,
+  remainingArticles,
   draggedIndex,
   dragOverIndex,
   isLoadingMembers,
@@ -68,20 +68,20 @@ export function PriorityFieldsList({
               Drag people to reorder priority
             </p>
           </div>
-          {totalFiles > 0 && (
+          {totalArticles > 0 && (
             <span
               className={cn(
                 "text-sm font-medium",
-                remainingFiles === 0
+                remainingArticles === 0
                   ? "text-green-600"
-                  : remainingFiles < 0
+                  : remainingArticles < 0
                     ? "text-destructive"
                     : "text-muted-foreground"
               )}
             >
-              {remainingFiles === 0
+              {remainingArticles === 0
                 ? "All allocated"
-                : `${remainingFiles} remaining`}
+                : `${remainingArticles} article${remainingArticles === 1 ? "" : "s"} remaining`}
             </span>
           )}
         </div>

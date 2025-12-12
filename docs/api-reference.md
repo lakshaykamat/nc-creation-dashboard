@@ -7,7 +7,7 @@ This document provides detailed documentation for all API endpoints in the NC Da
 - [Authentication](#authentication)
 - [Article Management](#article-management)
 - [Allocation Management](#allocation-management)
-- [Files & Data](#files--data)
+- [Article Allocations](#article-allocations)
 - [Portal Data](#portal-data)
 - [Teams Management](#teams-management)
 - [Email Management](#email-management)
@@ -264,7 +264,7 @@ Validates allocation data including DDN articles and over-allocation checks.
     priority: number
     allocation: number
   }>
-  totalFiles: number
+  totalArticles: number
   ddnArticles?: string[]
   availableArticleIds?: string[]
   ddnText?: string  // Optional: DDN text for validation
@@ -275,8 +275,8 @@ Validates allocation data including DDN articles and over-allocation checks.
 ```typescript
 {
   isOverAllocated: boolean
-  remainingFiles: number
-  allocatedFiles: number
+  remainingArticles: number
+  allocatedArticleCount: number
   ddnValidationError: string | null
   errors: string[]  // Array of validation error messages
 }
@@ -320,19 +320,19 @@ Submits the final allocation to the external webhook (N8N).
 
 ---
 
-## Files & Data
+## Article Allocations
 
-### GET /api/files
+### GET /api/articles/allocations
 
-Fetches file allocation data from external source or sample data.
+Fetches article allocation data from external source or sample data.
 
 **Query Parameters:**
-- `recent` (optional): If present, fetches recent files only
+- `recent` (optional): If present, fetches recent allocations only
 
 **Response (200 OK):**
 ```typescript
 {
-  // Array of file allocation records
+  // Array of article allocation records
   data: Array<{
     Month: string
     Date: string
@@ -355,14 +355,14 @@ Fetches file allocation data from external source or sample data.
 
 ---
 
-### GET /api/files/recent
+### GET /api/articles/recently-allocated
 
-Fetches last two days of file allocation data.
+Fetches recently allocated articles (last two days).
 
 **Response (200 OK):**
 ```typescript
 Array<{
-  // File allocation records from last two days
+  // Article allocation records from last two days
   Month: string
   Date: string
   "Article number": string
@@ -379,6 +379,7 @@ Array<{
 
 **Notes:**
 - Used to determine which articles are already allocated
+- Returns article allocation data from the last two days
 - Fetched from external N8N webhook endpoint
 
 ---
@@ -443,7 +444,7 @@ Fetches all backup data from MongoDB sheet collection.
 
 ### GET /api/portal
 
-Fetches and processes portal workflow data, combining it with recent files data to determine allocation status.
+Fetches and processes portal workflow data, combining it with recently allocated articles data to determine allocation status.
 
 **Response (200 OK):**
 ```typescript
@@ -462,7 +463,7 @@ Fetches and processes portal workflow data, combining it with recent files data 
 **Notes:**
 - Fetches HTML from portal workflow URL
 - Extracts row data using table parsing
-- Combines with last two days files data to mark allocation status
+- Combines with recently allocated articles data to mark allocation status
 - Processes data in parallel for performance
 
 ---
@@ -714,7 +715,7 @@ Logs are accessible through the application's logging system.
 
 Several endpoints depend on external services:
 
-- **N8N Webhooks**: Used for email fetching, file data, and allocation submission
+- **N8N Webhooks**: Used for email fetching, article allocation data, and allocation submission
 - **Portal Workflow URL**: Used for portal data fetching
 - **MongoDB**: Used for teams, sheet, and backup data storage
 

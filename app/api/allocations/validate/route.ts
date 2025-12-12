@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
-import { calculateAllocatedFiles, calculateRemainingFiles } from "@/lib/file-allocator/allocation/allocation-calculation-utils"
+import { calculateAllocatedArticleCount, calculateRemainingArticles } from "@/lib/file-allocator/allocation/allocation-calculation-utils"
 import { isOverAllocated, validateDdnArticles } from "@/lib/file-allocator/allocation/allocation-validation-utils"
 import type { ValidateAllocationRequest, ValidateAllocationResponse } from "@/types/api-allocations"
 
@@ -58,9 +58,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate allocation metrics
-    const allocatedFiles = calculateAllocatedFiles(body.priorityFields)
-    const remainingFiles = calculateRemainingFiles(body.totalFiles, allocatedFiles)
-    const overAllocated = isOverAllocated(body.totalFiles, allocatedFiles)
+    const allocatedArticleCount = calculateAllocatedArticleCount(body.priorityFields)
+    const remainingArticles = calculateRemainingArticles(body.totalArticles, allocatedArticleCount)
+    const overAllocated = isOverAllocated(body.totalArticles, allocatedArticleCount)
 
     // Validate DDN articles if provided
     let ddnValidationError: string | null = null
@@ -72,14 +72,14 @@ export async function POST(request: NextRequest) {
     // Collect all errors
     const errors: string[] = []
     if (overAllocated) {
-      errors.push(`Over-allocated: ${allocatedFiles} articles allocated but only ${body.totalFiles} available`)
+      errors.push(`Over-allocated: ${allocatedArticleCount} articles allocated but only ${body.totalArticles} available`)
     }
     if (ddnValidationError) {
       errors.push(ddnValidationError)
     }
 
     const duration = Date.now() - startTime
-    const responseSize = JSON.stringify({ isOverAllocated: overAllocated, remainingFiles, allocatedFiles, ddnValidationError, errors }).length
+    const responseSize = JSON.stringify({ isOverAllocated: overAllocated, remainingArticles, allocatedArticleCount, ddnValidationError, errors }).length
 
     logger.logRequest(
       requestContext,
@@ -92,17 +92,17 @@ export async function POST(request: NextRequest) {
       [],
       {
         endpoint: "allocations/validate",
-        totalFiles: body.totalFiles,
-        allocatedFiles,
-        remainingFiles,
+        totalArticles: body.totalArticles,
+        allocatedArticleCount,
+        remainingArticles,
         isOverAllocated: overAllocated,
       }
     )
 
     const response: ValidateAllocationResponse = {
       isOverAllocated: overAllocated || !!ddnValidationError,
-      remainingFiles,
-      allocatedFiles,
+      remainingArticles,
+      allocatedArticleCount,
       ddnValidationError,
       errors,
     }

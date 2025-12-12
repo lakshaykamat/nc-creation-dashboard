@@ -11,9 +11,16 @@
 import { cn } from "@/lib/common/utils"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyMedia } from "@/components/ui/empty"
+import { Mail, SearchX } from "lucide-react"
 import { getEmailPreview } from "@/lib/emails/email/email-content-utils"
 import { formatEmailDateRelative } from "@/lib/emails/email/email-date-formatting-utils"
-import type { EmailListProps } from "@/types/emails"
+import type { EmailListProps, EmailFilter } from "@/types/emails"
+
+interface EmailListWithFilterProps extends EmailListProps {
+  emailFilter?: EmailFilter
+  totalEmailsCount?: number
+}
 
 export function EmailList({
   emails,
@@ -23,13 +30,35 @@ export function EmailList({
   isDetecting,
   onSelectEmail,
   onToggleEmailSelection,
-}: EmailListProps) {
+  emailFilter,
+  totalEmailsCount = 0,
+}: EmailListWithFilterProps) {
+  const isFiltered = emailFilter === "unallocated"
+  const hasOtherEmails = totalEmailsCount > emails.length
 
   if (emails.length === 0) {
     return (
-      <div className="p-4 text-center text-muted-foreground">
-        No emails found
-      </div>
+      <Empty className="border-0 py-12">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            {isFiltered && hasOtherEmails ? (
+              <SearchX className="size-6" />
+            ) : (
+              <Mail className="size-6" />
+            )}
+          </EmptyMedia>
+          <EmptyTitle>
+            {isFiltered && hasOtherEmails
+              ? "No unallocated emails"
+              : "No emails found"}
+          </EmptyTitle>
+          <EmptyDescription>
+            {isFiltered && hasOtherEmails
+              ? "No emails with unallocated articles found. Try selecting a different filter or check back later."
+              : "There are no emails available at the moment. Emails will appear here once they are received."}
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     )
   }
 

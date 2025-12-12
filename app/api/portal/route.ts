@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { extractRows } from "@/lib/portal-data/processing/extract-rows"
 import { fetchPortalHtml } from "@/lib/portal-data/fetchers/portal-html-fetcher-utils"
-import { fetchLastTwoDaysFilesData } from "@/lib/portal-data/fetchers/last-two-days-files-fetcher-utils"
+import { fetchRecentlyAllocatedArticles } from "@/lib/portal-data/fetchers/last-two-days-files-fetcher-utils"
 import { buildDoneByMap } from "@/lib/portal-data/processing/done-by-map-utils"
 import { combinePortalData } from "@/lib/portal-data/processing/portal-data-combiner-utils"
 import { logger } from "@/lib/common/logger"
@@ -82,8 +82,8 @@ export async function GET(request: NextRequest) {
       throw error
     }
 
-    // Fetch last two days files data from internal API route
-    const lastTwoDaysFilesData = await fetchLastTwoDaysFilesData(request)
+    // Fetch recently allocated articles from internal API route
+    const lastTwoDaysFilesData = await fetchRecentlyAllocatedArticles(request)
 
     // Process data in parallel
     const processStartTime = Date.now()

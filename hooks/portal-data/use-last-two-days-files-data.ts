@@ -17,8 +17,8 @@ export type {
   LastTwoDaysFileDataResponse,
 }
 
-async function fetchLastTwoDaysFilesData(): Promise<LastTwoDaysFileDataResponse> {
-    const res = await fetch("/api/files/recent", {
+async function fetchRecentlyAllocatedArticles(): Promise<LastTwoDaysFileDataResponse> {
+    const res = await fetch("/api/articles/recently-allocated", {
     method: "GET",
     headers: {
       ...getApiHeaders(),
@@ -50,7 +50,7 @@ async function fetchLastTwoDaysFilesData(): Promise<LastTwoDaysFileDataResponse>
   ) {
     const error: LastTwoDaysFileDataError = {
       code: data.code || res.status,
-      message: data.message || "Failed to fetch last two days files data",
+      message: data.message || "Failed to fetch recently allocated articles",
       hint: data.hint,
     }
     throw error
@@ -60,7 +60,7 @@ async function fetchLastTwoDaysFilesData(): Promise<LastTwoDaysFileDataResponse>
   if (!res.ok) {
     const error: LastTwoDaysFileDataError = {
       code: (data as LastTwoDaysFileDataError)?.code || res.status,
-      message: (data as LastTwoDaysFileDataError)?.message || "Failed to fetch last two days files data",
+      message: (data as LastTwoDaysFileDataError)?.message || "Failed to fetch recently allocated articles",
       hint: (data as LastTwoDaysFileDataError)?.hint,
     }
     throw error
@@ -87,18 +87,18 @@ async function fetchLastTwoDaysFilesData(): Promise<LastTwoDaysFileDataResponse>
 }
 
 /**
- * Fetches last two days files data from API endpoint
+ * Fetches recently allocated articles from API endpoint
  * 
  * Retrieves allocation data for articles processed in the last two days.
  * Used to determine which articles are already allocated. Configured to
  * always fetch fresh data with no caching.
  * 
- * @returns React Query result with last two days files data array
+ * @returns React Query result with recently allocated articles array
  */
 export function useLastTwoDaysFilesData() {
   return useQuery({
-    queryKey: ["last-two-days-files-data"],
-    queryFn: fetchLastTwoDaysFilesData,
+    queryKey: ["recently-allocated-articles"],
+    queryFn: fetchRecentlyAllocatedArticles,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: true,

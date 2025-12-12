@@ -1,10 +1,10 @@
 /**
- * Last Two Days Files Fetcher Utility Functions
+ * Recently Allocated Articles Fetcher Utility Functions
  * 
- * Pure utility functions for fetching last two days files data
- * Uses the internal API route /api/files/recent
+ * Pure utility functions for fetching recently allocated articles
+ * Uses the internal API route /api/articles/recently-allocated
  * 
- * @module lib/portal-data/last-two-days-files-fetcher-utils
+ * @module lib/portal-data/recently-allocated-articles-fetcher-utils
  */
 
 import type { NextRequest } from "next/server"
@@ -44,32 +44,40 @@ function getApiBaseUrl(request?: NextRequest): string {
 }
 
 /**
- * Fetch last two days files data from internal API route
+ * Fetch recently allocated articles from internal API route
  * 
- * @param request - Optional NextRequest object for server-side URL construction
- * @returns Array of last two days file data
+ * @param request - Optional NextRequest object for server-side URL construction and cookie forwarding
+ * @returns Array of recently allocated article data
  * @throws Error if fetch fails
  */
-export async function fetchLastTwoDaysFilesData(request?: NextRequest): Promise<LastTwoDaysFileData[]> {
+export async function fetchRecentlyAllocatedArticles(request?: NextRequest): Promise<LastTwoDaysFileData[]> {
   const baseUrl = getApiBaseUrl(request)
-  const apiUrl = `${baseUrl}/api/files/recent`
+  const apiUrl = `${baseUrl}/api/articles/recently-allocated`
   
-  // Session authentication is handled automatically via cookies
+  // Forward cookies from the original request for authentication
+  const headers: HeadersInit = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  }
+  
+  // Forward cookies from the original request (server-to-server)
+  if (request) {
+    const cookieHeader = request.headers.get("cookie")
+    if (cookieHeader) {
+      headers["Cookie"] = cookieHeader
+    }
+  }
+  
   const response = await fetch(apiUrl, {
     method: "GET",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
+    headers,
     cache: "no-store",
-    // Cookies are automatically sent with same-origin requests
-    credentials: "include",
   })
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
     const errorMessage = (errorData as { message?: string })?.message || response.statusText
-    throw new Error(`Failed to fetch last two days files data: ${errorMessage}`)
+    throw new Error(`Failed to fetch recently allocated articles: ${errorMessage}`)
   }
 
   const data = await response.json()
