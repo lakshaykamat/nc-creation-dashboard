@@ -14,6 +14,7 @@ async function fetchUserRole(): Promise<UserRoleResponse> {
       "Content-Type": "application/json",
     },
     cache: "no-store",
+    credentials: "include",
   })
 
   if (!response.ok) {

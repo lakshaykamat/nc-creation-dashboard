@@ -14,7 +14,10 @@ import {
   ARTICLE_ID_PATTERN,
   DATE_PATTERN_SLASH,
   DATE_PATTERN_DASH,
+  DATE_TIME_PATTERN_DASH,
+  DATE_TIME_PATTERN_SLASH,
   TIME_PATTERN,
+  TIME_PATTERN_AMPM,
   PAGE_COUNT_PATTERN,
 } from "@/lib/constants/article-regex-constants"
 
@@ -53,18 +56,26 @@ export function parsePastedAllocation(text: string): ParsedArticleEntry[] {
       const articleId = token.toUpperCase()
       let pages = 0
 
-      // Priority 1: Look for date pattern first
+      // Priority 1: Look for date pattern first (with or without time)
       let foundDate = false
       for (let j = i + 1; j < tokens.length && j < i + 10; j++) {
         const currentToken = tokens[j].trim()
         const nextToken = tokens[j + 1]?.trim() || ""
-
-        // Check if current token is a date pattern
+        const thirdToken = tokens[j + 2]?.trim() || ""
+        
+        // Check for combined date+time patterns (e.g., "12-12-2025 21:48" or "11/12/2025 11:07 PM")
+        // Handle case where AM/PM might be in a separate token (e.g., "11/12/2025 11:07 PM")
+        const dateTimeDash = `${currentToken} ${nextToken}` // "12-12-2025 21:48"
+        const dateTimeSlash = `${currentToken} ${nextToken}${thirdToken ? ` ${thirdToken}` : ""}` // "11/12/2025 11:07 PM" or "11/12/2025 11:07"
+        const isDateTime = DATE_TIME_PATTERN_DASH.test(dateTimeDash) || DATE_TIME_PATTERN_SLASH.test(dateTimeSlash)
+        
+        // Check if current token is a date pattern (without time)
         const isDate = DATE_PATTERN_SLASH.test(currentToken) || DATE_PATTERN_DASH.test(currentToken)
-        const isTime = TIME_PATTERN.test(nextToken)
+        // Check if next token is time (24-hour or 12-hour with AM/PM)
+        const isTime = TIME_PATTERN.test(nextToken) || TIME_PATTERN_AMPM.test(nextToken) || (TIME_PATTERN.test(nextToken) && /^(AM|PM)$/i.test(thirdToken))
 
-        if (isDate) {
-          // Found date! Get the number immediately before it
+        if (isDateTime || (isDate && isTime) || isDate) {
+          // Found date (with or without time)! Get the number immediately before it
           if (j > i) {
             const prevToken = tokens[j - 1].trim()
             // Check if previous token is a number

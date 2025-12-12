@@ -112,9 +112,10 @@ export function useArticleDetection(emails: Email[]): UseArticleDetectionResult 
         const htmlContent = getEmailHtmlContent(email)
         const result = extractArticleData(htmlContent)
 
-        if (result.hasArticles && result.articleNumbers.length > 0) {
+        if (result.articles.length > 0) {
           // Get unique articles (remove duplicates)
-          const uniqueArticles = getUniqueArticleNumbers(result.articleNumbers)
+          const articleNumbers = result.articles.map(a => a.articleId)
+          const uniqueArticles = getUniqueArticleNumbers(articleNumbers)
           stats[email.id] = calculateEmailArticleStats(
             uniqueArticles,
             allocatedArticleNumbersRef.current

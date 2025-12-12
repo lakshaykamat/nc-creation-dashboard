@@ -2,7 +2,7 @@
  * Last Two Days Files Fetcher Utility Functions
  * 
  * Pure utility functions for fetching last two days files data
- * Uses the internal API route /api/last-two-days-files
+ * Uses the internal API route /api/files/recent
  * 
  * @module lib/portal-data/last-two-days-files-fetcher-utils
  */
@@ -52,8 +52,9 @@ function getApiBaseUrl(request?: NextRequest): string {
  */
 export async function fetchLastTwoDaysFilesData(request?: NextRequest): Promise<LastTwoDaysFileData[]> {
   const baseUrl = getApiBaseUrl(request)
-  const apiUrl = `${baseUrl}/api/last-two-days-files`
+  const apiUrl = `${baseUrl}/api/files/recent`
   
+  // Session authentication is handled automatically via cookies
   const response = await fetch(apiUrl, {
     method: "GET",
     headers: {
@@ -61,6 +62,8 @@ export async function fetchLastTwoDaysFilesData(request?: NextRequest): Promise<
       "Content-Type": "application/json",
     },
     cache: "no-store",
+    // Cookies are automatically sent with same-origin requests
+    credentials: "include",
   })
 
   if (!response.ok) {

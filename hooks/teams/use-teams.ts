@@ -5,6 +5,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { getApiHeaders } from "@/lib/api/api-client"
 import type {
   TeamMember,
   CreateTeamMemberRequest,
@@ -21,10 +22,9 @@ const QUERY_KEY = ["teams"]
 async function fetchTeams(): Promise<TeamMember[]> {
   const res = await fetch("/api/teams", {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(),
     cache: "no-store",
+    credentials: "include",
   })
 
   if (!res.ok) {
@@ -42,10 +42,9 @@ async function fetchTeams(): Promise<TeamMember[]> {
 async function createTeam(request: CreateTeamMemberRequest): Promise<TeamMember> {
   const res = await fetch("/api/teams", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(),
     body: JSON.stringify(request),
+    credentials: "include",
   })
 
   if (!res.ok) {
@@ -69,10 +68,9 @@ async function updateTeam(
 ): Promise<TeamMember> {
   const res = await fetch(`/api/teams/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(),
     body: JSON.stringify(request),
+    credentials: "include",
   })
 
   if (!res.ok) {
@@ -93,9 +91,8 @@ async function updateTeam(
 async function deleteTeam(id: string): Promise<void> {
   const res = await fetch(`/api/teams/${id}`, {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(),
+    credentials: "include",
   })
 
   if (!res.ok) {

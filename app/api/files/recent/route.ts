@@ -1,5 +1,17 @@
+/**
+ * API Route for Recent Files Data
+ * 
+ * GET /api/files/recent
+ * 
+ * Fetches last two days files data from external API.
+ * Used to determine which articles are already allocated.
+ * 
+ * @module app/api/files/recent
+ */
+
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
+import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 
 // Force dynamic rendering - never cache
@@ -9,6 +21,26 @@ export const revalidate = 0
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
   const requestContext = logger.createRequestContext(request)
+
+  // Validate session authentication
+  const authError = await validateSessionAuth(request)
+  if (authError) {
+    logger.logRequest(
+      requestContext,
+      {
+        status: authError.status,
+        statusText: "Unauthorized",
+        duration: Date.now() - startTime,
+        dataSize: 0,
+      },
+      [],
+      {
+        endpoint: "files/recent",
+        error: "Unauthorized session",
+      }
+    )
+    return authError
+  }
 
   try {
     const externalApiStartTime = Date.now()
@@ -119,7 +151,7 @@ export async function GET(request: NextRequest) {
       },
       [externalApiCall],
       {
-        endpoint: "last-two-days-files",
+        endpoint: "files/recent",
         recordCount: data.length,
         hasData: data.length > 0,
       }

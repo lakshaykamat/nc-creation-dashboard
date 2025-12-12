@@ -7,6 +7,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query"
+import { getApiHeaders } from "@/lib/api/api-client"
 import type { TeamMember } from "@/types/teams"
 import type { PriorityField } from "@/lib/constants/file-allocator-constants"
 
@@ -20,10 +21,9 @@ const GC_TIME = 10 * 60 * 1000 // 10 minutes
 async function fetchTeamMembers(): Promise<TeamMember[]> {
   const res = await fetch("/api/teams", {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(),
     cache: "no-store",
+    credentials: "include",
   })
 
   if (!res.ok) {

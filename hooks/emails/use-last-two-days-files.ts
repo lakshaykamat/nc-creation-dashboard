@@ -5,15 +5,15 @@
  */
 
 import { useQuery } from "@tanstack/react-query"
+import { getApiHeaders } from "@/lib/api/api-client"
 import type { LastTwoDaysFileData } from "@/types/portal-data"
 
 async function fetchLastTwoDaysFiles(): Promise<LastTwoDaysFileData[]> {
-  const res = await fetch("/api/last-two-days-files", {
+    const res = await fetch("/api/files/recent", {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(),
     cache: "no-store",
+    credentials: "include",
   })
 
   if (!res.ok) {

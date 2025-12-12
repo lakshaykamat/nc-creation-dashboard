@@ -60,15 +60,16 @@ export function PreviewTabContent({
         </p>
         <PreviewMessage message={editMessage} />
       </div>
-      <div
-        ref={tableRef}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-auto rounded-md border-2 border-border bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
-        onPaste={onTablePaste}
-        tabIndex={0}
-        role="table"
-        aria-label="Allocation preview table - paste data here"
-      >
-        <div className="min-w-full pb-4">
+      <div className="flex-1 min-h-0 p-[3px] rounded-md focus-within:p-0 focus-within:shadow-[0_0_0_3px_hsl(var(--ring)),0_0_0_1px_hsl(var(--border))] transition-all flex flex-col">
+        <div
+          ref={tableRef}
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-auto rounded-md border-2 border-border bg-background focus:outline-none"
+          onPaste={onTablePaste}
+          tabIndex={0}
+          role="table"
+          aria-label="Allocation preview table - paste data here"
+        >
+          <div className="min-w-full pb-4">
           <Table>
             <TableHeader className="sticky top-0 bg-muted/95 backdrop-blur-sm z-10 shadow-sm border-b-2">
               <TableRow className="hover:bg-muted/50">
@@ -113,6 +114,7 @@ export function PreviewTabContent({
               )}
             </TableBody>
           </Table>
+          </div>
         </div>
       </div>
     </div>

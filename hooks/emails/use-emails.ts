@@ -5,6 +5,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query"
+import { getApiHeaders } from "@/lib/api/api-client"
 import type { Email, EmailsResponse } from "@/types/emails"
 
 const QUERY_KEY = ["emails"]
@@ -12,10 +13,9 @@ const QUERY_KEY = ["emails"]
 async function fetchEmails(): Promise<Email[]> {
   const res = await fetch("/api/emails", {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getApiHeaders(),
     cache: "no-store",
+    credentials: "include",
   })
 
   if (!res.ok) {

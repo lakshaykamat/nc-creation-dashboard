@@ -21,6 +21,7 @@ async function loginUser(credentials: LoginCredentials): Promise<LoginResponse> 
       "Content-Type": "application/json",
     },
     body: JSON.stringify(credentials),
+    credentials: "include",
   })
 
   const data = await response.json()
@@ -39,6 +40,7 @@ async function logoutUser(): Promise<void> {
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
   })
 
   if (!response.ok) {

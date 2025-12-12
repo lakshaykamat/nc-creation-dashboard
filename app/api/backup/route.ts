@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import clientPromise from "@/lib/db/mongo"
 import { logger } from "@/lib/common/logger"
+import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import { DATABASE_NAME } from "@/lib/constants/database-constants"
 
 export const dynamic = "force-dynamic"
@@ -9,6 +10,26 @@ export const revalidate = 0
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
   const requestContext = logger.createRequestContext(request)
+
+  // Validate session authentication
+  const authError = await validateSessionAuth(request)
+  if (authError) {
+    logger.logRequest(
+      requestContext,
+      {
+        status: authError.status,
+        statusText: "Unauthorized",
+        duration: Date.now() - startTime,
+        dataSize: 0,
+      },
+      [],
+      {
+        endpoint: "backup",
+        error: "Unauthorized session",
+      }
+    )
+    return authError
+  }
 
   try {
     const client = await clientPromise

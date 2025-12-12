@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { getApiHeaders } from "@/lib/api/api-client"
 
 import type {
   LastTwoDaysFileData,
@@ -17,17 +18,16 @@ export type {
 }
 
 async function fetchLastTwoDaysFilesData(): Promise<LastTwoDaysFileDataResponse> {
-  const res = await fetch("/api/last-two-days-files", {
+    const res = await fetch("/api/files/recent", {
     method: "GET",
     headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
+      ...getApiHeaders(),
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",
     },
     cache: "no-store",
-    credentials: "omit",
+    credentials: "include",
   })
 
   let data

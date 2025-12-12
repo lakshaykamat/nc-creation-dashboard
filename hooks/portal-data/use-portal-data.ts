@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { getApiHeaders } from "@/lib/api/api-client"
 
 import type {
   PortalData,
@@ -13,17 +14,16 @@ import type {
 export type { PortalData, PortalDataError, PortalDataResponse }
 
 async function fetchPortalData(): Promise<PortalDataResponse> {
-  const res = await fetch("/api/portal-data", {
+    const res = await fetch("/api/portal", {
       method: "GET",
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
+        ...getApiHeaders(),
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",
       },
       cache: "no-store",
-      credentials: "omit",
+      credentials: "include",
   })
 
   let data

@@ -12,22 +12,19 @@
  */
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react"
-import { useForm, useFieldArray, type Control, type UseFormWatch, type UseFormSetValue } from "react-hook-form"
+import { useForm, useFieldArray, useWatch, type Control, type UseFormWatch, type UseFormSetValue } from "react-hook-form"
 import { type PriorityField, ALLOCATION_METHODS } from "@/lib/constants/file-allocator-constants"
 import { useTeamMembers } from "./use-team-members"
 import { parseNewArticlesWithPages } from "@/lib/file-allocator/articles/parse-article-utils"
-import { validateDdnArticles, isOverAllocated } from "@/lib/file-allocator/allocation/allocation-validation-utils"
-import { calculateAllocatedFiles, calculateRemainingFiles } from "@/lib/file-allocator/allocation/allocation-calculation-utils"
 import { getOverAllocationMessage } from "@/lib/file-allocator/allocation/allocation-message-utils"
-import { distributeArticles } from "@/lib/file-allocator/allocation/allocation-distribution-utils"
 import { buildFinalAllocation } from "@/lib/file-allocator/allocation/allocation-result-utils"
 import { hasPriorityFieldsChanged } from "@/lib/file-allocator/priority/priority-fields-comparison-utils"
 import { transformTeamMembersToPriorityFields } from "@/lib/file-allocator/priority/priority-fields-transformation-utils"
 import { getCurrentMonthAndDate } from "@/lib/common/date-utils"
-import { getUnallocatedArticles } from "@/lib/file-allocator/articles/unallocated-articles-extraction-utils"
 import { savePriorityOrder, loadPriorityOrder } from "@/lib/file-allocator/priority/priority-order-storage-utils"
 import { reorderPriorityFields, extractPriorityOrder } from "@/lib/file-allocator/priority/priority-order-utils"
-import { parsePastedAllocation, calculateProportionalDistribution } from "@/lib/file-allocator/articles/parse-pasted-allocation"
+import { previewAllocation, validateAllocation, submitAllocation } from "@/lib/api/allocations-api"
+import { parsePastedAllocation as parsePastedAllocationApi } from "@/lib/api/articles-api"
 import type {
   FormValues,
   AllocatedArticle,
@@ -112,7 +109,7 @@ export interface UseFileAllocatorFormStateReturn {
   handleDragOver: (e: React.DragEvent, index: number) => void
   handleDragLeave: () => void
   handleDrop: (dropIndex: number) => void
-  handleUpdateFromPastedData: (pastedText: string) => { success: boolean; message: string }
+  handleUpdateFromPastedData: (pastedText: string) => Promise<{ success: boolean; message: string }>
   handleDeleteArticle: (articleId: string) => void
   handleUpdateArticle: (articleId: string, field: keyof AllocatedArticle, value: string | number) => void
   onSubmit: (values: FormValues) => void
@@ -238,13 +235,27 @@ export function useFileAllocatorFormState(
   // Track overrides for display fields (month, date, name) per article
   const [articleDisplayOverrides, setArticleDisplayOverrides] = useState<Map<string, Partial<Pick<AllocatedArticle, "month" | "date" | "name">>>>(new Map())
   
+  // API computation results state
+  const [validationResult, setValidationResult] = useState<{
+    allocatedFiles: number
+    remainingFiles: number
+    isOverAllocated: boolean
+    ddnValidationError: string | null
+  } | null>(null)
+  const [previewResult, setPreviewResult] = useState<{
+    allocatedArticles: AllocatedArticle[]
+    unallocatedArticles: AllocatedArticle[]
+    displayArticles: AllocatedArticle[]
+  } | null>(null)
+  const [isComputing, setIsComputing] = useState(false)
+  
   // Track previous allocation method for reset logic
   const prevAllocationMethodRef = useRef<string>("")
 
-  // Watch specific form fields for better reactivity
-  const allocationMethod = watch("allocationMethod") || ""
-  const textareaValue = watch("ddnArticles") || ""
-  const priorityFields = watch("priorityFields") || []
+  // Watch specific form fields for better reactivity using useWatch for nested arrays
+  const allocationMethod = useWatch({ control, name: "allocationMethod" }) || ""
+  const textareaValue = useWatch({ control, name: "ddnArticles" }) || ""
+  const priorityFields = useWatch({ control, name: "priorityFields" }) || []
 
   // Parse articles from input data
   const parsedArticlesFromInput = useMemo(() => {
@@ -296,86 +307,139 @@ export function useFileAllocatorFormState(
   // Total files count
   const totalFiles = parsedArticles.length
 
-  // Validate DDN articles
-  const { articles: ddnArticles, error: ddnValidationError } = useMemo(
-    () => validateDdnArticles(textareaValue, availableArticleIds),
-    [textareaValue, availableArticleIds]
-  )
+  // Get current date and month for allocation
+  const { month, date } = useMemo(() => getCurrentMonthAndDate(), [])
+
+  // Extract DDN articles from textarea (simple parsing for client-side)
+  const ddnArticles = useMemo(() => {
+    return textareaValue
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+  }, [textareaValue])
 
   // Effective total files (excluding DDN articles)
   const ddnArticleCount = ddnArticles.length
   const effectiveTotalFiles = Math.max(totalFiles - ddnArticleCount, 0)
 
-  // Calculate allocation metrics
-  const allocatedFiles = useMemo(
-    () => calculateAllocatedFiles(priorityFields),
-    [priorityFields]
-  )
-
-  const remainingFiles = useMemo(
-    () => calculateRemainingFiles(effectiveTotalFiles, allocatedFiles),
-    [effectiveTotalFiles, allocatedFiles]
-  )
-
-  const isOverAllocatedValue = useMemo(
-    () => isOverAllocated(effectiveTotalFiles, allocatedFiles) || !!ddnValidationError,
-    [effectiveTotalFiles, allocatedFiles, ddnValidationError]
-  )
-
-  // Get current date and month for allocation
-  const { month, date } = useMemo(() => getCurrentMonthAndDate(), [])
-
-  // Build allocated articles based on current form state
-  const allocatedArticles = useMemo(() => {
-    if (!Array.isArray(priorityFields) || priorityFields.length === 0) {
-      return []
+  // Compute validation and preview via API
+  useEffect(() => {
+    if (!priorityFields || priorityFields.length === 0 || !parsedArticles || parsedArticles.length === 0) {
+      setValidationResult({
+        allocatedFiles: 0,
+        remainingFiles: effectiveTotalFiles,
+        isOverAllocated: false,
+        ddnValidationError: null,
+      })
+      setPreviewResult({
+        allocatedArticles: [],
+        unallocatedArticles: [],
+        displayArticles: [],
+      })
+      return
     }
-    
-    if (!parsedArticles || parsedArticles.length === 0) {
-      return []
-    }
-    
-    return distributeArticles(
-      priorityFields,
-      parsedArticles,
-      ddnArticles,
-      allocationMethod || ALLOCATION_METHODS.BY_PRIORITY,
-      month,
-      date
-    )
-  }, [priorityFields, parsedArticles, ddnArticles, allocationMethod, month, date])
 
-  // Get unallocated articles for display
-  const allocatedArticleIds = useMemo(
-    () => new Set(allocatedArticles.map((a) => a.articleId)),
-    [allocatedArticles]
-  )
+    let cancelled = false
+    setIsComputing(true)
 
-  const unallocatedArticles = useMemo(() => {
-    return getUnallocatedArticles(
-      parsedArticles,
-      allocatedArticleIds,
-      allocationMethod,
-      month,
-      date
-    )
-  }, [parsedArticles, allocatedArticleIds, allocationMethod, month, date])
+    const computeAsync = async () => {
+      try {
+        // Compute validation and preview in parallel
+        const [validationResponse, previewResponse] = await Promise.all([
+          validateAllocation({
+            priorityFields,
+            totalFiles: effectiveTotalFiles,
+            ddnArticles,
+            availableArticleIds,
+            ddnText: textareaValue,
+          }),
+          previewAllocation({
+            priorityFields,
+            parsedArticles,
+            ddnArticles,
+            allocationMethod: allocationMethod || ALLOCATION_METHODS.BY_PRIORITY,
+            month,
+            date,
+            articleDisplayOverrides: Object.fromEntries(articleDisplayOverrides),
+          }),
+        ])
 
-  // Combine allocated and unallocated for display, applying overrides
-  const displayArticles = useMemo(() => {
-    const combined = [...allocatedArticles, ...unallocatedArticles]
-    // Apply display overrides if any
-    if (articleDisplayOverrides.size === 0) {
-      return combined
-    }
-    return combined.map(article => {
-      const override = articleDisplayOverrides.get(article.articleId)
-      if (override) {
-        return { ...article, ...override }
+        if (cancelled) return
+
+        setValidationResult({
+          allocatedFiles: validationResponse.allocatedFiles,
+          remainingFiles: validationResponse.remainingFiles,
+          isOverAllocated: validationResponse.isOverAllocated,
+          ddnValidationError: validationResponse.ddnValidationError,
+        })
+
+        // Apply display overrides on top of API result
+        let displayArticles = previewResponse.displayArticles
+        if (articleDisplayOverrides.size > 0) {
+          displayArticles = displayArticles.map((article) => {
+            const override = articleDisplayOverrides.get(article.articleId)
+            if (override) {
+              return { ...article, ...override }
+            }
+            return article
+          })
+        }
+
+        setPreviewResult({
+          allocatedArticles: previewResponse.allocatedArticles,
+          unallocatedArticles: previewResponse.unallocatedArticles,
+          displayArticles,
+        })
+      } catch (error) {
+        console.error("Error computing allocation:", error)
+        if (!cancelled) {
+          // Fallback to empty results on error
+          setValidationResult({
+            allocatedFiles: 0,
+            remainingFiles: effectiveTotalFiles,
+            isOverAllocated: false,
+            ddnValidationError: "Error computing allocation",
+          })
+          setPreviewResult({
+            allocatedArticles: [],
+            unallocatedArticles: [],
+            displayArticles: [],
+          })
+        }
+      } finally {
+        if (!cancelled) {
+          setIsComputing(false)
+        }
       }
-      return article
-    })
-  }, [allocatedArticles, unallocatedArticles, articleDisplayOverrides])
+    }
+
+    computeAsync()
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    priorityFields,
+    parsedArticles,
+    ddnArticles,
+    allocationMethod,
+    month,
+    date,
+    effectiveTotalFiles,
+    availableArticleIds,
+    textareaValue,
+    articleDisplayOverrides,
+  ])
+
+  // Use API results or fallback values
+  const allocatedFiles = validationResult?.allocatedFiles ?? 0
+  const remainingFiles = validationResult?.remainingFiles ?? effectiveTotalFiles
+  const isOverAllocatedValue = validationResult?.isOverAllocated ?? false
+  const ddnValidationError = validationResult?.ddnValidationError ?? null
+
+  const allocatedArticles = previewResult?.allocatedArticles ?? []
+  const unallocatedArticles = previewResult?.unallocatedArticles ?? []
+  const displayArticles = previewResult?.displayArticles ?? []
 
   const hasAllocations = displayArticles.length > 0 || parsedArticles.length > 0
 
@@ -441,22 +505,16 @@ export function useFileAllocatorFormState(
 
   // Watch for priority field changes to update toast
   useEffect(() => {
-    const subscription = watch((value, { name }) => {
-      if (name?.startsWith("priorityFields")) {
-        const currentFields = (value.priorityFields || []) as PriorityField[]
-        const allocated = calculateAllocatedFiles(currentFields)
-        
-        if (isOverAllocated(effectiveTotalFiles, allocated)) {
-          const overBy = allocated - effectiveTotalFiles
-          setToastMessage(getOverAllocationMessage(overBy))
-          setShowToast(true)
-        } else {
-          setShowToast(false)
-        }
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [watch, effectiveTotalFiles, isOverAllocated, getOverAllocationMessage])
+    if (!validationResult) return
+
+    if (validationResult.isOverAllocated) {
+      const overBy = validationResult.allocatedFiles - effectiveTotalFiles
+      setToastMessage(getOverAllocationMessage(overBy))
+      setShowToast(true)
+    } else {
+      setShowToast(false)
+    }
+  }, [validationResult, effectiveTotalFiles, getOverAllocationMessage])
 
   // Reset form when allocation method changes
   useEffect(() => {
@@ -511,25 +569,10 @@ export function useFileAllocatorFormState(
     
     try {
       // Submit allocation to API
-      const response = await fetch("/api/submit-allocation", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(submissionAllocation),
-      })
-
-      const result = await response.json()
+      const result = await submitAllocation(submissionAllocation)
 
       // Hide loading dialog
       setShowLoading(false)
-
-      if (!response.ok || !result.success) {
-        // Show failure dialog and redirect to file-allocator page
-        setFailureMessage(result.message || "Failed to submit allocation")
-        setShowFailure(true)
-        return
-      }
 
       // Show success dialog and redirect to home
       setSuccessItemCount(result.itemCount || 0)
@@ -547,9 +590,10 @@ export function useFileAllocatorFormState(
   }
 
   // Handler to update priority fields from pasted article data
-  const handleUpdateFromPastedData = (pastedText: string): { success: boolean; message: string } => {
+  const handleUpdateFromPastedData = async (pastedText: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const entries = parsePastedAllocation(pastedText)
+      const response = await parsePastedAllocationApi({ pastedText })
+      const entries = response.entries
       
       if (entries.length === 0) {
         return {

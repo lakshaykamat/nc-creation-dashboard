@@ -1,19 +1,19 @@
 /**
  * API Route for Submitting Article Allocation
  * 
- * POST /api/submit-allocation
+ * POST /api/allocations
  * 
  * Submits the final allocation to the external webhook.
  * Transforms the allocation data into the required format.
  * 
- * @module app/api/submit-allocation
+ * @module app/api/allocations
  */
 
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
-import type { FinalAllocationResult } from "@/types/file-allocator"
+import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import { transformAllocationToPayload } from "@/hooks/file-allocator/transform-allocation-to-payload"
-import type { AllocationItem } from "@/types/file-allocator"
+import type { FinalAllocationResult } from "@/types/file-allocator"
 import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 
 // Force dynamic rendering - never cache
@@ -27,8 +27,27 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now()
   const requestContext = logger.createRequestContext(request)
 
-  try {
+  // Validate session authentication
+  const authError = await validateSessionAuth(request)
+  if (authError) {
+    logger.logRequest(
+      requestContext,
+      {
+        status: authError.status,
+        statusText: "Unauthorized",
+        duration: Date.now() - startTime,
+        dataSize: 0,
+      },
+      [],
+      {
+        endpoint: "allocations",
+        error: "Unauthorized session",
+      }
+    )
+    return authError
+  }
 
+  try {
     const body: FinalAllocationResult = await request.json()
 
     // Transform allocation data into required format
@@ -47,7 +66,7 @@ export async function POST(request: NextRequest) {
         },
         [],
         {
-          endpoint: "submit-allocation",
+          endpoint: "allocations",
           error: "API key not configured",
         }
       )
@@ -92,7 +111,7 @@ export async function POST(request: NextRequest) {
           },
         ],
         {
-          endpoint: "submit-allocation",
+          endpoint: "allocations",
           itemCount: allocationItems.length,
         }
       )
@@ -125,7 +144,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       {
-        endpoint: "submit-allocation",
+        endpoint: "allocations",
         itemCount: allocationItems.length,
         success: true,
       }
@@ -137,7 +156,6 @@ export async function POST(request: NextRequest) {
       itemCount: allocationItems.length,
       data: responseData,
     })
-
   } catch (error) {
     const duration = Date.now() - startTime
     
@@ -151,7 +169,7 @@ export async function POST(request: NextRequest) {
       },
       [],
       {
-        endpoint: "submit-allocation",
+        endpoint: "allocations",
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       }
@@ -166,4 +184,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

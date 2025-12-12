@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
 import clientPromise from "@/lib/db/mongo"
 import { logger } from "@/lib/common/logger"
+import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import { DATABASE_NAME } from "@/lib/constants/database-constants"
 import type { TeamMember, CreateTeamMemberRequest, TeamMembersResponse, TeamMemberResponse } from "@/types/teams"
 
@@ -24,6 +25,26 @@ export const revalidate = 0
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
   const requestContext = logger.createRequestContext(request)
+
+  // Validate session authentication
+  const authError = await validateSessionAuth(request)
+  if (authError) {
+    logger.logRequest(
+      requestContext,
+      {
+        status: authError.status,
+        statusText: "Unauthorized",
+        duration: Date.now() - startTime,
+        dataSize: 0,
+      },
+      [],
+      {
+        endpoint: "teams",
+        error: "Unauthorized session",
+      }
+    )
+    return authError
+  }
 
   try {
     const client = await clientPromise

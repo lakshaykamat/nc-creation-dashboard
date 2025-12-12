@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
 import clientPromise from "@/lib/db/mongo"
 import { logger } from "@/lib/common/logger"
+import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import { findByIdFilter, excludeByIdFilter } from "@/lib/db/mongo-helpers"
 import { DATABASE_NAME } from "@/lib/constants/database-constants"
 import type { TeamMember, UpdateTeamMemberRequest, TeamMemberResponse } from "@/types/teams"
@@ -28,6 +29,26 @@ export async function PUT(
 ) {
   const startTime = Date.now()
   const requestContext = logger.createRequestContext(request)
+
+  // Validate session authentication
+  const authError = await validateSessionAuth(request)
+  if (authError) {
+    logger.logRequest(
+      requestContext,
+      {
+        status: authError.status,
+        statusText: "Unauthorized",
+        duration: Date.now() - startTime,
+        dataSize: 0,
+      },
+      [],
+      {
+        endpoint: "teams/[id]",
+        error: "Unauthorized session",
+      }
+    )
+    return authError
+  }
 
   try {
     const { id } = await params
@@ -156,6 +177,26 @@ export async function DELETE(
 ) {
   const startTime = Date.now()
   const requestContext = logger.createRequestContext(request)
+
+  // Validate session authentication
+  const authError = await validateSessionAuth(request)
+  if (authError) {
+    logger.logRequest(
+      requestContext,
+      {
+        status: authError.status,
+        statusText: "Unauthorized",
+        duration: Date.now() - startTime,
+        dataSize: 0,
+      },
+      [],
+      {
+        endpoint: "teams/[id]",
+        error: "Unauthorized session",
+      }
+    )
+    return authError
+  }
 
   try {
     const { id } = await params

@@ -1,3 +1,14 @@
+/**
+ * API Route for Portal Data
+ * 
+ * GET /api/portal
+ * 
+ * Fetches and processes portal workflow data, combining it with recent files data
+ * to determine allocation status. Returns processed portal data with allocation information.
+ * 
+ * @module app/api/portal
+ */
+
 import { NextRequest, NextResponse } from "next/server"
 import { extractRows } from "@/lib/portal-data/processing/extract-rows"
 import { fetchPortalHtml } from "@/lib/portal-data/fetchers/portal-html-fetcher-utils"
@@ -5,6 +16,7 @@ import { fetchLastTwoDaysFilesData } from "@/lib/portal-data/fetchers/last-two-d
 import { buildDoneByMap } from "@/lib/portal-data/processing/done-by-map-utils"
 import { combinePortalData } from "@/lib/portal-data/processing/portal-data-combiner-utils"
 import { logger } from "@/lib/common/logger"
+import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import { PORTAL_WORKFLOW_URL } from "@/lib/constants/portal-constants"
 
 // Force dynamic rendering - never cache on the server
@@ -14,6 +26,26 @@ export const revalidate = 0
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
   const requestContext = logger.createRequestContext(request)
+
+  // Validate session authentication
+  const authError = await validateSessionAuth(request)
+  if (authError) {
+    logger.logRequest(
+      requestContext,
+      {
+        status: authError.status,
+        statusText: "Unauthorized",
+        duration: Date.now() - startTime,
+        dataSize: 0,
+      },
+      [],
+      {
+        endpoint: "portal",
+        error: "Unauthorized session",
+      }
+    )
+    return authError
+  }
 
   try {
     const externalApiCalls: Array<{
@@ -51,12 +83,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch last two days files data from internal API route
-    let lastTwoDaysFilesData
-    try {
-      lastTwoDaysFilesData = await fetchLastTwoDaysFilesData(request)
-    } catch (error) {
-      throw error
-    }
+    const lastTwoDaysFilesData = await fetchLastTwoDaysFilesData(request)
 
     // Process data in parallel
     const processStartTime = Date.now()
@@ -82,7 +109,7 @@ export async function GET(request: NextRequest) {
       },
       externalApiCalls,
       {
-        endpoint: "portal-data",
+        endpoint: "portal",
         recordCount: portalData.length,
         hasData: portalData.length > 0,
         processingDuration: processDuration,
@@ -94,7 +121,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ data: portalData })
   } catch (error) {
     logger.logError(requestContext, error, {
-      endpoint: "portal-data",
+      endpoint: "portal",
       duration: Date.now() - startTime,
     })
 

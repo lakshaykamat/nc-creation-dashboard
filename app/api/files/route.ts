@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
+import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import {
   getSampleAllocationData,
   shouldUseSampleData,
@@ -13,6 +14,26 @@ export const revalidate = 0
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
   const requestContext = logger.createRequestContext(request)
+
+  // Validate session authentication
+  const authError = await validateSessionAuth(request)
+  if (authError) {
+    logger.logRequest(
+      requestContext,
+      {
+        status: authError.status,
+        statusText: "Unauthorized",
+        duration: Date.now() - startTime,
+        dataSize: 0,
+      },
+      [],
+      {
+        endpoint: "files",
+        error: "Unauthorized session",
+      }
+    )
+    return authError
+  }
 
   try {
     // Get query parameters
@@ -35,7 +56,7 @@ export async function GET(request: NextRequest) {
         },
         [],
         {
-          endpoint: "file-allocator",
+          endpoint: "files",
           hasData: true,
           queryParams: {
             recent: recent || null,

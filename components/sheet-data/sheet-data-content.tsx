@@ -15,6 +15,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { ErrorCard } from "@/components/common/error-card"
+import { getApiHeaders } from "@/lib/api/api-client"
 import {
   ChartConfig,
   ChartContainer,
@@ -45,14 +46,13 @@ async function fetchSheetData(): Promise<SheetResponse> {
   const res = await fetch("/api/sheet", {
     method: "GET",
     headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
+      ...getApiHeaders(),
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",
     },
     cache: "no-store",
-    credentials: "omit",
+    credentials: "include",
   })
 
   if (!res.ok) {

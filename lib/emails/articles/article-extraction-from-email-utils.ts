@@ -8,6 +8,7 @@
 
 import { extractArticleData } from "@/lib/common/article-extractor"
 import { getEmailHtmlContent } from "@/lib/emails/email/email-content-utils"
+import { getEmailSenderAddress } from "@/lib/emails/email/email-sender-utils"
 import { getUniqueArticleNumbers } from "@/lib/emails/articles/article-uniqueness-utils"
 import { buildArticlePageMapAndEntries } from "@/lib/emails/articles/article-page-map-utils"
 import type { Email } from "@/types/emails"
@@ -23,10 +24,23 @@ export function extractUniqueArticlesFromEmail(email: Email): {
   pageMap: Record<string, number>
   formattedEntries: string[]
 } {
-  const htmlContent = getEmailHtmlContent(email)
-  const result = extractArticleData(htmlContent)
+  // Log that we're extracting articles from this email
+  const senderEmail = getEmailSenderAddress(email)
+  console.log("🚀 [extractUniqueArticlesFromEmail] Starting extraction for email:", {
+    id: email.id,
+    subject: email.subject,
+    from: senderEmail,
+  })
   
-  if (!result || !result.hasArticles || !result.articleNumbers || result.articleNumbers.length === 0) {
+  const htmlContent = getEmailHtmlContent(email)
+  // Pass email info for debugging when viewing individual emails
+  const result = extractArticleData(htmlContent, {
+    id: email.id,
+    subject: email.subject,
+    from: senderEmail,
+  })
+  
+  if (!result || result.articles.length === 0) {
     return {
       articleNumbers: [],
       pageMap: {},
@@ -34,8 +48,9 @@ export function extractUniqueArticlesFromEmail(email: Email): {
     }
   }
   
-  // Get unique articles
-  const uniqueArticles = getUniqueArticleNumbers(result.articleNumbers)
+  // Convert new format to old format for backward compatibility
+  const articleNumbers = result.articles.map(a => a.articleId)
+  const uniqueArticles = getUniqueArticleNumbers(articleNumbers)
   
   if (uniqueArticles.length === 0) {
     return {
@@ -45,8 +60,12 @@ export function extractUniqueArticlesFromEmail(email: Email): {
     }
   }
   
-  // Build page map and formatted entries
-  const articlePageCounts = result.articlePageCounts || {}
+  // Build page map from articles array
+  const articlePageCounts: Record<string, number> = {}
+  result.articles.forEach(article => {
+    articlePageCounts[article.articleId] = article.pageNumber
+  })
+  
   const { pageMap, formattedEntries } = buildArticlePageMapAndEntries(
     uniqueArticles,
     articlePageCounts

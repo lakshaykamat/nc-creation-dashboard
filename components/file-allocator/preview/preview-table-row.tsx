@@ -98,21 +98,22 @@ export function PreviewTableRow({
         onCancel={onCancel}
         className="font-medium"
       />
-      <TableCell className="px-3 py-3 whitespace-normal max-w-[200px] sm:max-w-none">
-        {isEditingArticleId ? (
-          <PreviewTableCell
-            articleId={article.articleId}
-            field="articleId"
-            value={article.articleId}
-            isEditing={true}
-            editValue={editValue}
-            inputRef={inputRef}
-            onCellClick={onCellClick}
-            onValueChange={onValueChange}
-            onSave={onSave}
-            onCancel={onCancel}
-          />
-        ) : (
+      {isEditingArticleId ? (
+        <PreviewTableCell
+          articleId={article.articleId}
+          field="articleId"
+          value={article.articleId}
+          isEditing={true}
+          editValue={editValue}
+          inputRef={inputRef}
+          onCellClick={onCellClick}
+          onValueChange={onValueChange}
+          onSave={onSave}
+          onCancel={onCancel}
+          className="whitespace-normal max-w-[200px] sm:max-w-none"
+        />
+      ) : (
+        <TableCell className="px-3 py-3 whitespace-normal max-w-[200px] sm:max-w-none">
           <div
             className="flex items-center gap-2 flex-wrap cursor-pointer hover:bg-muted/50 rounded px-1 -mx-1 py-0.5"
             onClick={() => onCellClick(article.articleId, "articleId", article.articleId)}
@@ -124,8 +125,8 @@ export function PreviewTableRow({
               </span>
             )}
           </div>
-        )}
-      </TableCell>
+        </TableCell>
+      )}
       <PreviewTableCell
         articleId={article.articleId}
         field="pages"

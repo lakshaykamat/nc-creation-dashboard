@@ -16,7 +16,7 @@ import type { AllocatedArticle } from "@/types/file-allocator"
 const MESSAGE_DISMISS_DELAY = 2000 // 2 seconds
 
 interface UsePreviewDialogStateProps {
-  onUpdateFromPastedData?: (text: string) => { success: boolean; message: string }
+  onUpdateFromPastedData?: (text: string) => Promise<{ success: boolean; message: string }>
 }
 
 export function usePreviewDialogState({ onUpdateFromPastedData }: UsePreviewDialogStateProps = {}) {
@@ -91,22 +91,26 @@ export function usePreviewDialogState({ onUpdateFromPastedData }: UsePreviewDial
 
   // Handle paste event on table
   const handleTablePaste = useCallback(
-    (e: React.ClipboardEvent) => {
+    async (e: React.ClipboardEvent) => {
       if (!onUpdateFromPastedData) return
 
       e.preventDefault()
       const pastedData = e.clipboardData.getData("text")
       
       if (pastedData.trim()) {
-        const result = onUpdateFromPastedData(pastedData)
-        showMessage(result.success ? "success" : "error", result.message, result.success)
+        try {
+          const result = await onUpdateFromPastedData(pastedData)
+          showMessage(result.success ? "success" : "error", result.message, result.success)
+        } catch (error) {
+          showMessage("error", error instanceof Error ? error.message : "Failed to process pasted data", false)
+        }
       }
     },
     [onUpdateFromPastedData, showMessage]
   )
 
   // Handle apply button click
-  const handleApply = useCallback(() => {
+  const handleApply = useCallback(async () => {
     if (!onUpdateFromPastedData) {
       showMessage("error", "Update function not available", false)
       return
@@ -117,17 +121,21 @@ export function usePreviewDialogState({ onUpdateFromPastedData }: UsePreviewDial
       return
     }
 
-    const result = onUpdateFromPastedData(pastedText)
-    showMessage(result.success ? "success" : "error", result.message, result.success)
+    try {
+      const result = await onUpdateFromPastedData(pastedText)
+      showMessage(result.success ? "success" : "error", result.message, result.success)
 
-    if (result.success) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
+      if (result.success) {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+        timeoutRef.current = setTimeout(() => {
+          setPastedText("")
+          setEditMessage(null)
+        }, MESSAGE_DISMISS_DELAY)
       }
-      timeoutRef.current = setTimeout(() => {
-        setPastedText("")
-        setEditMessage(null)
-      }, MESSAGE_DISMISS_DELAY)
+    } catch (error) {
+      showMessage("error", error instanceof Error ? error.message : "Failed to process data", false)
     }
   }, [pastedText, onUpdateFromPastedData, showMessage])
 

@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
+import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import type { EmailsResponse } from "@/types/emails"
 import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 
@@ -21,6 +22,26 @@ export const revalidate = 0
 export async function GET(request: NextRequest) {
   const startTime = Date.now()
   const requestContext = logger.createRequestContext(request)
+
+  // Validate session authentication
+  const authError = await validateSessionAuth(request)
+  if (authError) {
+    logger.logRequest(
+      requestContext,
+      {
+        status: authError.status,
+        statusText: "Unauthorized",
+        duration: Date.now() - startTime,
+        dataSize: 0,
+      },
+      [],
+      {
+        endpoint: "emails",
+        error: "Unauthorized session",
+      }
+    )
+    return authError
+  }
 
   try {
     const apiKey = process.env.NEXT_PUBLIC_NC_API_KEY

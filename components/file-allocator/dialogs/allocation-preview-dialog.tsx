@@ -29,7 +29,7 @@ interface AllocationPreviewDialogProps {
   displayArticles: AllocatedArticle[]
   disabled?: boolean
   manuallyAddedArticleIds?: Set<string>
-  onUpdateFromPastedData?: (text: string) => { success: boolean; message: string }
+  onUpdateFromPastedData?: (text: string) => Promise<{ success: boolean; message: string }>
   onDeleteArticle?: (articleId: string) => void
   onUpdateArticle?: (articleId: string, field: keyof AllocatedArticle, value: string | number) => void
 }
