@@ -96,7 +96,6 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     group: "Tools",
     roles: ["ADMIN"],
     enabled: true,
-    badge: "CHECK BABY",
   },
   {
     path: "/settings",
