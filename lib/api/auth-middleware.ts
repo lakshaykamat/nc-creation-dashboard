@@ -16,7 +16,7 @@ import { validateAuth } from "@/lib/auth/validate-auth"
  * @param request - Next.js request object (unused but kept for consistency)
  * @returns NextResponse with 401 if invalid, null if valid
  */
-export async function validateSessionAuth(request: NextRequest): Promise<NextResponse | null> {
+export async function validateSessionAuth(_request: NextRequest): Promise<NextResponse | null> {
   const authResult = await validateAuth()
 
   if (!authResult.valid) {
@@ -46,7 +46,7 @@ export function validateApiKey(_request: NextRequest): NextResponse | null {
     )
   }
 
-  const requestApiKey = request.headers.get("X-API-KEY")
+  const requestApiKey = _request.headers.get("X-API-KEY")
 
   if (!requestApiKey || requestApiKey !== apiKey) {
     return NextResponse.json(
