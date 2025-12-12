@@ -40,7 +40,7 @@ export function AllocationPreviewTable({
   return (
     <Field>
       <div className="space-y-2">
-        <FieldLabel>Allocation Preview</FieldLabel>
+        <FieldLabel>Preview or Edit</FieldLabel>
         <div className="rounded-md border bg-background/40">
           <Table>
             <TableHeader>

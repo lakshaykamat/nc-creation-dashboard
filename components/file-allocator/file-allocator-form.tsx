@@ -13,14 +13,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Toast } from "@/components/ui/toast"
 import { FieldGroup } from "@/components/ui/field"
 import { useFileAllocatorFormState } from "@/hooks/file-allocator/use-file-allocator-form-state"
-import { AllocationMethodField } from "./allocation-method-field"
-import { PriorityFieldsList } from "./priority-fields-list"
-import { DdnArticlesField } from "./ddn-articles-field"
-import { AllocationPreviewDialog } from "./allocation-preview-dialog"
-import { FormSubmitButtonWithDialog } from "./form-submit-button-with-dialog"
-import { AllocationLoadingDialog } from "./allocation-loading-dialog"
-import { AllocationSuccessDialog } from "./allocation-success-dialog"
-import { AllocationFailureDialog } from "./allocation-failure-dialog"
+import { AllocationMethodField } from "./fields/allocation-method-field"
+import { PriorityFieldsList } from "./fields/priority-fields-list"
+import { DdnArticlesField } from "./fields/ddn-articles-field"
+import { AllocationPreviewDialog } from "./dialogs/allocation-preview-dialog"
+import { FormSubmitButtonWithDialog } from "./buttons/form-submit-button-with-dialog"
+import { AllocationLoadingDialog } from "./dialogs/allocation-loading-dialog"
+import { AllocationSuccessDialog } from "./dialogs/allocation-success-dialog"
+import { AllocationFailureDialog } from "./dialogs/allocation-failure-dialog"
 
 interface FileAllocatorFormProps {
   /** Array of article strings in format "ARTICLE_ID [PAGES]" */
@@ -92,6 +92,8 @@ export function FileAllocatorForm({ newArticlesWithPages }: FileAllocatorFormPro
                     disabled={formState.previewDisabled}
                     manuallyAddedArticleIds={formState.manuallyAddedArticleIds}
                     onUpdateFromPastedData={formState.handleUpdateFromPastedData}
+                    onDeleteArticle={formState.handleDeleteArticle}
+                    onUpdateArticle={formState.handleUpdateArticle}
                   />
                 </div>
                 <div className="flex-1">

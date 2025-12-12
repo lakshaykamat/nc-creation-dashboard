@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { EmailArticlesPreviewDialog } from "./email-articles-preview-dialog"
+import { EmailArticlesPreviewDialog } from "./dialogs/email-articles-preview-dialog"
 import type { EmailFilterPanelProps, EmailFilter } from "@/types/emails"
 
 export function EmailFilterPanel({

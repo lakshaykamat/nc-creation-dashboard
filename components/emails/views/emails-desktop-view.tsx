@@ -8,9 +8,9 @@
 
 "use client"
 
-import { EmailList } from "./email-list"
-import { EmailViewer } from "./email-viewer"
-import { EmailFilterPanel } from "./email-filter-panel"
+import { EmailList } from "../list/email-list"
+import { EmailViewer } from "../viewer/email-viewer"
+import { EmailFilterPanel } from "../email-filter-panel"
 import type { Email, EmailFilter, ArticleStats } from "@/types/emails"
 
 interface EmailsDesktopViewProps {

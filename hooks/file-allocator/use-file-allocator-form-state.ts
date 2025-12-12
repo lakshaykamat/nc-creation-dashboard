@@ -11,7 +11,7 @@
  * @module hooks/use-file-allocator-form-state
  */
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useForm, useFieldArray, type Control, type UseFormWatch, type UseFormSetValue } from "react-hook-form"
 import { type PriorityField, ALLOCATION_METHODS } from "@/lib/constants/file-allocator-constants"
 import { useTeamMembers } from "./use-team-members"
@@ -113,6 +113,8 @@ export interface UseFileAllocatorFormStateReturn {
   handleDragLeave: () => void
   handleDrop: (dropIndex: number) => void
   handleUpdateFromPastedData: (pastedText: string) => { success: boolean; message: string }
+  handleDeleteArticle: (articleId: string) => void
+  handleUpdateArticle: (articleId: string, field: keyof AllocatedArticle, value: string | number) => void
   onSubmit: (values: FormValues) => void
 }
 
@@ -227,6 +229,15 @@ export function useFileAllocatorFormState(
   // Manually added articles from preview dialog
   const [manuallyAddedArticles, setManuallyAddedArticles] = useState<ParsedArticle[]>([])
   
+  // Track deleted article IDs
+  const [deletedArticleIds, setDeletedArticleIds] = useState<Set<string>>(new Set())
+  
+  // Track updated article data (articleId -> ParsedArticle with updates)
+  const [updatedArticles, setUpdatedArticles] = useState<Map<string, Partial<ParsedArticle>>>(new Map())
+  
+  // Track overrides for display fields (month, date, name) per article
+  const [articleDisplayOverrides, setArticleDisplayOverrides] = useState<Map<string, Partial<Pick<AllocatedArticle, "month" | "date" | "name">>>>(new Map())
+  
   // Track previous allocation method for reset logic
   const prevAllocationMethodRef = useRef<string>("")
 
@@ -240,23 +251,35 @@ export function useFileAllocatorFormState(
     return parseNewArticlesWithPages(newArticlesWithPages)
   }, [newArticlesWithPages])
 
-  // Merge parsed articles with manually added articles
+  // Merge parsed articles with manually added articles and apply updates/deletes
   // Manually added articles take precedence (replace duplicates by articleId)
   const parsedArticles = useMemo(() => {
     const articleMap = new Map<string, ParsedArticle>()
     
-    // Add parsed articles from input first
+    // Add parsed articles from input first (excluding deleted ones)
     parsedArticlesFromInput.forEach(article => {
-      articleMap.set(article.articleId, article)
+      if (!deletedArticleIds.has(article.articleId)) {
+        articleMap.set(article.articleId, article)
+      }
     })
     
-    // Override with manually added articles
+    // Override with manually added articles (excluding deleted ones)
     manuallyAddedArticles.forEach(article => {
-      articleMap.set(article.articleId, article)
+      if (!deletedArticleIds.has(article.articleId)) {
+        articleMap.set(article.articleId, article)
+      }
+    })
+    
+    // Apply updates to existing articles
+    updatedArticles.forEach((updates, articleId) => {
+      const existing = articleMap.get(articleId)
+      if (existing) {
+        articleMap.set(articleId, { ...existing, ...updates } as ParsedArticle)
+      }
     })
     
     return Array.from(articleMap.values())
-  }, [parsedArticlesFromInput, manuallyAddedArticles])
+  }, [parsedArticlesFromInput, manuallyAddedArticles, deletedArticleIds, updatedArticles])
 
   // Get available article IDs for DDN validation
   const availableArticleIds = useMemo(
@@ -338,11 +361,21 @@ export function useFileAllocatorFormState(
     )
   }, [parsedArticles, allocatedArticleIds, allocationMethod, month, date])
 
-  // Combine allocated and unallocated for display
-  const displayArticles = useMemo(
-    () => [...allocatedArticles, ...unallocatedArticles],
-    [allocatedArticles, unallocatedArticles]
-  )
+  // Combine allocated and unallocated for display, applying overrides
+  const displayArticles = useMemo(() => {
+    const combined = [...allocatedArticles, ...unallocatedArticles]
+    // Apply display overrides if any
+    if (articleDisplayOverrides.size === 0) {
+      return combined
+    }
+    return combined.map(article => {
+      const override = articleDisplayOverrides.get(article.articleId)
+      if (override) {
+        return { ...article, ...override }
+      }
+      return article
+    })
+  }, [allocatedArticles, unallocatedArticles, articleDisplayOverrides])
 
   const hasAllocations = displayArticles.length > 0 || parsedArticles.length > 0
 
@@ -521,7 +554,7 @@ export function useFileAllocatorFormState(
       if (entries.length === 0) {
         return {
           success: false,
-          message: "No valid article data found. Please paste article IDs in format: 'ARTICLE_ID [PAGES]' or just 'ARTICLE_ID'",
+          message: "No valid article data found. Format 'ATECH1232 12'",
         }
       }
 
@@ -544,13 +577,22 @@ export function useFileAllocatorFormState(
         })
         return Array.from(articleMap.values())
       })
+      
+      // Remove from deleted set if it was previously deleted
+      setDeletedArticleIds(prev => {
+        const next = new Set(prev)
+        newManuallyAddedArticles.forEach(article => {
+          next.delete(article.articleId)
+        })
+        return next
+      })
 
       // Manually added articles remain unallocated (NEED TO ALLOCATE)
       // Don't update priority fields - let user allocate them manually
 
       return {
         success: true,
-        message: `Added ${entries.length} article${entries.length > 1 ? "s" : ""}. They will appear as "NEED TO ALLOCATE" in the preview.`,
+        message: `Added ${entries.length} article${entries.length > 1 ? "s" : ""}.`,
       }
     } catch (error) {
       return {
@@ -559,6 +601,92 @@ export function useFileAllocatorFormState(
       }
     }
   }
+
+  // Handler to delete an article
+  const handleDeleteArticle = useCallback((articleId: string) => {
+    setDeletedArticleIds(prev => new Set(prev).add(articleId))
+    // Also remove from manually added articles if it's there
+    setManuallyAddedArticles(prev => prev.filter(a => a.articleId !== articleId))
+    // Remove from updated articles if it's there
+    setUpdatedArticles(prev => {
+      const next = new Map(prev)
+      next.delete(articleId)
+      return next
+    })
+    // Remove display overrides
+    setArticleDisplayOverrides(prev => {
+      const next = new Map(prev)
+      next.delete(articleId)
+      return next
+    })
+  }, [])
+
+  // Handler to update an article field
+  const handleUpdateArticle = useCallback((
+    articleId: string,
+    field: keyof AllocatedArticle,
+    value: string | number
+  ) => {
+    // Map AllocatedArticle fields to ParsedArticle fields
+    if (field === "pages") {
+      const pages = typeof value === "number" ? value : parseInt(String(value), 10) || 0
+      setUpdatedArticles(prev => {
+        const next = new Map(prev)
+        const existing = next.get(articleId) || {}
+        next.set(articleId, { ...existing, pages } as Partial<ParsedArticle>)
+        return next
+      })
+      // Also update in manually added articles if it exists there
+      setManuallyAddedArticles(prev => {
+        return prev.map(article => {
+          if (article.articleId === articleId) {
+            return { ...article, pages }
+          }
+          return article
+        })
+      })
+    } else if (field === "articleId") {
+      const newArticleId = String(value).toUpperCase().trim()
+      // Find the article in manually added or check if it exists
+      const existingArticle = parsedArticles.find(a => a.articleId === articleId)
+      if (existingArticle) {
+        // Remove old article ID from deletions/updates/overrides
+        setDeletedArticleIds(prev => {
+          const next = new Set(prev)
+          next.delete(articleId)
+          return next
+        })
+        setUpdatedArticles(prev => {
+          const next = new Map(prev)
+          next.delete(articleId)
+          return next
+        })
+        // Migrate override to new article ID
+        const override = articleDisplayOverrides.get(articleId)
+        if (override) {
+          setArticleDisplayOverrides(prev => {
+            const next = new Map(prev)
+            next.delete(articleId)
+            next.set(newArticleId, override)
+            return next
+          })
+        }
+        // Add new article with new ID
+        setManuallyAddedArticles(prev => {
+          const filtered = prev.filter(a => a.articleId !== articleId)
+          return [...filtered, { articleId: newArticleId, pages: existingArticle.pages }]
+        })
+      }
+    } else if (field === "month" || field === "date" || field === "name") {
+      // Store display overrides for computed fields
+      setArticleDisplayOverrides(prev => {
+        const next = new Map(prev)
+        const existing = next.get(articleId) || {}
+        next.set(articleId, { ...existing, [field]: String(value) })
+        return next
+      })
+    }
+  }, [parsedArticles])
 
   return {
     // Form control
@@ -626,6 +754,8 @@ export function useFileAllocatorFormState(
     handleDragLeave,
     handleDrop,
     handleUpdateFromPastedData,
+    handleDeleteArticle,
+    handleUpdateArticle,
     onSubmit,
   }
 }
