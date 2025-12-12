@@ -32,9 +32,7 @@ export function EmailFilterPanel({
 }: EmailFilterPanelProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
-  const handlePreview = () => {
-    setIsPreviewOpen(true)
-  }
+  const allocateDisabled = selectedCount === 0 || isAllocating || (totalArticles !== null && totalArticles === 0)
 
   return (
     <>
@@ -51,7 +49,7 @@ export function EmailFilterPanel({
         {hasSelectedEmails && (
           <div className="flex gap-2">
             <Button
-              onClick={handlePreview}
+              onClick={() => setIsPreviewOpen(true)}
               disabled={selectedCount === 0}
               variant="outline"
               size="sm"
@@ -61,7 +59,7 @@ export function EmailFilterPanel({
             </Button>
             <Button
               onClick={onAllocate}
-              disabled={selectedCount === 0 || isAllocating || (totalArticles !== null && totalArticles === 0)}
+              disabled={allocateDisabled}
               size="sm"
               className="flex-1"
             >

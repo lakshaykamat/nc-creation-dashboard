@@ -32,8 +32,8 @@ export function PortalDataContent({
     hasQARows,
     texRowCount,
     qaRowCount,
-    refetch: refetchFromHook,
-    isRefetching: isRefetchingFromHook,
+    refetch,
+    isRefetching,
   } = useFilteredPortalData()
   const [copied, setCopied] = useState(false)
 
@@ -99,8 +99,8 @@ export function PortalDataContent({
     return (
       <ErrorCard
         error={error}
-        onRetry={() => refetchFromHook()}
-        retryLabel={isRefetchingFromHook ? "Retrying..." : "Try Again"}
+        onRetry={() => refetch()}
+        retryLabel={isRefetching ? "Retrying..." : "Try Again"}
       />
     )
   }
@@ -118,10 +118,10 @@ export function PortalDataContent({
           />
           <Button
             variant="outline"
-            onClick={() => refetchFromHook()}
-            disabled={isRefetchingFromHook}
+            onClick={() => refetch()}
+            disabled={isRefetching}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefetchingFromHook ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefetching ? "animate-spin" : ""}`} />
             Refresh
           </Button>
         </div>
@@ -165,12 +165,12 @@ export function PortalDataContent({
         <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 shrink-0">
           <Button
             variant="outline"
-            onClick={() => refetchFromHook()}
-            disabled={isRefetchingFromHook}
+            onClick={() => refetch()}
+            disabled={isRefetching}
             className="w-full sm:w-auto"
             size="sm"
           >
-            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefetchingFromHook ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefetching ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
           <Button

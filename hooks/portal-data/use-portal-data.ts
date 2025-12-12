@@ -125,22 +125,22 @@ export function useFilteredPortalData() {
     return result
   }, [data, showTexRows, showQARows])
 
-  // Check if there are any TEX or QA rows in the data
-  const hasTexRows = useMemo(() => {
-    return data.some((item: PortalData) => item.src === "TEX")
-  }, [data])
-
-  const hasQARows = useMemo(() => {
-    return data.some((item: PortalData) => item.isInQA === true)
-  }, [data])
-
-  // Count TEX and QA rows
-  const texRowCount = useMemo(() => {
-    return data.filter((item: PortalData) => item.src === "TEX").length
-  }, [data])
-
-  const qaRowCount = useMemo(() => {
-    return data.filter((item: PortalData) => item.isInQA === true).length
+  // Count and check TEX and QA rows in a single pass
+  const { hasTexRows, texRowCount, hasQARows, qaRowCount } = useMemo(() => {
+    let texCount = 0
+    let qaCount = 0
+    
+    data.forEach((item: PortalData) => {
+      if (item.src === "TEX") texCount++
+      if (item.isInQA === true) qaCount++
+    })
+    
+    return {
+      hasTexRows: texCount > 0,
+      texRowCount: texCount,
+      hasQARows: qaCount > 0,
+      qaRowCount: qaCount,
+    }
   }, [data])
 
   return {
