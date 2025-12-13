@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
-import { getNCCollection } from "@/lib/db/nc-database"
+import { findDocuments, countDocuments } from "@/lib/db/nc-operations"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -50,8 +50,6 @@ export async function GET(request: NextRequest) {
     const domain = searchParams.get("domain")
     const skip = parseInt(searchParams.get("skip") || "0", 10)
 
-    const collection = await getNCCollection("logs")
-
     // Build query
     const query: Record<string, unknown> = {}
     if (domain) {
@@ -59,15 +57,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch logs sorted by timestamp descending (most recent first)
-    const logs = await collection
-      .find(query)
-      .sort({ timestamp: -1 })
-      .skip(skip)
-      .limit(limit)
-      .toArray()
+    const logs = await findDocuments("logs", query, {
+      sort: { timestamp: -1 },
+      skip,
+      limit,
+    })
 
     // Get total count for pagination
-    const totalCount = await collection.countDocuments(query)
+    const totalCount = await countDocuments("logs", query)
 
     const duration = Date.now() - startTime
     const responseSize = JSON.stringify(logs).length

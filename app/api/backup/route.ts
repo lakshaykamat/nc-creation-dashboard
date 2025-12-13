@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
-import { getNCCollection } from "@/lib/db/nc-database"
+import { findAllDocuments } from "@/lib/db/nc-operations"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -31,10 +31,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const collection = await getNCCollection("backup")
-
-    // Fetch all documents from the sheet collection
-    const documents = await collection.find({}).toArray()
+    // Fetch all documents from the backup collection
+    const documents = await findAllDocuments("backup")
 
     // Convert MongoDB ObjectId to string for JSON serialization
     const formattedDocuments = documents.map((doc) => ({

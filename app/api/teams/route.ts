@@ -8,10 +8,9 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import { ObjectId } from "mongodb"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
-import { getNCCollection } from "@/lib/db/nc-database"
+import { findAllDocuments, findOneDocument, insertDocument } from "@/lib/db/nc-operations"
 import type { TeamMember, CreateTeamMemberRequest, TeamMembersResponse, TeamMemberResponse } from "@/types/teams"
 
 // Force dynamic rendering - never cache
@@ -46,9 +45,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const collection = await getNCCollection<TeamMember>("teams")
-
-    const members = await collection.find({}).toArray()
+    const members = await findAllDocuments<TeamMember>("teams")
 
     // Convert ObjectId to string for JSON serialization
     const membersWithStringIds = members.map((member) => ({
@@ -131,10 +128,10 @@ export async function POST(request: NextRequest) {
 
     const name = body.name.trim()
 
-    const collection = await getNCCollection<TeamMember>("teams")
-
     // Check for duplicate name
-    const existingMember = await collection.findOne({ name: { $regex: new RegExp(`^${name}$`, "i") } })
+    const existingMember = await findOneDocument<TeamMember>("teams", {
+      name: { $regex: new RegExp(`^${name}$`, "i") },
+    })
     if (existingMember) {
       const response: TeamMemberResponse = {
         success: false,
@@ -144,12 +141,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert new member
-    const result = await collection.insertOne({
+    const insertedId = await insertDocument<TeamMember>("teams", {
       name,
     } as TeamMember)
 
     const newMember: TeamMember = {
-      _id: result.insertedId.toString(),
+      _id: insertedId,
       name,
     }
 

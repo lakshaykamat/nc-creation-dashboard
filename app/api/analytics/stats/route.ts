@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import { ensureAnalyticsIndexes } from "@/lib/db/analytics-indexes"
-import { getNCCollection } from "@/lib/db/nc-database"
+import { aggregateDocuments } from "@/lib/db/nc-operations"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -52,8 +52,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Ensure indexes are created for optimal query performance
-    await ensureAnalyticsIndexes()
 
     // Parse time filter from query parameters
     const { searchParams } = new URL(request.url)
@@ -77,8 +75,6 @@ export async function GET(request: NextRequest) {
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
         break
     }
-
-    const collection = await getNCCollection("logs")
 
     // Optimized aggregation pipeline for time-series data
     // Groups by date and calculates counts in MongoDB (much faster than processing in Node.js)
@@ -125,9 +121,7 @@ export async function GET(request: NextRequest) {
     ]
 
     // Execute aggregation pipeline
-    const timeSeriesData = await collection
-      .aggregate<TimeSeriesDataPoint>(timeSeriesPipeline)
-      .toArray()
+    const timeSeriesData = await aggregateDocuments<TimeSeriesDataPoint>("logs", timeSeriesPipeline)
 
     // Calculate totals using optimized aggregation (faster than summing in Node.js)
     const totalsPipeline = [
@@ -154,7 +148,7 @@ export async function GET(request: NextRequest) {
       },
     ]
 
-    const totalsResult = await collection.aggregate(totalsPipeline).toArray()
+    const totalsResult = await aggregateDocuments("logs", totalsPipeline)
     const totals = totalsResult[0] || { totalPageViews: 0, formAllocationCount: 0 }
     const totalPageViews = totals.totalPageViews || 0
     const formAllocationCount = totals.formAllocationCount || 0

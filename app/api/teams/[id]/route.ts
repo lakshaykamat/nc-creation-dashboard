@@ -11,8 +11,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
-import { findByIdFilter, excludeByIdFilter } from "@/lib/db/mongo-helpers"
-import { getNCCollection } from "@/lib/db/nc-database"
+import {
+  findDocumentById,
+  updateDocumentById,
+  deleteDocumentById,
+  findOneDocument,
+} from "@/lib/db/nc-operations"
+import { excludeByIdFilter } from "@/lib/db/mongo-helpers"
 import type { TeamMember, UpdateTeamMemberRequest, TeamMemberResponse } from "@/types/teams"
 
 // Force dynamic rendering - never cache
@@ -74,10 +79,8 @@ export async function PUT(
 
     const name = body.name.trim()
 
-    const collection = await getNCCollection<TeamMember>("teams")
-
     // Check if member exists
-    const existingMember = await collection.findOne(findByIdFilter(id))
+    const existingMember = await findDocumentById<TeamMember>("teams", id)
     if (!existingMember) {
       const response: TeamMemberResponse = {
         success: false,
@@ -87,7 +90,7 @@ export async function PUT(
     }
 
     // Check for duplicate name (excluding current member)
-    const duplicateMember = await collection.findOne({
+    const duplicateMember = await findOneDocument<TeamMember>("teams", {
       name: { $regex: new RegExp(`^${name}$`, "i") },
       ...excludeByIdFilter(id),
     })
@@ -100,10 +103,7 @@ export async function PUT(
     }
 
     // Update member
-    await collection.updateOne(
-      findByIdFilter(id),
-      { $set: { name } }
-    )
+    await updateDocumentById<TeamMember>("teams", id, { $set: { name } })
 
     const updatedMember: TeamMember = {
       _id: id,
@@ -207,10 +207,8 @@ export async function DELETE(
       return NextResponse.json(response, { status: 400 })
     }
 
-    const collection = await getNCCollection<TeamMember>("teams")
-
     // Check if member exists
-    const existingMember = await collection.findOne(findByIdFilter(id))
+    const existingMember = await findDocumentById<TeamMember>("teams", id)
     if (!existingMember) {
       const response: TeamMemberResponse = {
         success: false,
@@ -220,7 +218,7 @@ export async function DELETE(
     }
 
     // Delete member
-    await collection.deleteOne(findByIdFilter(id))
+    await deleteDocumentById<TeamMember>("teams", id)
 
     const duration = Date.now() - startTime
 
