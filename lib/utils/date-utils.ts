@@ -65,4 +65,31 @@ export function getISOString(date: Date = new Date()): string {
   return date.toISOString()
 }
 
+/**
+ * Format date string for display in Indian timezone (IST)
+ * 
+ * @param dateStr - Date string in format "YYYY-MM-DD" or "YYYY-MM-DD HH:00"
+ * @returns Formatted date string in IST with Indian locale
+ */
+export function formatDateInIndianTime(dateStr: string): string {
+  if (dateStr.includes(" ")) {
+    const [datePart, timePart] = dateStr.split(" ")
+    const hour = timePart.split(":")[0]
+    const date = new Date(`${datePart}T${hour}:00:00+05:30`)
+    return date.toLocaleDateString("en-IN", {
+      month: "short",
+      day: "numeric",
+      timeZone: "Asia/Kolkata",
+    }) + ` ${hour}:00 IST`
+  } else {
+    const date = new Date(`${dateStr}T00:00:00+05:30`)
+    return date.toLocaleDateString("en-IN", {
+      month: "short",
+      day: "numeric",
+      timeZone: "Asia/Kolkata",
+    })
+  }
+}
+
+
 

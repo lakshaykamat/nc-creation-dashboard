@@ -216,3 +216,4 @@ export function extractUserDeviceInfo(request: NextRequest): UserDeviceInfo {
   }
 }
 
+

@@ -25,16 +25,15 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts"
+import { formatDateInIndianTime } from "@/lib/utils/date-utils"
 
 interface TimeSeriesDataPoint {
   date: string
-  pageViews: number
   formAllocations: number
 }
 
 interface AnalyticsStatsResponse {
   timeSeriesData: TimeSeriesDataPoint[]
-  totalPageViews: number
   formAllocationCount: number
 }
 
@@ -57,10 +56,6 @@ async function fetchAnalyticsStats(timeFilter: TimeFilter = "7d"): Promise<Analy
 }
 
 const chartConfig = {
-  pageViews: {
-    label: "Page Views",
-    color: "hsl(221.2 83.2% 53.3%)",
-  },
   formAllocations: {
     label: "Form Allocations",
     color: "hsl(142.1 76.2% 36.3%)",
@@ -87,43 +82,16 @@ export function AnalyticsContent() {
     )
   }
 
-  // Format dates for display based on time filter
-  const chartData = data?.timeSeriesData.map((item) => {
-    // Parse the date string (could be YYYY-MM-DD or YYYY-MM-DD HH:00)
-    const dateStr = item.date
-    let displayDate: string
-    
-    if (dateStr.includes(" ")) {
-      // Hour format: "YYYY-MM-DD HH:00"
-      const [datePart, timePart] = dateStr.split(" ")
-      const hour = timePart.split(":")[0]
-      const date = new Date(datePart)
-      displayDate = `${date.toLocaleDateString("en-US", { month: "short", day: "numeric" })} ${hour}:00`
-    } else {
-      // Day format: "YYYY-MM-DD"
-      displayDate = new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-    }
-    
-    return {
-      ...item,
-      date: displayDate,
-    }
-  }) || []
+  const chartData = data?.timeSeriesData.map((item) => ({
+    ...item,
+    date: formatDateInIndianTime(item.date),
+  })) || []
 
   return (
     <div className="space-y-4">
       {/* Statistics Cards */}
       {data && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Total Page Views</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{data.totalPageViews}</div>
-              <p className="text-sm text-muted-foreground mt-1">All pages</p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 gap-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Article Allocator Form</CardTitle>
@@ -142,7 +110,7 @@ export function AnalyticsContent() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle>Analytics Overview</CardTitle>
-              <CardDescription>Page views and form allocations over time</CardDescription>
+              <CardDescription>Form allocations over time</CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Label htmlFor="time-filter" className="text-sm whitespace-nowrap">Time Period:</Label>
@@ -187,13 +155,6 @@ export function AnalyticsContent() {
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <ChartLegend content={<ChartLegendContent />} />
-                  <Line
-                    type="monotone"
-                    dataKey="pageViews"
-                    stroke="var(--color-pageViews)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
                   <Line
                     type="monotone"
                     dataKey="formAllocations"

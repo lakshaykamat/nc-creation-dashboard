@@ -20,7 +20,6 @@ export const revalidate = 0
 
 interface TimeSeriesDataPoint {
   date: string
-  pageViews: number
   formAllocations: number
 }
 
@@ -76,85 +75,60 @@ export async function GET(request: NextRequest) {
         break
     }
 
-    // Optimized aggregation pipeline for time-series data
-    // Groups by date and calculates counts in MongoDB (much faster than processing in Node.js)
-    // Uses indexes on (domain, timestamp) for optimal performance
     const timeSeriesPipeline = [
       {
         $match: {
-          domain: { $in: ["page view", "article allocator"] },
-          timestamp: { $gte: startDate }, // Filter by time range
+          domain: "article allocator",
+          timestamp: { $gte: startDate },
         },
       },
       {
         $group: {
           _id: {
-            // For 6h and 24h filters, group by hour; otherwise group by day
             $dateToString: {
               format: timeFilter === "6h" || timeFilter === "24h" ? "%Y-%m-%d %H:00" : "%Y-%m-%d",
               date: "$timestamp",
+              timezone: "Asia/Kolkata",
             },
           },
-          pageViews: {
-            $sum: {
-              $cond: [{ $eq: ["$domain", "page view"] }, 1, 0],
-            },
-          },
-          formAllocations: {
-            $sum: {
-              $cond: [{ $eq: ["$domain", "article allocator"] }, 1, 0],
-            },
-          },
+          formAllocations: { $sum: 1 },
         },
       },
       {
-        $sort: { _id: 1 }, // Sort by date ascending
+        $sort: { _id: 1 },
       },
       {
         $project: {
           _id: 0,
           date: "$_id",
-          pageViews: 1,
           formAllocations: 1,
         },
       },
     ]
 
-    // Execute aggregation pipeline
     const timeSeriesData = await aggregateDocuments<TimeSeriesDataPoint>("logs", timeSeriesPipeline)
 
-    // Calculate totals using optimized aggregation (faster than summing in Node.js)
     const totalsPipeline = [
       {
         $match: {
-          domain: { $in: ["page view", "article allocator"] },
-          timestamp: { $gte: startDate }, // Filter by time range
+          domain: "article allocator",
+          timestamp: { $gte: startDate },
         },
       },
       {
         $group: {
           _id: null,
-          totalPageViews: {
-            $sum: {
-              $cond: [{ $eq: ["$domain", "page view"] }, 1, 0],
-            },
-          },
-          formAllocationCount: {
-            $sum: {
-              $cond: [{ $eq: ["$domain", "article allocator"] }, 1, 0],
-            },
-          },
+          formAllocationCount: { $sum: 1 },
         },
       },
     ]
 
     const totalsResult = await aggregateDocuments("logs", totalsPipeline)
-    const totals = totalsResult[0] || { totalPageViews: 0, formAllocationCount: 0 }
-    const totalPageViews = totals.totalPageViews || 0
+    const totals = totalsResult[0] || { formAllocationCount: 0 }
     const formAllocationCount = totals.formAllocationCount || 0
 
     const duration = Date.now() - startTime
-    const responseSize = JSON.stringify({ timeSeriesData, totalPageViews, formAllocationCount }).length
+    const responseSize = JSON.stringify({ timeSeriesData, formAllocationCount }).length
 
     logger.logRequest(
       requestContext,
@@ -168,7 +142,6 @@ export async function GET(request: NextRequest) {
       {
         endpoint: "analytics/stats",
         dataPoints: timeSeriesData.length,
-        totalPageViews,
         formAllocationCount,
         timeFilter,
       }
@@ -176,7 +149,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       timeSeriesData,
-      totalPageViews,
       formAllocationCount,
     })
   } catch (error) {
