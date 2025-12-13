@@ -9,6 +9,7 @@
 
 import { logAnalytics } from "@/lib/db/analytics-logger"
 import type { FinalAllocationResult } from "@/types/file-allocator"
+import type { UserDeviceInfo } from "@/lib/utils/request-utils"
 
 /**
  * Form analytics log structure
@@ -75,11 +76,13 @@ function calculateSummary(allocation: FinalAllocationResult): FormAnalyticsLog["
  * 
  * @param allocation - The final allocation result from form submission
  * @param urlPath - The URL path where the form was submitted
+ * @param userDetails - Optional user device and browser information
  * @returns Promise that resolves when log is saved
  */
 export async function logFormAnalytics(
   allocation: FinalAllocationResult,
-  urlPath: string
+  urlPath: string,
+  userDetails?: UserDeviceInfo
 ): Promise<void> {
   const summary = calculateSummary(allocation)
 
@@ -89,7 +92,8 @@ export async function logFormAnalytics(
     {
       formData: allocation,
       summary,
-    }
+    },
+    userDetails
   )
 }
 

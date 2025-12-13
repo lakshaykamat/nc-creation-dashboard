@@ -13,6 +13,7 @@ import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import { logAnalytics } from "@/lib/db/analytics-logger"
 import { cookies } from "next/headers"
 import { AUTH_COOKIE_NAMES } from "@/lib/constants/auth-constants"
+import { extractUserDeviceInfo } from "@/lib/utils/request-utils"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -53,6 +54,9 @@ export async function POST(request: NextRequest) {
     // If no token, fallback to role (less accurate but better than nothing)
     const visitorId = sessionTokenCookie?.value || `role:${userRole}`
     
+    // Extract user device and browser information
+    const userDetails = extractUserDeviceInfo(request)
+    
     // Log page view analytics (don't await - fire and forget to avoid blocking)
     logAnalytics(
       "page view",
@@ -60,8 +64,8 @@ export async function POST(request: NextRequest) {
       {
         userRole,
         visitorId, // Store visitor ID for accurate unique visitor counting
-        timestamp: new Date(),
-      }
+      },
+      userDetails
     ).catch(() => {
       // Silently fail - analytics shouldn't block the response
     })

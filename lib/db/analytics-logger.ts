@@ -8,6 +8,7 @@
  */
 
 import { getNCCollection } from "@/lib/db/nc-database"
+import type { UserDeviceInfo } from "@/lib/utils/request-utils"
 
 /**
  * Base analytics log structure
@@ -16,6 +17,7 @@ export interface BaseAnalyticsLog {
   domain: string
   timestamp: Date
   urlPath: string
+  userDetails?: UserDeviceInfo
   [key: string]: unknown // Allow additional fields
 }
 
@@ -25,6 +27,7 @@ export interface BaseAnalyticsLog {
  * @param domain - The domain/feature name (e.g., "article allocator", "email processing")
  * @param urlPath - The URL path where the action occurred
  * @param data - Additional data to log (will be merged into the log entry)
+ * @param userDetails - Optional user device and browser information
  * @returns Promise that resolves when log is saved
  * 
  * @example
@@ -32,21 +35,23 @@ export interface BaseAnalyticsLog {
  * // Simple log
  * await logAnalytics("article allocator", "/api/allocations", { action: "submit" })
  * 
- * // Complex log with form data
+ * // Complex log with form data and user details
  * await logAnalytics(
  *   "article allocator",
  *   "/api/allocations",
  *   {
  *     formData: allocationData,
  *     summary: { totalArticles: 10, totalPages: 200 }
- *   }
+ *   },
+ *   userDetails
  * )
  * ```
  */
 export async function logAnalytics(
   domain: string,
   urlPath: string,
-  data: Record<string, unknown> = {}
+  data: Record<string, unknown> = {},
+  userDetails?: UserDeviceInfo
 ): Promise<void> {
   try {
     const collection = await getNCCollection<BaseAnalyticsLog>("logs")
@@ -57,6 +62,7 @@ export async function logAnalytics(
       domain,
       timestamp: now,
       urlPath,
+      ...(userDetails && { userDetails }), // Include user details if provided
       ...data, // Merge additional data
     }
 

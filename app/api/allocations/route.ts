@@ -16,6 +16,7 @@ import { transformAllocationToPayload } from "@/hooks/file-allocator/transform-a
 import type { FinalAllocationResult } from "@/types/file-allocator"
 import { N8N_WEBHOOK_ENDPOINTS } from "@/lib/constants/n8n-webhook-constants"
 import { logFormAnalytics } from "@/lib/db/form-analytics-logger"
+import { extractUserDeviceInfo } from "@/lib/utils/request-utils"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -153,7 +154,8 @@ export async function POST(request: NextRequest) {
 
     // Log form analytics to MongoDB AFTER successful submission
     const urlPath = new URL(request.url).pathname
-    logFormAnalytics(body, urlPath).catch((error) => {
+    const userDetails = extractUserDeviceInfo(request)
+    logFormAnalytics(body, urlPath, userDetails).catch((error) => {
       // Log error but don't fail the response
       console.error("Failed to log form analytics:", error)
     })
