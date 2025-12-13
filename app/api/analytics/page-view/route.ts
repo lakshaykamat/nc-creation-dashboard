@@ -51,15 +51,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: "pathname is required" }, { status: 400 })
     }
 
-    // Allow login page to be tracked even without authentication
-    // For other pages, validate session authentication
-    if (body.pathname !== "/login") {
-      const authError = await validateSessionAuth(request)
-      if (authError) {
-        // Don't log page views for unauthenticated users (except login page)
-        return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
-      }
-    }
+    // Allow all pages to be tracked - analytics should work for everyone
+    // Authentication is optional - we'll use it if available but don't require it
 
     // Get user role and session token from cookies
     const cookieStore = await cookies()

@@ -26,29 +26,26 @@ export function usePageViewTracker() {
 
   // Track only on pathname change
   useEffect(() => {
-    // Skip if no pathname or already tracked this pathname
-    if (!pathname || pathname === trackedPathnameRef.current) {
+    // Skip if no pathname
+    if (!pathname) {
+      return
+    }
+
+    // Skip if already tracked this exact pathname (prevent duplicates on re-renders)
+    if (pathname === trackedPathnameRef.current) {
       return
     }
 
     // Mark as tracked immediately to prevent duplicates
     trackedPathnameRef.current = pathname
 
-    // Send request immediately using sendBeacon (designed for analytics, no batching)
+    // Send request immediately - no delays, no batching
     const payload = JSON.stringify({
       pathname,
       userRole: roleRef.current,
     })
 
-    // Try sendBeacon first (most reliable, no batching)
-    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
-      const blob = new Blob([payload], { type: "application/json" })
-      if (navigator.sendBeacon("/api/analytics/page-view", blob)) {
-        return // Successfully sent
-      }
-    }
-
-    // Fallback to fetch (synchronous, no delays)
+    // Always use fetch for reliability - sendBeacon can be unreliable
     fetch("/api/analytics/page-view", {
       method: "POST",
       headers: {
@@ -56,6 +53,7 @@ export function usePageViewTracker() {
       },
       credentials: "include",
       body: payload,
+      // Don't wait for response - fire and forget
     }).catch(() => {
       // Silently fail - analytics shouldn't break the app
     })
