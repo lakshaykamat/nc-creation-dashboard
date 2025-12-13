@@ -30,6 +30,7 @@ export function usePageViewTracker() {
   const { role } = useUserRole()
   const previousPathnameRef = useRef<string | null>(null)
   const roleRef = useRef<string | null>(null)
+  const isMountedRef = useRef<boolean>(false)
 
   // Keep role ref updated
   useEffect(() => {
@@ -38,28 +39,38 @@ export function usePageViewTracker() {
 
   // Track page views - separate effect for pathname changes only
   useEffect(() => {
+    // Wait for pathname to be available (should be immediate, but defensive)
+    if (!pathname) {
+      return
+    }
+
     // Skip tracking for login page
     if (pathname === "/login") {
       previousPathnameRef.current = pathname
+      isMountedRef.current = true
       return
     }
 
-    // Only track if pathname has actually changed
-    if (previousPathnameRef.current === pathname) {
+    // Track on initial mount or when pathname changes
+    const isInitialMount = !isMountedRef.current
+    const pathnameChanged = previousPathnameRef.current !== pathname
+
+    if (!isInitialMount && !pathnameChanged) {
       return
     }
 
-    // Update the previous pathname before tracking
+    // Update refs
     previousPathnameRef.current = pathname
+    isMountedRef.current = true
 
-    // Track page view after page load (non-blocking)
-    // Use requestIdleCallback if available, otherwise setTimeout to defer
+    // Track page view immediately (non-blocking)
+    // Send right away to prevent requests from stacking up
     const trackPageView = () => {
       try {
-        // Use fetch with keepalive or just fire-and-forget
         // Get the current role value from ref (always latest value)
         const currentRole = roleRef.current || "unknown"
         
+        // Use fetch with keepalive - sends immediately without blocking
         fetch("/api/analytics/page-view", {
           method: "POST",
           headers: {
@@ -70,7 +81,7 @@ export function usePageViewTracker() {
             pathname,
             userRole: currentRole,
           }),
-          // Don't wait for response - fire and forget
+          // Keepalive ensures request completes even if page unloads
           keepalive: true,
         }).catch(() => {
           // Silently fail - we don't want to break the app if analytics fails
@@ -80,16 +91,10 @@ export function usePageViewTracker() {
       }
     }
 
-    // Defer tracking to after page render/load
-    // This ensures the page is fully loaded before tracking
+    // Send immediately - use minimal setTimeout(0) to defer to next tick
+    // This is non-blocking but executes immediately, preventing request batching
     if (typeof window !== "undefined") {
-      if ("requestIdleCallback" in window) {
-        // Use requestIdleCallback if available to run when browser is idle
-        ;(window as any).requestIdleCallback(trackPageView, { timeout: 2000 })
-      } else {
-        // Fallback: use setTimeout to defer execution after render
-        setTimeout(trackPageView, 0)
-      }
+      setTimeout(trackPageView, 0)
     }
     // Only depend on pathname - don't re-run when role changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
