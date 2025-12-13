@@ -30,6 +30,7 @@ export function usePageViewTracker() {
   const { role } = useUserRole()
   const previousPathnameRef = useRef<string | null>(null)
 
+  // Track page views - separate effect for pathname changes only
   useEffect(() => {
     // Skip tracking for login page
     if (pathname === "/login") {
@@ -37,12 +38,12 @@ export function usePageViewTracker() {
       return
     }
 
-    // Skip if pathname hasn't actually changed (prevents duplicate tracking on re-renders)
+    // Only track if pathname has actually changed
     if (previousPathnameRef.current === pathname) {
       return
     }
 
-    // Update the previous pathname
+    // Update the previous pathname before tracking
     previousPathnameRef.current = pathname
 
     // Track page view after page load (non-blocking)
@@ -50,6 +51,9 @@ export function usePageViewTracker() {
     const trackPageView = () => {
       try {
         // Use fetch with keepalive or just fire-and-forget
+        // Get the current role value at the time of tracking
+        const currentRole = role || "unknown"
+        
         fetch("/api/analytics/page-view", {
           method: "POST",
           headers: {
@@ -58,7 +62,7 @@ export function usePageViewTracker() {
           credentials: "include",
           body: JSON.stringify({
             pathname,
-            userRole: role || "unknown",
+            userRole: currentRole,
           }),
           // Don't wait for response - fire and forget
           keepalive: true,
@@ -81,6 +85,8 @@ export function usePageViewTracker() {
         setTimeout(trackPageView, 0)
       }
     }
-  }, [pathname, role])
+    // Only depend on pathname - don't re-run when role changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
 }
 
