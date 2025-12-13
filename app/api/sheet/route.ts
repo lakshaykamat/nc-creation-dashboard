@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import clientPromise from "@/lib/db/mongo"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
-import { DATABASE_NAME } from "@/lib/constants/database-constants"
+import { getNCCollection } from "@/lib/db/nc-database"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0
@@ -32,9 +31,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const client = await clientPromise
-    const db = client.db(DATABASE_NAME)
-    const collection = db.collection("sheet")
+    const collection = await getNCCollection("sheet")
 
     // Fetch all documents from the sheet collection, sorted by Date descending (latest first)
     const documents = await collection

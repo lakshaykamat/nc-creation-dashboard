@@ -6,7 +6,7 @@
  * @module lib/db/analytics-indexes
  */
 
-import clientPromise from "./mongo"
+import { getNCCollection } from "./nc-database"
 
 /**
  * Ensures indexes are created on the logs collection for optimal query performance
@@ -15,9 +15,7 @@ import clientPromise from "./mongo"
  */
 export async function ensureAnalyticsIndexes(): Promise<void> {
   try {
-    const client = await clientPromise
-    const db = client.db()
-    const collection = db.collection("logs")
+    const collection = await getNCCollection("logs")
 
     // Create compound index on (domain, timestamp) for optimized filtering and sorting
     // This index is optimal for:

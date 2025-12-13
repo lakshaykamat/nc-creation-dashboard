@@ -11,8 +11,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
-import clientPromise from "@/lib/db/mongo"
 import { ensureAnalyticsIndexes } from "@/lib/db/analytics-indexes"
+import { getNCCollection } from "@/lib/db/nc-database"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -78,9 +78,7 @@ export async function GET(request: NextRequest) {
         break
     }
 
-    const client = await clientPromise
-    const db = client.db()
-    const collection = db.collection("logs")
+    const collection = await getNCCollection("logs")
 
     // Optimized aggregation pipeline for time-series data
     // Groups by date and calculates counts in MongoDB (much faster than processing in Node.js)

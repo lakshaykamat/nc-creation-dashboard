@@ -9,11 +9,10 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { ObjectId } from "mongodb"
-import clientPromise from "@/lib/db/mongo"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
 import { findByIdFilter, excludeByIdFilter } from "@/lib/db/mongo-helpers"
-import { DATABASE_NAME } from "@/lib/constants/database-constants"
+import { getNCCollection } from "@/lib/db/nc-database"
 import type { TeamMember, UpdateTeamMemberRequest, TeamMemberResponse } from "@/types/teams"
 
 // Force dynamic rendering - never cache
@@ -75,9 +74,7 @@ export async function PUT(
 
     const name = body.name.trim()
 
-    const client = await clientPromise
-    const db = client.db(DATABASE_NAME)
-    const collection = db.collection<TeamMember>("teams")
+    const collection = await getNCCollection<TeamMember>("teams")
 
     // Check if member exists
     const existingMember = await collection.findOne(findByIdFilter(id))
@@ -210,9 +207,7 @@ export async function DELETE(
       return NextResponse.json(response, { status: 400 })
     }
 
-    const client = await clientPromise
-    const db = client.db(DATABASE_NAME)
-    const collection = db.collection<TeamMember>("teams")
+    const collection = await getNCCollection<TeamMember>("teams")
 
     // Check if member exists
     const existingMember = await collection.findOne(findByIdFilter(id))

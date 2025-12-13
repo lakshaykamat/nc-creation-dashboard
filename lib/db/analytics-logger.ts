@@ -7,7 +7,7 @@
  * @module lib/db/analytics-logger
  */
 
-import clientPromise from "@/lib/db/mongo"
+import { getNCCollection } from "@/lib/db/nc-database"
 
 /**
  * Base analytics log structure
@@ -49,9 +49,7 @@ export async function logAnalytics(
   data: Record<string, unknown> = {}
 ): Promise<void> {
   try {
-    const client = await clientPromise
-    const db = client.db()
-    const collection = db.collection<BaseAnalyticsLog>("logs")
+    const collection = await getNCCollection<BaseAnalyticsLog>("logs")
 
     const now = new Date()
 

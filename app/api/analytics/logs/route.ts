@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
-import clientPromise from "@/lib/db/mongo"
+import { getNCCollection } from "@/lib/db/nc-database"
 
 // Force dynamic rendering - never cache
 export const dynamic = "force-dynamic"
@@ -50,9 +50,7 @@ export async function GET(request: NextRequest) {
     const domain = searchParams.get("domain")
     const skip = parseInt(searchParams.get("skip") || "0", 10)
 
-    const client = await clientPromise
-    const db = client.db()
-    const collection = db.collection("logs")
+    const collection = await getNCCollection("logs")
 
     // Build query
     const query: Record<string, unknown> = {}
