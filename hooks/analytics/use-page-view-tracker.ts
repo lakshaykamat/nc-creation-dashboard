@@ -29,6 +29,12 @@ export function usePageViewTracker() {
   const pathname = usePathname()
   const { role } = useUserRole()
   const previousPathnameRef = useRef<string | null>(null)
+  const roleRef = useRef<string | null>(null)
+
+  // Keep role ref updated
+  useEffect(() => {
+    roleRef.current = role || null
+  }, [role])
 
   // Track page views - separate effect for pathname changes only
   useEffect(() => {
@@ -51,8 +57,8 @@ export function usePageViewTracker() {
     const trackPageView = () => {
       try {
         // Use fetch with keepalive or just fire-and-forget
-        // Get the current role value at the time of tracking
-        const currentRole = role || "unknown"
+        // Get the current role value from ref (always latest value)
+        const currentRole = roleRef.current || "unknown"
         
         fetch("/api/analytics/page-view", {
           method: "POST",
