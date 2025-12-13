@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { logger } from "@/lib/common/logger"
 import { validateSessionAuth } from "@/lib/api/auth-middleware"
-import { parsePastedAllocation } from "@/lib/file-allocator/articles/parse-pasted-allocation"
+import { extractArticleData } from "@/lib/common/article-extractor"
 import type { ParsePastedAllocationRequest, ParsePastedAllocationResponse } from "@/types/api-articles"
 
 // Force dynamic rendering - never cache
@@ -56,8 +56,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Parse pasted data
-    const entries = parsePastedAllocation(body.pastedText)
+    // Parse pasted data using centralized extraction logic
+    // Pass undefined for emailInfo to suppress detailed logging for pasted data
+    const extractionResult = extractArticleData(body.pastedText, undefined)
+    
+    // Convert ArticleData[] to the expected API response format
+    const entries = extractionResult.articles.map(article => ({
+      articleId: article.articleId,
+      pages: article.pageNumber,
+    }))
 
     const duration = Date.now() - startTime
     const responseSize = JSON.stringify({ entries }).length
