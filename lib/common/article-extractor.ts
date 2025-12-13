@@ -12,6 +12,9 @@ import {
   EMFC_WITH_NUMBER_PATTERN,
   PAGE_COUNT_PATTERN,
   SOURCE_CODE_PATTERN,
+  DATE_PATTERN_SLASH,
+  DATE_PATTERN_DASH,
+  TIME_PATTERN,
 } from "@/lib/constants/article-regex-constants"
 
 /**
@@ -30,6 +33,170 @@ export interface ArticleExtractionResult {
   articles: ArticleData[]
   totalFiles: number
   totalPages: number
+}
+
+/**
+ * Clean HTML content by removing tags and normalizing whitespace
+ */
+function cleanHtmlText(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")      // Replace <br> with newline
+    .replace(/<\/p>/gi, "\n")           // Replace </p> with newline
+    .replace(/<li[^>]*>/gi, "\n")       // Replace <li> with newline
+    .replace(/<[^>]+>/g, "")            // Remove all other HTML tags
+    .replace(/&nbsp;/gi, " ")          // Convert &nbsp; to space
+    .replace(/\r\n/g, "\n")            // Normalize Windows line endings
+    .replace(/\n{2,}/g, "\n")          // Collapse multiple newlines
+    .trim()                             // Trim leading/trailing whitespace
+}
+
+/**
+ * Tokenize text into array of tokens (words/numbers)
+ */
+function tokenizeText(text: string): string[] {
+  return text.split(/\s+/).filter(Boolean)
+}
+
+/**
+ * Detect source (DOCX or TEX) from token immediately after article ID
+ */
+function detectSource(tokens: string[], articleIndex: number): string | null {
+  if (articleIndex + 1 >= tokens.length) return null
+  
+  const nextToken = tokens[articleIndex + 1].trim().toUpperCase()
+  if (nextToken === "DOCX" || nextToken === "TEX") {
+    return nextToken
+  }
+  
+  return null
+}
+
+/**
+ * Check if a token matches date/time patterns
+ */
+function isDateToken(token: string): boolean {
+  return DATE_PATTERN_SLASH.test(token) || DATE_PATTERN_DASH.test(token)
+}
+
+function isTimeToken(token: string): boolean {
+  return TIME_PATTERN.test(token)
+}
+
+/**
+ * Check if we've hit a date/time boundary
+ */
+function isDateTimeBoundary(tokens: string[], index: number): boolean {
+  if (index >= tokens.length) return false
+  
+  const currentToken = tokens[index].trim()
+  const isDate = isDateToken(currentToken)
+  const isTime = isTimeToken(currentToken)
+  
+  // If date is found, check if next token is time
+  if (isDate && index + 1 < tokens.length) {
+    const nextToken = tokens[index + 1].trim()
+    if (isTimeToken(nextToken)) {
+      return true
+    }
+  }
+  
+  // Standalone date or time is also a boundary
+  return isDate || isTime
+}
+
+/**
+ * Scan forward to find page number (last valid number before date/time boundary)
+ */
+function extractPageNumber(
+  tokens: string[],
+  startIndex: number,
+  articleCode: string,
+  shouldLog: boolean
+): number | null {
+  let lastPageNumber: number | null = null
+  
+  if (shouldLog) {
+    console.log(`[ArticleExtractor] Scanning for page number after "${articleCode}" starting at index ${startIndex}`)
+  }
+  
+  for (let scanIndex = startIndex; scanIndex < tokens.length; scanIndex++) {
+    const scanToken = tokens[scanIndex].trim()
+    
+    if (shouldLog) {
+      console.log(`[ArticleExtractor] Checking token at index ${scanIndex}: "${scanToken}"`)
+    }
+    
+    // Skip eMFC tokens and hyphens
+    if (EMFC_PATTERN.test(scanToken) || EMFC_WITH_NUMBER_PATTERN.test(scanToken) || scanToken === "-") {
+      if (shouldLog) {
+        console.log(`[ArticleExtractor] Skipping token: "${scanToken}"`)
+      }
+      continue
+    }
+    
+    // Capture numeric token as potential page count
+    if (PAGE_COUNT_PATTERN.test(scanToken)) {
+      const pageNumber = parseInt(scanToken, 10)
+      
+      if (shouldLog) {
+        console.log(`[ArticleExtractor] Found potential page number: ${pageNumber}`)
+      }
+      
+      if (pageNumber >= 0 && pageNumber <= 10000) {
+        lastPageNumber = pageNumber // Remember the last number seen
+      }
+      continue
+    }
+    
+    // Detect date/time boundaries to stop scanning
+    if (isDateTimeBoundary(tokens, scanIndex)) {
+      if (shouldLog) {
+        console.log(`[ArticleExtractor] ⏹️ Hit date/time boundary at index ${scanIndex}, stopping scan`)
+        if (lastPageNumber !== null) {
+          console.log(`[ArticleExtractor] ✅ Finalized page number: ${lastPageNumber} (hit date/time boundary)`)
+        }
+      }
+      break
+    }
+  }
+  
+  if (shouldLog && lastPageNumber !== null) {
+    console.log(`[ArticleExtractor] ✅ Using last number seen: ${lastPageNumber}`)
+  } else if (shouldLog && lastPageNumber === null) {
+    console.log(`[ArticleExtractor] ⚠️ No valid page number found after "${articleCode}"`)
+  }
+  
+  return lastPageNumber
+}
+
+/**
+ * Validate and create ArticleData object
+ */
+function createArticleData(
+  articleCode: string,
+  pageNumber: number | null,
+  source: string | null
+): ArticleData | null {
+  // Only include if we have a valid page number (0 is valid)
+  if (pageNumber === null) {
+    return null
+  }
+  
+  // Page number must be between 0 and 10000
+  if (pageNumber >= 0 && pageNumber <= 10000) {
+    const articleData: ArticleData = {
+      articleId: articleCode,
+      pageNumber,
+    }
+    
+    if (source) {
+      articleData.source = source
+    }
+    
+    return articleData
+  }
+  
+  return null
 }
 
 /**
@@ -61,48 +228,34 @@ export function extractArticleData(
     ? `Email: ${emailInfo.subject || emailInfo.id || "Unknown"}${emailInfo.from ? ` (From: ${emailInfo.from})` : ""}`
     : ""
 
-  // Always log to main console, even in sandboxed contexts
+  // Initialize logging
   if (shouldLog) {
-    // Use console.group instead of groupCollapsed so it's immediately visible
     console.group(`🔍 [ArticleExtractor] ${emailIdentifier}`)
-    // Force a visible log message
     console.log("%c🔍 Article Extraction Starting...", "color: blue; font-weight: bold; font-size: 14px;")
     console.log(`📧 Email ID: ${emailInfo?.id || "N/A"}`)
     console.log(`📊 Original HTML length: ${html?.length || 0} characters`)
     console.log("📋 Email Info:", emailInfo)
   }
   
-  // --- Step 1: Clean HTML content ---
-  const cleanedText = html
-    .replace(/<br\s*\/?>/gi, "\n")      // Replace <br> with newline
-    .replace(/<\/p>/gi, "\n")           // Replace </p> with newline
-    .replace(/<li[^>]*>/gi, "\n")       // Replace <li> with newline
-    .replace(/<[^>]+>/g, "")            // Remove all other HTML tags
-    .replace(/&nbsp;/gi, " ")          // Convert &nbsp; to space
-    .replace(/\r\n/g, "\n")            // Normalize Windows line endings
-    .replace(/\n{2,}/g, "\n")          // Collapse multiple newlines
-    .trim()                             // Trim leading/trailing whitespace
-
+  // Step 1: Clean HTML content
+  const cleanedText = cleanHtmlText(html)
   if (shouldLog) {
     console.log(`📝 Cleaned text length: ${cleanedText.length} characters`)
     console.log("📄 Cleaned text preview (first 500 chars):", cleanedText.substring(0, 500))
   }
 
-  // --- Step 2: Tokenize text ---
-  const tokens = cleanedText.split(/\s+/).filter(Boolean)
-  
+  // Step 2: Tokenize text
+  const tokens = tokenizeText(cleanedText)
   if (shouldLog) {
     console.log(`🔢 Total tokens: ${tokens.length}`)
     console.log("🔤 First 20 tokens:", tokens.slice(0, 20))
   }
 
-  // --- Step 3: Use regex to detect article codes ---
-  // Initialize storage for results
+  // Step 3: Iterate through tokens to find articles
   const articles: ArticleData[] = []
   const seenArticleCodes = new Set<string>()  // Prevent duplicates
-  let totalPages = 0                           // Sum of all pages
-
-  // --- Step 4: Iterate through tokens to find articles ---
+  let totalPages = 0
+  
   if (shouldLog) {
     console.log("🔍 Starting token scan...")
   }
@@ -112,137 +265,54 @@ export function extractArticleData(
     const token = tokens[i].trim()
 
     // Check if token is an article code
-    if (ARTICLE_ID_PATTERN.test(token)) {
-      potentialArticlesFound++
-      const articleCode = token.toUpperCase()
-      
+    if (!ARTICLE_ID_PATTERN.test(token)) continue
+    
+    potentialArticlesFound++
+    const articleCode = token.toUpperCase()
+    
+    if (shouldLog) {
+      console.log(`✨ Found potential article ID at index ${i}: "${token}" -> "${articleCode}"`)
+    }
+
+    // Skip duplicates
+    if (seenArticleCodes.has(articleCode)) {
       if (shouldLog) {
-        console.log(`✨ Found potential article ID at index ${i}: "${token}" -> "${articleCode}"`)
+        console.log(`[ArticleExtractor] Skipping duplicate article: "${articleCode}"`)
       }
+      continue
+    }
 
-      // Skip duplicates
-      if (seenArticleCodes.has(articleCode)) {
-        if (shouldLog) {
-          console.log(`[ArticleExtractor] Skipping duplicate article: "${articleCode}"`)
-        }
-        continue
-      }
+    seenArticleCodes.add(articleCode)
 
-      seenArticleCodes.add(articleCode)
+    // Step 4: Detect source (DOCX or TEX)
+    const source = detectSource(tokens, i)
+    if (shouldLog && source) {
+      console.log(`[ArticleExtractor] Found source after article: "${source}"`)
+    }
 
-      // Initialize tracking for this article
-      let pageCount = 0
-      let lastPageNumber: number | null = null
-      let source: string | null = null
-      
-      // --- Step 4.5: Detect source (DOCX or TEX) from token after article ID ---
-      if (i + 1 < tokens.length) {
-        const nextToken = tokens[i + 1].trim().toUpperCase()
-        if (nextToken === "DOCX" || nextToken === "TEX") {
-          source = nextToken
-          if (shouldLog) {
-            console.log(`[ArticleExtractor] Found source after article: "${source}"`)
-          }
-        }
-      }
-      
+    // Step 5: Extract page number
+    const pageNumber = extractPageNumber(tokens, i + 1, articleCode, shouldLog)
 
-      // --- Step 5: Scan forward to find page numbers ---
-      // Look for the number immediately following the article ID
-      // In table format: ARTICLE_ID SOURCE SOURCE PAGES ...
-      // Skip all consecutive source codes, eMFC tokens, etc. until we find a page number
-      const nextIndex = i + 1
-      
+    // Step 6: Create and add article if valid
+    const articleData = createArticleData(articleCode, pageNumber, source)
+    
+    if (articleData) {
       if (shouldLog) {
-        console.log(`[ArticleExtractor] Scanning for page number after "${articleCode}" starting at index ${nextIndex}`)
+        console.log(`[ArticleExtractor] ✅ Adding article: "${articleCode}" with ${articleData.pageNumber} pages${source ? ` (Source: ${source})` : ""}`)
       }
-      
-      // Skip all consecutive source codes, eMFC tokens, hyphens, etc. until we find a numeric page number
-      const maxScanDistance = 10 // Don't scan too far
-      
-      for (let scanIndex = nextIndex; scanIndex < tokens.length && scanIndex < i + maxScanDistance; scanIndex++) {
-        const scanToken = tokens[scanIndex].trim()
-        
-        if (shouldLog) {
-          console.log(`[ArticleExtractor] Checking token at index ${scanIndex}: "${scanToken}"`)
-        }
-        
-        // Skip eMFC tokens, hyphens, and source codes
-        const isEmfc = EMFC_PATTERN.test(scanToken) || EMFC_WITH_NUMBER_PATTERN.test(scanToken)
-        const isHyphen = scanToken === "-"
-        const isSourceCode = SOURCE_CODE_PATTERN.test(scanToken) && !PAGE_COUNT_PATTERN.test(scanToken)
-        
-        if (isEmfc || isHyphen || isSourceCode) {
-          if (shouldLog) {
-            console.log(`[ArticleExtractor] Skipping token: "${scanToken}" (${isEmfc ? "eMFC" : isHyphen ? "hyphen" : "source code"})`)
-          }
-          continue
-        }
-        
-        // Check if this token is a numeric page number
-        if (PAGE_COUNT_PATTERN.test(scanToken)) {
-          const pageNumber = parseInt(scanToken, 10)
-          
-          if (shouldLog) {
-            console.log(`[ArticleExtractor] Found page number: ${pageNumber} at index ${scanIndex}`)
-          }
-          
-          if (pageNumber >= 0 && pageNumber <= 10000) {
-            lastPageNumber = pageNumber
-            pageCount = pageNumber
-            
-            if (shouldLog) {
-              console.log(`[ArticleExtractor] ✅ Valid page number set: ${pageCount}`)
-            }
-            break // Found page number, stop scanning
-          } else {
-            if (shouldLog) {
-              console.log(`[ArticleExtractor] Page number out of range: ${pageNumber}`)
-            }
-          }
-        } else {
-          // If we encounter a non-numeric token that's not a source code/eMFC, continue scanning
-          if (shouldLog) {
-            console.log(`[ArticleExtractor] Token is not numeric, continuing scan: "${scanToken}"`)
-          }
-        }
-      }
-      
-      if (lastPageNumber === null && shouldLog) {
-        console.log(`[ArticleExtractor] ⚠️ No valid page number found after "${articleCode}"`)
-      }
-
-      // --- Step 6: Add article if page number is valid ---
-      if ((lastPageNumber !== null && pageCount !== 0) || lastPageNumber === 0) {
-        if (shouldLog) {
-          console.log(`[ArticleExtractor] ✅ Adding article: "${articleCode}" with ${pageCount} pages${source ? ` (Source: ${source})` : ""}`)
-        }
-        
-        const articleData: ArticleData = {
-          articleId: articleCode,
-          pageNumber: pageCount,
-        }
-        
-        if (source) {
-          articleData.source = source
-        }
-        
-        articles.push(articleData)
-        totalPages += pageCount
-      } else {
-        if (shouldLog) {
-          console.log(`[ArticleExtractor] ❌ Skipping article "${articleCode}" - invalid page number (lastPageNumber: ${lastPageNumber}, pageCount: ${pageCount})`)
-        }
+      articles.push(articleData)
+      totalPages += articleData.pageNumber
+    } else {
+      if (shouldLog) {
+        console.log(`[ArticleExtractor] ❌ Skipping article "${articleCode}" - invalid page number`)
       }
     }
   }
   
+  // Step 7: Log results and return
   if (shouldLog) {
     console.log(`Scan complete. Found ${potentialArticlesFound} potential articles, ${articles.length} valid articles`)
-  }
-
-  // --- Step 7: Return result object ---
-  if (shouldLog) {
+    
     if (articles.length === 0) {
       const matchedTokens = tokens.filter(t => ARTICLE_ID_PATTERN.test(t.trim()))
       console.warn(`❌ No articles found ${emailIdentifier}`)

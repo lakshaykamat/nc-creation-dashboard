@@ -8,10 +8,10 @@ The article detection system processes email HTML to identify article IDs, page 
 
 **Key Focus:**
 - Extract **ARTICLE ID** (e.g., `CDC101217`)
-- Extract **PAGE NUMBER** (e.g., `24`)
+- Extract **PAGE NUMBER** (e.g., `24`) - the last valid number before date/time boundary
 - Detect **SOURCE** (DOCX or TEX) if available
 
-The system prioritizes simplicity and accuracy, focusing only on these core data points.
+The system prioritizes simplicity and accuracy, focusing only on these core data points. The page number detection strategy remembers the last valid number seen before encountering a date/time pattern, ensuring correct extraction even when multiple numbers appear (e.g., "eMFC - 48 28").
 
 ## Architecture
 
@@ -155,35 +155,20 @@ CDC101217 TEX 24
 
 **Location:** `lib/common/article-extractor.ts` (Step 5)
 
-After capturing the source, the system scans forward to find the page count. During this scan, it **skips** all source codes and special tokens to find the first numeric page number.
+After capturing the source, the system scans forward to find the page count. The strategy is to **remember the last valid number** seen before hitting a date/time boundary.
 
-#### Step 5.1: Skip Source Codes and Special Tokens
+#### Step 5.1: Skip Special Tokens
 
-When scanning for page numbers, the system **skips** (does not use) all consecutive non-numeric tokens:
+When scanning for page numbers, the system **skips** these tokens:
 
-1. **Source codes** (TEX, DOCX, eMFC) - These are skipped during page scanning, even though we already captured DOCX/TEX as the source value
+1. **eMFC patterns** (eMFC, eMFC-123, eMFC:123, etc.)
 2. **Hyphens** (`-`)
-3. **eMFC patterns** (eMFC-123, eMFC:123, etc.)
 
-**Note:** We already captured the source (DOCX or TEX) in Step 6. Now we skip source codes (including additional ones) when looking for the page number.
+**Note:** Unlike source codes which are captured earlier, eMFC tokens and hyphens are simply skipped during the scan.
 
-**Example:**
-```
-FUFO100875 eMFC DOCX 40 12-12-2025 10:01
-           ↑    ↑    ↑
-           │    │    └─ Page number (40) - found and extracted
-           │    └─ Source code "DOCX" - skipped during page scan (already captured as source)
-           └─ eMFC pattern - skipped during page scan
-```
+#### Step 5.2: Remember Last Valid Number
 
-In this example:
-- Source "DOCX" is **captured** as the article source
-- Both "eMFC" and "DOCX" are **skipped** when scanning forward to find the page number
-- Page number "40" is found and extracted
-
-#### Step 5.2: Extract Page Number
-
-After skipping all non-numeric tokens, the system looks for the first numeric value:
+As the system scans forward, it **captures and remembers** any numeric token that appears:
 
 **Page Count Pattern:**
 ```typescript
@@ -193,19 +178,47 @@ PAGE_COUNT_PATTERN = /^\d+$/
 **Validation:**
 - Must be a valid integer
 - Range: 0 to 10,000
+- The **last** valid number seen before a date/time boundary is used as the page count
+
+#### Step 5.3: Stop at Date/Time Boundary
+
+The scan stops when it encounters a date/time pattern. The system uses these regex patterns:
+
+**Date Patterns:**
+- Slash format: `/^\d{1,2}\/\d{1,2}\/\d{4}$/` (e.g., `12/12/2025`, `1/1/2025`)
+- Dash format: `/^\d{1,2}-\d{1,2}-\d{4}$/` (e.g., `12-12-2025`, `1-1-2025`)
+
+**Time Pattern:**
+- Time format: `/^\d{1,2}:\d{2}$/` (e.g., `06:58`, `6:58`)
+
+**Supported Combinations:**
+- `12/12/2025` (date only - slash format)
+- `12-12-2025` (date only - dash format)
+- `12/12/2025 06:58` (date + time - slash format)
+- `12-12-2025 06:58` (date + time - dash format)
+- `12/12/2025 06:58 AM` (date + time + AM/PM - slash format)
+- `06:58` (time only)
+- `06:58 AM` (time with AM/PM)
 
 **Example Article Block:**
 ```
-CDC101217 TEX 24
-          ↑   ↑
-          │   └─ Page number (24) - extracted
-          └─ Source "TEX" - captured as source, then skipped during page scan
+EABE106602 DOCX eMFC - 48 28 12/12/2025 06:58
+           ↑    ↑    ↑   ↑  ↑
+           │    │    │   │  └─ Date/time boundary - stops here
+           │    │    │   └─ Last number before boundary - used as page count (28)
+           │    │    └─ Number 48 - remembered but later overwritten
+           │    └─ eMFC - skipped
+           └─ Source "DOCX" - captured as source earlier
 ```
 
 In this example:
-- Source "TEX" is **captured** and stored as the article source
-- Source "TEX" is **skipped** when scanning forward to find the page number
-- Page number "24" is found and extracted
+- Source "DOCX" was **captured** earlier as the article source
+- "eMFC" and "-" are **skipped**
+- Number "48" is encountered and remembered
+- Number "28" is encountered and becomes the new last number (overwrites 48)
+- Date/time boundary is reached, so "28" is used as the page count
+
+**Key Point:** The system uses the **last valid number** seen before the date/time boundary, not the first one. This handles cases where multiple numbers appear (e.g., in patterns like "eMFC - 48 28").
 
 ### 8. Article Validation and Storage
 
@@ -224,12 +237,13 @@ An article is only included if:
 - Articles are stored as an array of `ArticleData` objects
 - Each `ArticleData` contains:
   - `articleId: string` - The article identifier
-  - `pageNumber: number` - The number of pages
+  - `pageNumber: number` - The number of pages (last valid number before date/time boundary)
   - `source?: string` - Optional source type (DOCX or TEX) - **captured** from the token immediately after the article ID
 
-**Important distinction:**
-- The source (DOCX or TEX) is **captured and stored** in Step 6 (Source Detection)
-- Source codes are **skipped** in Step 7 (Page Number Extraction) when scanning forward to find the page number
+**Important points:**
+- The source (DOCX or TEX) is **captured and stored** in Step 6 (Source Detection) before page scanning begins
+- During page number extraction, the system remembers the **last valid number** seen before hitting a date/time boundary
+- This approach correctly handles cases like "eMFC - 48 28" where 28 is the actual page number, not 48
 
 ### 9. Result Formatting
 
@@ -332,12 +346,12 @@ After extraction, email-specific processing converts the new format to the legac
 3. **Article Detection:**
    - Found: `CDC101217`
      - Source **captured**: `TEX` (stored in article data)
-     - Source `TEX` **skipped** when scanning for page number
-     - Page: `24` (extracted)
+     - Scans forward, finds number `24` before date/time boundary
+     - Page: `24` (last number before boundary)
    - Found: `EA147928`
      - Source **captured**: `DOCX` (stored in article data)
-     - Source `DOCX` **skipped** when scanning for page number
-     - Page: `29` (extracted)
+     - Scans forward, finds number `29` before date/time boundary
+     - Page: `29` (last number before boundary)
 
 4. **Core Extraction Result:**
    ```typescript
@@ -376,23 +390,37 @@ If no valid page number is found after an article ID, the article is **not inclu
 
 Only the **first occurrence** of each article ID is processed. Subsequent duplicates are skipped.
 
-### 3. Source Detection and Page Number Scanning
+### 3. Multiple Numbers Before Date/Time
+
+The system correctly handles cases where multiple numbers appear before the date/time boundary:
+
+**Example:**
+```
+EABE106602 DOCX eMFC - 48 28 12/12/2025 06:58
+           ↑    ↑    ↑   ↑  ↑
+           │    │    │   │  └─ Date/time boundary - stops here
+           │    │    │   └─ Last number (28) - used as page count
+           │    │    └─ Number (48) - remembered but overwritten by 28
+           │    └─ eMFC - skipped
+           └─ DOCX - captured as source earlier
+```
+
+**Result:** Page number = `28` (the last valid number before the boundary)
+
+**Key Points:**
+- Source (DOCX/TEX) is captured from the token immediately after the article ID
+- eMFC tokens and hyphens are skipped during page scanning
+- All numeric tokens are remembered, but only the **last one** before the date/time boundary is used
+- This ensures correct page extraction even when patterns like "eMFC - 48" appear before the actual page number
+
+### 4. Source Detection and Page Number Scanning
 
 The system has two distinct steps:
 
 1. **Source Capture (Step 6):** Captures and stores DOCX or TEX from the token immediately after the article ID
-2. **Page Number Scanning (Step 7):** Skips all source codes (including DOCX, TEX, eMFC) when scanning forward to find the page number
+2. **Page Number Scanning (Step 7):** Remembers the last valid number seen before hitting a date/time boundary, skipping eMFC tokens and hyphens
 
-**Example with multiple source codes:**
-```
-FUFO100875 eMFC DOCX 40
-           ↑    ↑    ↑
-           │    │    └─ Page number (40) - extracted
-           │    └─ "DOCX" captured as source, then skipped during page scan
-           └─ "eMFC" skipped during page scan (not captured as source, only DOCX/TEX are captured)
-```
-
-**Important:** Only DOCX and TEX are captured as source values. Other source codes like eMFC are only skipped during page scanning.
+**Important:** Only DOCX and TEX are captured as source values. eMFC patterns are not captured as source, they are simply skipped during page scanning.
 
 ## Constants and Patterns
 
