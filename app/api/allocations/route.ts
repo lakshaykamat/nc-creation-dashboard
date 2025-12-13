@@ -153,9 +153,9 @@ export async function POST(request: NextRequest) {
     )
 
     // Log form analytics to MongoDB AFTER successful submission
-    const urlPath = new URL(request.url).pathname
+    const fullUrl = request.url
     const userDetails = extractUserDeviceInfo(request)
-    logFormAnalytics(body, urlPath, userDetails).catch((error) => {
+    logFormAnalytics(body, fullUrl, userDetails).catch((error) => {
       // Log error but don't fail the response
       console.error("Failed to log form analytics:", error)
     })

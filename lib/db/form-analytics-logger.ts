@@ -75,20 +75,20 @@ function calculateSummary(allocation: FinalAllocationResult): FormAnalyticsLog["
  * Uses the generic logAnalytics utility under the hood
  * 
  * @param allocation - The final allocation result from form submission
- * @param urlPath - The URL path where the form was submitted
+ * @param url - The full URL (including query params) where the form was submitted
  * @param userDetails - Optional user device and browser information
  * @returns Promise that resolves when log is saved
  */
 export async function logFormAnalytics(
   allocation: FinalAllocationResult,
-  urlPath: string,
+  url: string,
   userDetails?: UserDeviceInfo
 ): Promise<void> {
   const summary = calculateSummary(allocation)
 
   await logAnalytics(
     "article allocator",
-    urlPath,
+    url,
     {
       formData: allocation,
       summary,
