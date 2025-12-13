@@ -75,14 +75,15 @@ export function useArticleDetection(emails: Email[]): UseArticleDetectionResult 
 
   // Create stable email IDs key for comparison
   const emailIdsString = useMemo(() => {
+    if (!Array.isArray(emails)) return ""
     const ids = emails.map((e) => e.id)
     return createEmailIdsKey(ids)
   }, [emails])
 
   // Store emails in ref to avoid dependency issues
-  const emailsRef = useRef<Email[]>(emails)
+  const emailsRef = useRef<Email[]>(Array.isArray(emails) ? emails : [])
   useEffect(() => {
-    emailsRef.current = emails
+    emailsRef.current = Array.isArray(emails) ? emails : []
   }, [emailIdsString])
 
   // Process emails and calculate stats

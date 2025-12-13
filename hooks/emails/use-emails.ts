@@ -24,7 +24,8 @@ async function fetchEmails(): Promise<Email[]> {
   }
 
   const data = await res.json()
-  return data.data || []
+  const emails = data.data
+  return Array.isArray(emails) ? emails : []
 }
 
 /**

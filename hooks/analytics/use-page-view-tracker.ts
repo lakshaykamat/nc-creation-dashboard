@@ -17,6 +17,11 @@ export function usePageViewTracker() {
   const pathname = usePathname()
   const { role } = useUserRole()
   const trackedPathnameRef = useRef<string | null>(null)
+  const roleRef = useRef<string>("unknown")
+
+  useEffect(() => {
+    roleRef.current = role || "unknown"
+  }, [role])
 
   useEffect(() => {
     if (!pathname || pathname === trackedPathnameRef.current) {
@@ -27,7 +32,7 @@ export function usePageViewTracker() {
 
     const payload = JSON.stringify({
       pathname,
-      userRole: role || "unknown",
+      userRole: roleRef.current,
     })
 
     if (typeof navigator !== "undefined" && navigator.sendBeacon) {
@@ -46,6 +51,6 @@ export function usePageViewTracker() {
       body: payload,
       keepalive: true,
     }).catch(() => {})
-  }, [pathname, role])
+  }, [pathname])
 }
 

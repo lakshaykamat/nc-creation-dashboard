@@ -115,7 +115,8 @@ export async function GET(request: NextRequest) {
     }
 
     const emails: EmailsResponse = await webhookResponse.json()
-    const responseSize = JSON.stringify(emails).length
+    const emailsArray = Array.isArray(emails) ? emails : []
+    const responseSize = JSON.stringify(emailsArray).length
 
     logger.logRequest(
       requestContext,
@@ -135,12 +136,12 @@ export async function GET(request: NextRequest) {
       ],
       {
         endpoint: "emails",
-        emailCount: Array.isArray(emails) ? emails.length : 0,
+        emailCount: emailsArray.length,
         success: true,
       }
     )
 
-    return NextResponse.json({ data: emails })
+    return NextResponse.json({ data: emailsArray })
   } catch (error) {
     const duration = Date.now() - startTime
 
