@@ -22,12 +22,6 @@ export const ARTICLE_ID_PATTERN = /^[A-Z]{2,}[A-Z0-9]*\d$/
 export const ARTICLE_WITH_PAGES_PATTERN = /^([^\s[\]]+)\s*\[(\d+)\]/
 
 /**
- * Pattern to match article ID only (without pages)
- * Used for parsing pasted text where pages may not be specified
- */
-export const ARTICLE_ID_ONLY_PATTERN = /^([^\s[\]]+)$/
-
-/**
  * Pattern to match numeric page count
  * Used for validating page numbers
  */
