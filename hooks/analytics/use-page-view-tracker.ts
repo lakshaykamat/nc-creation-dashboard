@@ -17,14 +17,8 @@ export function usePageViewTracker() {
   const pathname = usePathname()
   const { role } = useUserRole()
   const trackedPathnameRef = useRef<string | null>(null)
-  const roleRef = useRef<string>("unknown")
 
-  // Keep role ref updated (don't trigger tracking on role change)
-  useEffect(() => {
-    roleRef.current = role || "unknown"
-  }, [role])
-
-  // Track only on pathname change
+  // Track only on pathname change - fire immediately, don't wait for role
   useEffect(() => {
     // Skip if no pathname
     if (!pathname) {
@@ -39,13 +33,25 @@ export function usePageViewTracker() {
     // Mark as tracked immediately to prevent duplicates
     trackedPathnameRef.current = pathname
 
+    // Get role value (use current value, don't wait for it to load)
+    const currentRole = role || "unknown"
+
     // Send request immediately - no delays, no batching
     const payload = JSON.stringify({
       pathname,
-      userRole: roleRef.current,
+      userRole: currentRole,
     })
 
-    // Always use fetch for reliability - sendBeacon can be unreliable
+    // Try sendBeacon first - it's designed to survive page navigation
+    // This is critical for login page which redirects immediately after tracking
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: "application/json" })
+      if (navigator.sendBeacon("/api/analytics/page-view", blob)) {
+        return // Successfully queued, will send even if page navigates
+      }
+    }
+
+    // Fallback to fetch with keepalive
     fetch("/api/analytics/page-view", {
       method: "POST",
       headers: {
@@ -53,10 +59,10 @@ export function usePageViewTracker() {
       },
       credentials: "include",
       body: payload,
-      // Don't wait for response - fire and forget
+      keepalive: true, // Ensures request completes even if page navigates away
     }).catch(() => {
       // Silently fail - analytics shouldn't break the app
     })
-  }, [pathname]) // Only depend on pathname, not role
+  }, [pathname, role]) // Include role so we use the latest value when available
 }
 
