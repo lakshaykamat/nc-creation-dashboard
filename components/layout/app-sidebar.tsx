@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Earth, BriefcaseBusiness, FolderTree, Settings, Database, User, LogOut, Users, Mail, type LucideIcon } from "lucide-react"
+import { Earth, BriefcaseBusiness, FolderTree, Settings, Database, User, LogOut, Users, Mail, BarChart, type LucideIcon } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 
@@ -48,6 +48,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     Database,
     Users,
     Mail,
+    BarChart,
   }
 
   const getIcon = (iconName?: string) => {

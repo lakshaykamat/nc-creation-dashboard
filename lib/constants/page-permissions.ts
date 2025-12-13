@@ -50,6 +50,12 @@ export const PAGE_PERMISSIONS: Record<string, PagePermission> = {
     roles: ["ADMIN"],
     enabled: true,
   },
+  "/analytics": {
+    path: "/analytics",
+    label: "Analytics",
+    roles: ["ADMIN"],
+    enabled: true,
+  },
 }
 
 /**
@@ -93,6 +99,14 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
     path: "/emails",
     label: "Emails",
     icon: "Mail",
+    group: "Tools",
+    roles: ["ADMIN"],
+    enabled: true,
+  },
+  {
+    path: "/analytics",
+    label: "Analytics",
+    icon: "BarChart",
     group: "Tools",
     roles: ["ADMIN"],
     enabled: true,
