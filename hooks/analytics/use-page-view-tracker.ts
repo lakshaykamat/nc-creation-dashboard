@@ -19,6 +19,7 @@ export function usePageViewTracker() {
   const { role } = useUserRole()
   const trackedUrlRef = useRef<string | null>(null)
   const roleRef = useRef<string>("unknown")
+  const hasTrackedInitialRef = useRef<boolean>(false)
 
   useEffect(() => {
     roleRef.current = role || "unknown"
@@ -34,11 +35,15 @@ export function usePageViewTracker() {
       const queryString = searchParams.toString()
       const fullUrl = queryString ? `${pathname}?${queryString}` : pathname
 
-      if (fullUrl === trackedUrlRef.current) {
+      const isInitialMount = !hasTrackedInitialRef.current
+      const urlChanged = fullUrl !== trackedUrlRef.current
+
+      if (!isInitialMount && !urlChanged) {
         return
       }
 
       trackedUrlRef.current = fullUrl
+      hasTrackedInitialRef.current = true
 
       const queryParams: Record<string, string> = {}
       searchParams.forEach((value, key) => {
