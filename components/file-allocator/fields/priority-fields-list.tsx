@@ -88,12 +88,7 @@ export function PriorityFieldsList({
         {isLoadingMembers ? (
           <div className="space-y-2">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-lg border">
-                <Skeleton className="h-5 w-5 rounded-full" />
-                <Skeleton className="h-7 w-7 rounded-full" />
-                <Skeleton className="h-4 flex-1" />
-                <Skeleton className="h-9 w-32" />
-              </div>
+              <Skeleton key={i} className="h-16 w-full" />
             ))}
           </div>
         ) : (

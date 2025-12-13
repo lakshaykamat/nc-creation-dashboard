@@ -67,29 +67,13 @@ export function PortalDataContent({
 
   if (isLoading) {
     return (
-      <div className="space-y-0">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 py-3 border-b rounded-t-md">
-          <Skeleton className="h-10 flex-[2] min-w-0" />
-          <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 shrink-0">
-            <Skeleton className="h-9 w-full sm:w-24" />
-            <Skeleton className="h-9 w-full sm:w-20" />
-            <Skeleton className="h-9 w-full sm:w-28" />
-            <Skeleton className="h-9 w-full sm:w-24" />
-          </div>
-        </div>
-        <div className="rounded-b-md border-x border-b">
-          <div className="overflow-x-auto">
-            <div className="p-4 space-y-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3 border-t">
-            <Skeleton className="h-5 w-32" />
-            <Skeleton className="h-9 w-24" />
-          </div>
+      <div className="space-y-4">
+        <Skeleton className="h-16 w-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
         </div>
       </div>
     )
