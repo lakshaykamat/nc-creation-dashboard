@@ -15,27 +15,8 @@ import clientPromise from "@/lib/db/mongo"
 export interface BaseAnalyticsLog {
   domain: string
   timestamp: Date
-  date: string
-  time: string
   urlPath: string
   [key: string]: unknown // Allow additional fields
-}
-
-/**
- * Format date and time strings
- */
-function formatDateTime(date: Date): { date: string; time: string } {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-  const hours = String(date.getHours()).padStart(2, "0")
-  const minutes = String(date.getMinutes()).padStart(2, "0")
-  const seconds = String(date.getSeconds()).padStart(2, "0")
-
-  return {
-    date: `${year}-${month}-${day}`,
-    time: `${hours}:${minutes}:${seconds}`,
-  }
 }
 
 /**
@@ -73,13 +54,10 @@ export async function logAnalytics(
     const collection = db.collection<BaseAnalyticsLog>("logs")
 
     const now = new Date()
-    const { date, time } = formatDateTime(now)
 
     const logEntry: BaseAnalyticsLog = {
       domain,
       timestamp: now,
-      date,
-      time,
       urlPath,
       ...data, // Merge additional data
     }

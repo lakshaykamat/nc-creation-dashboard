@@ -1,7 +1,7 @@
 /**
  * Analytics Content Component
  * 
- * Displays analytics logs from MongoDB
+ * Displays analytics with a minimal line chart
  * 
  * @module components/analytics/analytics-content
  */
@@ -10,75 +10,72 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ErrorCard } from "@/components/common/error-card"
 import { getApiHeaders } from "@/lib/api/api-client"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts"
 
-interface AnalyticsLog {
-  _id: string
-  domain: string
-  timestamp: Date
+interface TimeSeriesDataPoint {
   date: string
-  time: string
-  urlPath: string
-  [key: string]: unknown
+  pageViews: number
+  formAllocations: number
 }
 
-interface AnalyticsLogsResponse {
-  logs: AnalyticsLog[]
-  totalCount: number
-  limit: number
-  skip: number
+interface AnalyticsStatsResponse {
+  timeSeriesData: TimeSeriesDataPoint[]
+  totalPageViews: number
+  formAllocationCount: number
 }
 
-async function fetchAnalyticsLogs(domain?: string, limit = 100): Promise<AnalyticsLogsResponse> {
-  const params = new URLSearchParams()
-  if (domain) {
-    params.append("domain", domain)
-  }
-  params.append("limit", limit.toString())
+type TimeFilter = "6h" | "24h" | "3d" | "7d"
 
-  const response = await fetch(`/api/analytics/logs?${params.toString()}`, {
+async function fetchAnalyticsStats(timeFilter: TimeFilter = "7d"): Promise<AnalyticsStatsResponse> {
+  const params = new URLSearchParams({ timeFilter })
+  const response = await fetch(`/api/analytics/stats?${params.toString()}`, {
     method: "GET",
     headers: getApiHeaders(),
     credentials: "include",
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: "Failed to fetch analytics logs" }))
-    throw new Error(error.message || "Failed to fetch analytics logs")
+    const error = await response.json().catch(() => ({ message: "Failed to fetch analytics stats" }))
+    throw new Error(error.message || "Failed to fetch analytics stats")
   }
 
   return response.json()
 }
 
-export function AnalyticsContent() {
-  const [domainFilter, setDomainFilter] = useState<string>("all")
-  const [limit, setLimit] = useState(100)
+const chartConfig = {
+  pageViews: {
+    label: "Page Views",
+    color: "hsl(221.2 83.2% 53.3%)",
+  },
+  formAllocations: {
+    label: "Form Allocations",
+    color: "hsl(142.1 76.2% 36.3%)",
+  },
+} satisfies ChartConfig
 
-  const { data, isLoading, isError, error } = useQuery<AnalyticsLogsResponse>({
-    queryKey: ["analytics-logs", domainFilter, limit],
-    queryFn: () => fetchAnalyticsLogs(domainFilter === "all" ? undefined : domainFilter, limit),
+export function AnalyticsContent() {
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>("7d")
+
+  const { data, isLoading, isError, error } = useQuery<AnalyticsStatsResponse>({
+    queryKey: ["analytics-stats", timeFilter],
+    queryFn: () => fetchAnalyticsStats(timeFilter),
     refetchOnWindowFocus: false,
     retry: 1,
   })
-
-  // Extract unique domains from logs
-  const availableDomains = Array.from(
-    new Set(data?.logs.map(log => log.domain) || [])
-  ).sort()
 
   if (isError) {
     return (
@@ -90,150 +87,122 @@ export function AnalyticsContent() {
     )
   }
 
+  // Format dates for display based on time filter
+  const chartData = data?.timeSeriesData.map((item) => {
+    // Parse the date string (could be YYYY-MM-DD or YYYY-MM-DD HH:00)
+    const dateStr = item.date
+    let displayDate: string
+    
+    if (dateStr.includes(" ")) {
+      // Hour format: "YYYY-MM-DD HH:00"
+      const [datePart, timePart] = dateStr.split(" ")
+      const hour = timePart.split(":")[0]
+      const date = new Date(datePart)
+      displayDate = `${date.toLocaleDateString("en-US", { month: "short", day: "numeric" })} ${hour}:00`
+    } else {
+      // Day format: "YYYY-MM-DD"
+      displayDate = new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    }
+    
+    return {
+      ...item,
+      date: displayDate,
+    }
+  }) || []
+
   return (
     <div className="space-y-4">
-      {/* Filters */}
+      {/* Statistics Cards */}
+      {data && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Total Page Views</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{data.totalPageViews}</div>
+              <p className="text-sm text-muted-foreground mt-1">All pages</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Article Allocator Form</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{data.formAllocationCount}</div>
+              <p className="text-sm text-muted-foreground mt-1">Form submissions</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Line Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
-          <CardDescription>Filter analytics logs by domain</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="domain-filter">Domain</Label>
-              <Select value={domainFilter} onValueChange={setDomainFilter}>
-                <SelectTrigger id="domain-filter">
-                  <SelectValue placeholder="All domains" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <CardTitle>Analytics Overview</CardTitle>
+              <CardDescription>Page views and form allocations over time</CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="time-filter" className="text-sm whitespace-nowrap">Time Period:</Label>
+              <Select value={timeFilter} onValueChange={(value) => setTimeFilter(value as TimeFilter)}>
+                <SelectTrigger id="time-filter" className="w-[140px]">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All domains</SelectItem>
-                  {availableDomains.map(domain => (
-                    <SelectItem key={domain} value={domain}>
-                      {domain}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="6h">Last 6 hours</SelectItem>
+                  <SelectItem value="24h">Last 24 hours</SelectItem>
+                  <SelectItem value="3d">Last 3 days</SelectItem>
+                  <SelectItem value="7d">Last 7 days</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="limit">Limit</Label>
-              <Input
-                id="limit"
-                type="number"
-                min="1"
-                max="1000"
-                value={limit}
-                onChange={(e) => setLimit(parseInt(e.target.value, 10) || 100)}
-              />
-            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Logs Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Analytics Logs</CardTitle>
-          <CardDescription>
-            {data ? `${data.totalCount} total logs` : "Loading..."}
-          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
+            <div className="h-[400px] w-full flex items-center justify-center">
+              <Skeleton className="h-full w-full" />
             </div>
-          ) : !data || data.logs.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-lg font-medium">No logs found</p>
-              <p className="text-sm text-muted-foreground">
-                {domainFilter !== "all"
-                  ? `No logs found for domain "${domainFilter}"`
-                  : "No analytics logs available"}
-              </p>
+          ) : chartData.length === 0 ? (
+            <div className="h-[400px] w-full flex items-center justify-center text-muted-foreground">
+              <p>No data available</p>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>Domain</TableHead>
-                    <TableHead>URL Path</TableHead>
-                    <TableHead>Summary</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.logs.map((log) => (
-                    <TableRow key={log._id}>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{log.date}</span>
-                          <span className="text-sm text-muted-foreground">{log.time}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">{log.domain}</span>
-                      </TableCell>
-                      <TableCell>
-                        <code className="text-xs bg-muted px-2 py-1 rounded">
-                          {log.urlPath}
-                        </code>
-                      </TableCell>
-                      <TableCell>
-                        {log.summary && typeof log.summary === "object" ? (
-                          <div className="text-sm space-y-1">
-                            {(() => {
-                              const summary = log.summary as Record<string, unknown>
-                              const totalArticles = summary.totalArticles
-                              if (totalArticles && (typeof totalArticles === "number" || typeof totalArticles === "string")) {
-                                return (
-                                  <div>
-                                    <span className="text-muted-foreground">Articles: </span>
-                                    <span className="font-medium">{String(totalArticles)}</span>
-                                  </div>
-                                )
-                              }
-                              return null
-                            })()}
-                            {(() => {
-                              const summary = log.summary as Record<string, unknown>
-                              const totalPages = summary.totalPages
-                              if (totalPages && (typeof totalPages === "number" || typeof totalPages === "string")) {
-                                return (
-                                  <div>
-                                    <span className="text-muted-foreground">Pages: </span>
-                                    <span className="font-medium">{String(totalPages)}</span>
-                                  </div>
-                                )
-                              }
-                              return null
-                            })()}
-                            {(() => {
-                              const summary = log.summary as Record<string, unknown>
-                              const totalPersonAllocations = summary.totalPersonAllocations
-                              if (totalPersonAllocations !== undefined && (typeof totalPersonAllocations === "number" || typeof totalPersonAllocations === "string")) {
-                                return (
-                                  <div>
-                                    <span className="text-muted-foreground">Allocations: </span>
-                                    <span className="font-medium">{String(totalPersonAllocations)}</span>
-                                  </div>
-                                )
-                              }
-                              return null
-                            })()}
-                          </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="w-full min-w-0">
+              <ChartContainer config={chartConfig} className="h-[400px] w-full min-w-0 [&>div]:w-full">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Line
+                    type="monotone"
+                    dataKey="pageViews"
+                    stroke="var(--color-pageViews)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="formAllocations"
+                    stroke="var(--color-formAllocations)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ChartContainer>
             </div>
           )}
         </CardContent>
@@ -241,4 +210,3 @@ export function AnalyticsContent() {
     </div>
   )
 }
-

@@ -16,8 +16,6 @@ import type { FinalAllocationResult } from "@/types/file-allocator"
 export interface FormAnalyticsLog {
   domain: string
   timestamp: Date
-  date: string
-  time: string
   urlPath: string
   formData: FinalAllocationResult
   summary: {
