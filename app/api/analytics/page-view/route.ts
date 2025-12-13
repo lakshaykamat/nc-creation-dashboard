@@ -31,17 +31,34 @@ interface PageViewRequest {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Validate session authentication
-    const authError = await validateSessionAuth(request)
-    if (authError) {
-      // Don't log page views for unauthenticated users
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+    // Handle both regular JSON and sendBeacon Blob requests
+    let body: PageViewRequest
+    try {
+      const contentType = request.headers.get("content-type")
+      if (contentType?.includes("application/json")) {
+        body = await request.json()
+      } else {
+        // Handle sendBeacon Blob
+        const blob = await request.blob()
+        const text = await blob.text()
+        body = JSON.parse(text)
+      }
+    } catch {
+      body = {} as PageViewRequest
     }
-
-    const body: PageViewRequest = await request.json().catch(() => ({}))
     
     if (!body.pathname) {
       return NextResponse.json({ success: false, message: "pathname is required" }, { status: 400 })
+    }
+
+    // Allow login page to be tracked even without authentication
+    // For other pages, validate session authentication
+    if (body.pathname !== "/login") {
+      const authError = await validateSessionAuth(request)
+      if (authError) {
+        // Don't log page views for unauthenticated users (except login page)
+        return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 })
+      }
     }
 
     // Get user role and session token from cookies
