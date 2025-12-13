@@ -86,12 +86,21 @@ export async function logFormAnalytics(
 ): Promise<void> {
   const summary = calculateSummary(allocation)
 
+  let ref: string | undefined
+  try {
+    const urlObj = new URL(url)
+    ref = urlObj.searchParams.get("ref") || undefined
+  } catch {
+    // If URL parsing fails, ref remains undefined
+  }
+
   await logAnalytics(
     "article allocator",
     url,
     {
       formData: allocation,
       summary,
+      ref,
     },
     userDetails
   )

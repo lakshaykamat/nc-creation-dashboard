@@ -11,6 +11,7 @@ import { formatDateInIndianTime } from "@/lib/utils/date-utils"
 export interface TimeSeriesDataPoint {
   date: string
   formAllocations: number
+  refs?: Record<string, number>
 }
 
 export interface AnalyticsStatsResponse {

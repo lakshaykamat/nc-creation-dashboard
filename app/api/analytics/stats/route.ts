@@ -21,6 +21,7 @@ export const revalidate = 0
 interface TimeSeriesDataPoint {
   date: string
   formAllocations: number
+  refs?: Record<string, number>
 }
 
 /**
@@ -85,24 +86,40 @@ export async function GET(request: NextRequest) {
       {
         $group: {
           _id: {
-            $dateToString: {
-              format: timeFilter === "6h" || timeFilter === "24h" ? "%Y-%m-%d %H:00" : "%Y-%m-%d",
-              date: "$timestamp",
-              timezone: "Asia/Kolkata",
+            date: {
+              $dateToString: {
+                format: timeFilter === "6h" || timeFilter === "24h" ? "%Y-%m-%d %H:00" : "%Y-%m-%d",
+                date: "$timestamp",
+                timezone: "Asia/Kolkata",
+              },
             },
+            ref: { $ifNull: ["$ref", "none"] },
           },
-          formAllocations: { $sum: 1 },
+          count: { $sum: 1 },
         },
       },
       {
-        $sort: { _id: 1 },
+        $group: {
+          _id: "$_id.date",
+          formAllocations: { $sum: "$count" },
+          refs: {
+            $push: {
+              k: "$_id.ref",
+              v: "$count",
+            },
+          },
+        },
       },
       {
         $project: {
           _id: 0,
           date: "$_id",
           formAllocations: 1,
+          refs: { $arrayToObject: "$refs" },
         },
+      },
+      {
+        $sort: { date: 1 },
       },
     ]
 

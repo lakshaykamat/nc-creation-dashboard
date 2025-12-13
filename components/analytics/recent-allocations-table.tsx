@@ -118,42 +118,45 @@ export function RecentAllocationsTable({ logs, isLoading }: RecentAllocationsTab
                         {formatTimestamp(log.timestamp)}
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-2">
-                          {personAllocations.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5">
-                              {personAllocations.map((alloc, i) => (
-                                <Badge key={i} variant="outline" className="text-xs font-medium">
-                                  {alloc.person}
-                                  <span className="ml-1 text-muted-foreground">({alloc.articles.length})</span>
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                          <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="text-muted-foreground">
-                              {summary?.totalArticles || 0} articles
-                            </span>
-                            <span className="text-muted-foreground">·</span>
-                            <span className="text-muted-foreground">
-                              {summary?.totalPages || 0} pages
-                            </span>
-                            {ddnCount > 0 && (
-                              <>
-                                <span className="text-muted-foreground">·</span>
-                                <Badge variant="secondary" className="text-xs">
-                                  {ddnCount} DDN
-                                </Badge>
-                              </>
-                            )}
-                            {unallocatedCount > 0 && (
-                              <>
-                                <span className="text-muted-foreground">·</span>
-                                <Badge variant="destructive" className="text-xs">
-                                  {unallocatedCount} need allocation
-                                </Badge>
-                              </>
-                            )}
-                          </div>
+                        <div className="text-sm">
+                          {(() => {
+                            const parts: string[] = []
+                            
+                            if (personAllocations.length > 0) {
+                              const peopleList = personAllocations
+                                .map((alloc) => `${alloc.person} (${alloc.articles.length} articles)`)
+                                .join(", ")
+                              parts.push(`Allocated to ${peopleList}`)
+                            }
+                            
+                            if (ddnCount > 0) {
+                              parts.push(`${ddnCount} DDN article${ddnCount > 1 ? "s" : ""}`)
+                            }
+                            
+                            if (unallocatedCount > 0) {
+                              parts.push(`${unallocatedCount} article${unallocatedCount > 1 ? "s" : ""} need allocation`)
+                            }
+                            
+                            if (parts.length === 0) {
+                              return <span className="text-muted-foreground">No allocation data</span>
+                            }
+                            
+                            return (
+                              <span>
+                                {parts.map((part, i) => (
+                                  <span key={i}>
+                                    {i > 0 && <span className="text-muted-foreground"> · </span>}
+                                    {part}
+                                  </span>
+                                ))}
+                                {summary?.totalPages && (
+                                  <span className="text-muted-foreground">
+                                    {" "}({summary.totalPages} pages)
+                                  </span>
+                                )}
+                              </span>
+                            )
+                          })()}
                         </div>
                       </TableCell>
                       <TableCell>
