@@ -6,17 +6,19 @@
  */
 
 import { useEffect, useRef } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { useUserRole } from "@/hooks/auth/use-user-role"
 
 /**
- * Tracks page views automatically when pathname changes.
+ * Tracks page views automatically when pathname or query params change.
+ * Includes full URL with query parameters and route params.
  * Prevents duplicate tracking and handles page navigation gracefully.
  */
 export function usePageViewTracker() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { role } = useUserRole()
-  const trackedPathnameRef = useRef<string | null>(null)
+  const trackedUrlRef = useRef<string | null>(null)
   const roleRef = useRef<string>("unknown")
 
   useEffect(() => {
@@ -24,14 +26,23 @@ export function usePageViewTracker() {
   }, [role])
 
   useEffect(() => {
-    if (!pathname || pathname === trackedPathnameRef.current) {
+    if (!pathname) {
       return
     }
 
-    trackedPathnameRef.current = pathname
+    const queryString = searchParams.toString()
+    const fullUrl = queryString ? `${pathname}?${queryString}` : pathname
+
+    if (fullUrl === trackedUrlRef.current) {
+      return
+    }
+
+    trackedUrlRef.current = fullUrl
 
     const payload = JSON.stringify({
       pathname,
+      url: fullUrl,
+      queryParams: queryString ? Object.fromEntries(searchParams.entries()) : {},
       userRole: roleRef.current,
     })
 
@@ -51,6 +62,6 @@ export function usePageViewTracker() {
       body: payload,
       keepalive: true,
     }).catch(() => {})
-  }, [pathname])
+  }, [pathname, searchParams])
 }
 

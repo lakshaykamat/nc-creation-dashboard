@@ -17,6 +17,8 @@ export const revalidate = 0
 
 interface PageViewRequest {
   pathname: string
+  url?: string
+  queryParams?: Record<string, string>
   userRole: string
 }
 
@@ -51,10 +53,17 @@ export async function POST(request: NextRequest) {
     const visitorId = sessionTokenCookie?.value || `role:${userRole}`
     const userDetails = extractUserDeviceInfo(request)
     
+    const urlToLog = body.url || body.pathname
+    
     logAnalytics(
       "page view",
-      body.pathname,
-      { userRole, visitorId },
+      urlToLog,
+      {
+        userRole,
+        visitorId,
+        pathname: body.pathname,
+        queryParams: body.queryParams || {},
+      },
       userDetails
     ).catch(() => {})
 
