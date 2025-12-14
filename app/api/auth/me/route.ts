@@ -1,20 +1,23 @@
-import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
-import { AUTH_COOKIE_NAMES, type UserRole } from "@/lib/auth/auth-utils"
+import { NextRequest, NextResponse } from "next/server"
+import { getAuthenticatedUser } from "@/lib/api/auth-middleware"
 
 export const dynamic = "force-dynamic"
 
-export async function GET() {
+/**
+ * GET /api/auth/me
+ * 
+ * Returns the current authenticated user's role.
+ * Supports both cookie-based (web) and API key (mobile) authentication.
+ */
+export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const authRole = cookieStore.get(AUTH_COOKIE_NAMES.ROLE)
+    const user = await getAuthenticatedUser(request)
 
-    if (!authRole?.value) {
-      return NextResponse.json({ role: null }, { status: 200 })
+    if (user.authenticated) {
+      return NextResponse.json({ role: user.role, authenticated: true })
     }
 
-    const role = authRole.value as UserRole
-    return NextResponse.json({ role })
+    return NextResponse.json({ role: null }, { status: 200 })
   } catch (error) {
     console.error("Get user role error:", error)
     return NextResponse.json({ role: null }, { status: 200 })

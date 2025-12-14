@@ -2,7 +2,17 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { AUTH_COOKIE_NAMES, type UserRole } from "@/lib/auth/auth-utils"
 import { canAccessPage } from "@/lib/common/page-permissions-utils"
+import { hasValidCookies, isValidApiKey } from "@/lib/api/auth-middleware"
 
+/**
+ * Next.js Middleware
+ * 
+ * Handles authentication and authorization for page routes.
+ * Uses centralized authentication logic from auth-middleware.
+ * 
+ * Note: Middleware runs at edge runtime, so it uses lightweight checks.
+ * Full password validation happens in API routes.
+ */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -15,33 +25,31 @@ export function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check for auth cookies
-  const authToken = request.cookies.get(AUTH_COOKIE_NAMES.TOKEN)
+  // Check authentication via cookie or API key (centralized logic)
+  const hasCookies = hasValidCookies(request)
+  const hasApiKey = isValidApiKey(request)
+
+  // If neither cookie nor API key is valid, redirect to login
+  if (!hasCookies && !hasApiKey) {
+    const loginUrl = new URL("/login", request.url)
+    loginUrl.searchParams.set("redirect", pathname)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // For API key authentication, allow access (no role-based permissions)
+  if (hasApiKey && !hasCookies) {
+    return NextResponse.next()
+  }
+
+  // For cookie authentication, check page permissions
   const authRole = request.cookies.get(AUTH_COOKIE_NAMES.ROLE)
-
-  // If no auth token or role, redirect to login
-  if (!authToken?.value || !authRole?.value) {
-    const loginUrl = new URL("/login", request.url)
-    loginUrl.searchParams.set("redirect", pathname)
-    return NextResponse.redirect(loginUrl)
+  if (authRole?.value) {
+    const userRole = authRole.value as UserRole
+    if (!canAccessPage(pathname, userRole)) {
+      return NextResponse.redirect(new URL("/", request.url))
+    }
   }
 
-  // Basic validation: check that cookies have non-empty values
-  // Full password validation happens in API routes (which support Node.js crypto)
-  if (authToken.value.trim() === "" || authRole.value.trim() === "") {
-    const loginUrl = new URL("/login", request.url)
-    loginUrl.searchParams.set("redirect", pathname)
-    return NextResponse.redirect(loginUrl)
-  }
-
-  // Check page permissions using centralized configuration
-  const userRole = authRole.value as UserRole
-  if (!canAccessPage(pathname, userRole)) {
-    // Redirect to home page if user doesn't have access
-    return NextResponse.redirect(new URL("/", request.url))
-  }
-
-  // Allow access to protected routes
   return NextResponse.next()
 }
 

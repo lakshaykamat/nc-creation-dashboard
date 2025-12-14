@@ -114,6 +114,26 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now()
   const requestContext = logger.createRequestContext(request)
 
+  // Validate session authentication
+  const authError = await validateSessionAuth(request)
+  if (authError) {
+    logger.logRequest(
+      requestContext,
+      {
+        status: authError.status,
+        statusText: "Unauthorized",
+        duration: Date.now() - startTime,
+        dataSize: 0,
+      },
+      [],
+      {
+        endpoint: "teams",
+        error: "Unauthorized session",
+      }
+    )
+    return authError
+  }
+
   try {
     const body: CreateTeamMemberRequest = await request.json()
 

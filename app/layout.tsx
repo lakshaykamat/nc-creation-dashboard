@@ -88,15 +88,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      >   
         <ThemeProvider
             attribute="class"
             defaultTheme="dark"
             enableSystem={false}
             disableTransitionOnChange
-          >   
-          <Snowfall snowflakeCount={100} />     
-        <Providers>{children}</Providers>
+          >
+          <Providers>{children}</Providers>
+          <Snowfall snowflakeCount={30} />   
         </ThemeProvider>
         <Analytics/>
       </body>

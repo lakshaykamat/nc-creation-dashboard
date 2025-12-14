@@ -19,7 +19,25 @@ All API endpoints are prefixed with `/api`.
 
 ## Authentication
 
-All API endpoints (except `/api/login`) require session-based authentication via cookies. The session is established through the login endpoint.
+All API endpoints (except `/api/login`) require authentication. The API supports two authentication methods:
+
+1. **Cookie-based authentication (Web)**: Session-based authentication via HTTP-only cookies. The session is established through the login endpoint.
+2. **API Key authentication (Mobile)**: Header-based authentication using `X-API-KEY` header for mobile applications.
+
+### Authentication Flow
+
+The API checks authentication in the following order:
+1. First, checks for valid session cookies (web clients)
+2. If no valid cookie is found, checks for `X-API-KEY` header (mobile clients)
+
+### API Key Setup
+
+For mobile applications, include the API key in the request header:
+```
+X-API-KEY: <NEXT_PUBLIC_NC_API_KEY>
+```
+
+The API key value should match the `NEXT_PUBLIC_NC_API_KEY` environment variable.
 
 ### POST /api/login
 
@@ -68,16 +86,24 @@ Logs out the current user by clearing session cookies.
 
 ### GET /api/auth/me
 
-Retrieves the current authenticated user's role.
+Retrieves the current authenticated user's role. Supports both cookie-based and API key authentication.
 
-**Request:** None
+**Request Headers (Optional for API key auth):**
+```
+X-API-KEY: <NEXT_PUBLIC_NC_API_KEY>
+```
 
 **Response (200 OK):**
 ```typescript
 {
-  role: string | null  // Current user role, or null if not authenticated
+  role: string | null        // Current user role (cookie auth), or null
+  authenticated?: boolean    // true if authenticated via API key
 }
 ```
+
+**Notes:**
+- For cookie-based authentication, returns the user's role
+- For API key authentication, returns `{ role: null, authenticated: true }`
 
 ---
 
@@ -685,17 +711,28 @@ All error responses follow a consistent format:
 
 ## Authentication
 
-All endpoints (except `/api/login`) require session-based authentication. The session is established via `/api/login` and maintained through HTTP-only cookies.
+All endpoints (except `/api/login`) require authentication. The API supports dual authentication:
 
-**Authentication Header (Internal APIs):**
-Internal API calls should include session cookies. Client-side requests must include:
+**1. Cookie-based Authentication (Web):**
+- Session is established via `/api/login` and maintained through HTTP-only cookies
+- Client-side requests must include: `credentials: "include"`
+- Session Cookies:
+  - `auth-token`: Encrypted authentication token
+  - `auth-role`: User role
+
+**2. API Key Authentication (Mobile):**
+- Include `X-API-KEY` header with value matching `NEXT_PUBLIC_NC_API_KEY`
+- Example:
 ```javascript
-credentials: "include"
+headers: {
+  "X-API-KEY": process.env.NEXT_PUBLIC_NC_API_KEY
+}
 ```
 
-**Session Cookies:**
-- `auth-token`: Encrypted authentication token
-- `auth-role`: User role
+**Authentication Priority:**
+1. Cookie authentication is checked first
+2. If no valid cookie, API key authentication is checked
+3. If neither is valid, request is rejected with 401 Unauthorized
 
 ## Rate Limiting
 
