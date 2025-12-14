@@ -1,10 +1,13 @@
+"use client"
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layout/providers";
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/layout/theme-provider"
+import Snowfall from 'react-snowfall'
 
+//TODO Export Metadata and Viewport as constants later
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -15,7 +18,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+const metadata: Metadata = {
   title: {
     default: "NC Creation - Portal",
     template: "%s | NC Creation",
@@ -66,7 +69,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = {
+ const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -91,7 +94,8 @@ export default function RootLayout({
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange
-          >
+          >   
+          <Snowfall snowflakeCount={100} />     
         <Providers>{children}</Providers>
         </ThemeProvider>
         <Analytics/>
